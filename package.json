@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.95.1",
+    "@google/generative-ai": "^0.24.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "class-variance-authority": "^0.7.1",
@@ -17,6 +17,7 @@
     "lucide-react": "^1.14.0",
     "mammoth": "^1.12.0",
     "next": "14.2.35",
+    "nodemailer": "^8.0.7",
     "openai": "^6.37.0",
     "radix-ui": "^1.4.3",
     "react": "^18",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

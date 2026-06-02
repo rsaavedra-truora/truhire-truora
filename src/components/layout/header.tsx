@@ -31,7 +31,7 @@ export function Header({ user }: HeaderProps) {
     : '?'
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+    <header className="h-14 bg-white flex items-center justify-between px-6 flex-shrink-0" style={{ borderBottom: '1px solid #E1E5EE' }}>
       {/* Breadcrumb placeholder — se sobreescribe por página */}
       <div id="page-title" />
 

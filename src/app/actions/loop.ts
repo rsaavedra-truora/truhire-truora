@@ -116,6 +116,41 @@ export async function createLoop(formData: FormData) {
       { onConflict: 'process_id,user_id' }
     )
 
+  // Notificar al Bar Raiser que fue asignado a este proceso
+  const { data: barRaiser } = await supabase
+    .from('users')
+    .select('full_name, email')
+    .eq('id', barRaiserId)
+    .single()
+
+  if ((barRaiser as any)?.email) {
+    const debriefUrl = `${process.env.NEXT_PUBLIC_APP_URL}/processes/${pc.process_id}/candidates/${pcId}/debrief`
+    await sendEmail({
+      to: (barRaiser as any).email,
+      subject: `Fuiste asignado como Bar Raiser — ${(pc.process as any)?.title}`,
+      html: `
+<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
+  <div style="margin-bottom: 24px;">
+    <div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
+      <span style="color: white; font-weight: 700; font-size: 14px;">T</span>
+    </div>
+  </div>
+  <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">Hola ${(barRaiser as any).full_name?.split(' ')[0]},</h1>
+  <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 16px;">
+    Fuiste asignado como <strong style="color: #0B1020;">Bar Raiser</strong> en el proceso de
+    <strong style="color: #0B1020;">${(pc.process as any)?.title}</strong>.
+  </p>
+  <p style="font-size: 14px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
+    Una vez que los entrevistadores completen sus evaluaciones, podrás acceder al debrief y tomar la decisión final. Tu identidad como Bar Raiser es confidencial.
+  </p>
+  <a href="${debriefUrl}" style="display: inline-block; background: #0800FF; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">
+    Ver debrief →
+  </a>
+  <p style="font-size: 13px; color: #8892A6; margin-top: 32px;">— TruHire · Truora</p>
+</div>`,
+    })
+  }
+
   // Actualizar status del proceso
   await supabase
     .from('processes')

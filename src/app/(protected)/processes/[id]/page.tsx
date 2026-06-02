@@ -40,6 +40,7 @@ export default async function ProcessDetailPage({
     draft:          'bg-gray-100 text-gray-600',
     open:           'bg-blue-50 text-blue-700',
     screening:      'bg-yellow-50 text-yellow-700',
+    phone_screen:   'bg-sky-50 text-sky-700',
     challenge:      'bg-orange-50 text-orange-700',
     loop:           'bg-violet-50 text-violet-700',
     decision:       'bg-purple-50 text-purple-700',

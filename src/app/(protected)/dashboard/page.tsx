@@ -226,6 +226,7 @@ function StatusBadge({ status }: { status: ProcessStatus }) {
     draft:          'bg-gray-100 text-gray-600',
     open:           'bg-blue-100 text-blue-700',
     screening:      'bg-yellow-100 text-yellow-700',
+    phone_screen:   'bg-sky-100 text-sky-700',
     challenge:      'bg-orange-100 text-orange-700',
     loop:           'bg-violet-100 text-violet-700',
     decision:       'bg-purple-100 text-purple-700',

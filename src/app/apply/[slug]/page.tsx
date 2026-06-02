@@ -86,11 +86,8 @@ export default function ApplyPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 h-16 flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#0800FF] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
-          <span className="font-semibold text-gray-900">Truora</span>
+        <div className="max-w-2xl mx-auto px-4 h-16 flex items-center">
+          <img src="/logo-truora.png" alt="Truora" className="h-6 w-auto" />
         </div>
       </header>
 

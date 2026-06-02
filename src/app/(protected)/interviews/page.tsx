@@ -9,11 +9,11 @@ export default async function InterviewsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Loops donde soy entrevistador
-  const { data: assignments } = await supabase
+  // Loops donde soy entrevistador — query separada para evaluaciones evita el FK incorrecto
+  const { data: rawAssignments } = await supabase
     .from('loop_assignments')
     .select(`
-      id, principles,
+      id, loop_id, principles,
       loop:loops(
         id, status, scheduled_at,
         process_candidate:process_candidates(
@@ -21,13 +21,26 @@ export default async function InterviewsPage() {
           candidate:candidates(full_name, email),
           process:processes(title, capa_intencional)
         )
-      ),
-      evaluation:evaluations!loop_assignments_loop_id_fkey(
-        recommendation, signed_at
       )
     `)
     .eq('interviewer_id', user.id)
     .order('created_at', { ascending: false })
+
+  // Obtener evaluaciones del usuario por separado
+  const loopIds = (rawAssignments ?? []).map((a: any) => a.loop_id).filter(Boolean)
+  const { data: myEvaluations } = loopIds.length > 0
+    ? await supabase
+        .from('evaluations')
+        .select('loop_id, recommendation, signed_at')
+        .eq('interviewer_id', user.id)
+        .in('loop_id', loopIds)
+    : { data: [] }
+
+  // Combinar assignments con sus evaluaciones
+  const assignments = (rawAssignments ?? []).map((a: any) => ({
+    ...a,
+    evaluation: (myEvaluations ?? []).find((e: any) => e.loop_id === a.loop_id) ?? null,
+  }))
 
   // Phone screens donde soy HM
   const { data: phoneScreens } = await supabase

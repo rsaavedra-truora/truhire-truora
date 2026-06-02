@@ -5,6 +5,9 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { TRUORA_PRINCIPLES, DIMENSION_COLORS, getPrincipleBySlug } from '@/lib/principles-data'
 import { setupPhoneScreen, submitPhoneScreenEvaluation } from '@/app/actions/phone-screen'
+import { PrincipleRatingSelector, type PrincipleRating } from '@/components/principle-rating'
+import { QuestionBankSelector } from '@/components/question-bank-selector'
+import { SessionAnalysisUploader } from '@/components/session-analysis'
 
 export default function PhoneScreenPage() {
   const params = useParams()
@@ -29,6 +32,9 @@ export default function PhoneScreenPage() {
   const [newCompetency, setNewCompetency] = useState('')
   const [extraPrinciples, setExtraPrinciples] = useState<string[]>([])
   const [extraPrincipleNotes, setExtraPrincipleNotes] = useState<Record<string, string>>({})
+  // IMPORTANTE: todos los hooks antes de cualquier early return (Rules of Hooks)
+  const [principleRatings, setPrincipleRatings] = useState<Record<string, PrincipleRating>>({})
+  const [principleQuestions, setPrincipleQuestions] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
     loadData()
@@ -45,7 +51,7 @@ export default function PhoneScreenPage() {
         phone_screen:phone_screens(
           id, assigned_principles, role_competencies,
           principle_notes, competency_notes, overall_summary,
-          decision, completed_at, hm_id
+          decision, completed_at, hm_id, session_analysis
         ),
         screening:screenings(classification, bucket_reason, ai_summary, suggested_capa)
       `)
@@ -61,6 +67,15 @@ export default function PhoneScreenPage() {
         setSelectedPrinciples(ps.assigned_principles ?? [])
         setCompetencies(ps.role_competencies?.length ? ps.role_competencies : [''])
         setActiveCompetencies(ps.role_competencies ?? [])
+        // Cargar ratings y preguntas existentes
+        const ratings: Record<string, PrincipleRating> = {}
+        const questions: Record<string, string | null> = {}
+        Object.entries(ps.principle_notes ?? {}).forEach(([slug, val]: any) => {
+          if (val?.rating) ratings[slug] = val.rating
+          if (val?.question) questions[slug] = val.question
+        })
+        setPrincipleRatings(ratings)
+        setPrincipleQuestions(questions)
       }
     }
     setLoading(false)
@@ -77,9 +92,11 @@ export default function PhoneScreenPage() {
 
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Cargando...</div>
 
-  // Setup = no existe phone screen aún. Evaluación = ya existe pero no está completado.
+  // Setup = no existe. Evaluación = existe (siempre editable, incluso si ya está completado)
   const isSetup = !phoneScreen
+  // Una vez enviada la evaluación (completed_at), queda bloqueada — no se puede editar
   const isEvaluation = !!phoneScreen && !phoneScreen.completed_at
+  const isCompleted = !!phoneScreen?.completed_at
   const selectedPrincipleData = TRUORA_PRINCIPLES.filter(p => selectedPrinciples.includes(p.slug))
 
   if (isDone && phoneScreen?.decision) {
@@ -116,6 +133,22 @@ export default function PhoneScreenPage() {
           )}
         </div>
       </div>
+
+      {/* Banner: grabar sesión */}
+      {!isCompleted && (
+        <div className="bg-[#0800FF] rounded-xl p-4 text-white">
+          <p className="text-sm font-semibold mb-1">📹 Recuerda grabar esta sesión en Google Meet</p>
+          <p className="text-xs opacity-80 leading-relaxed">
+            Después de la entrevista, el agente de AI analiza la grabación como un entrevistador independiente
+            y le da al Bar Raiser una perspectiva adicional. Para habilitarlo:
+          </p>
+          <ol className="text-xs opacity-80 mt-2 space-y-0.5 list-none">
+            <li>1. Inicia la grabación al comenzar Google Meet → <strong>Actividades → Grabar</strong></li>
+            <li>2. Al terminar, la grabación queda en tu Google Drive automáticamente</li>
+            <li>3. Vuelve aquí después de enviar tu evaluación — puedes pegar el link de Drive o subir el archivo directamente</li>
+          </ol>
+        </div>
+      )}
 
       {/* Contexto del screening AI */}
       {screening && (
@@ -251,16 +284,16 @@ export default function PhoneScreenPage() {
           {/* Scheduling */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
             <h2 className="text-sm font-semibold text-gray-900 mb-1">Agendar entrevista</h2>
-            <p className="text-xs text-gray-500 mb-3">Agrega tu link de Calendly y el candidato recibirá una invitación para agendar directamente.</p>
+            <p className="text-xs text-gray-500 mb-3">Agrega tu link de agendamiento y el candidato recibirá una invitación para agendar directamente.</p>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Tu Calendly URL</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Tu Link de agendamiento</label>
                 <input
                   type="url"
                   name="calendly_url"
                   value={calendlyUrl}
                   onChange={e => setCalendlyUrl(e.target.value)}
-                  placeholder="https://calendly.com/tu-nombre/30min"
+                  placeholder="https://calendar.google.com/calendar/appointments/schedules/..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
                 />
               </div>
@@ -268,10 +301,10 @@ export default function PhoneScreenPage() {
                 <input type="checkbox" name="send_invite" value="true" checked={sendInvite}
                   onChange={e => setSendInvite(e.target.checked)}
                   className="rounded border-gray-300 text-[#0800FF] focus:ring-[#0800FF]" />
-                <span className="text-sm text-gray-700">Enviar email de invitación al candidato con el link de Calendly</span>
+                <span className="text-sm text-gray-700">Enviar email de invitación al candidato con el link de agendamiento</span>
               </label>
               {!calendlyUrl && sendInvite && (
-                <p className="text-xs text-amber-600">Agrega tu Calendly URL para enviar la invitación, o desmarca la opción para configurar el agendamiento manualmente.</p>
+                <p className="text-xs text-amber-600">Agrega tu Link de agendamiento para enviar la invitación, o desmarca la opción para configurar el agendamiento manualmente.</p>
               )}
             </div>
           </div>
@@ -288,12 +321,95 @@ export default function PhoneScreenPage() {
         </form>
       )}
 
-      {/* EVALUACIÓN: después de la entrevista */}
+      {/* LECTURA: evaluación enviada y bloqueada */}
+      {isCompleted && (
+        <div className="space-y-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between">
+            <p className="text-sm text-gray-600 font-medium">
+              Evaluación enviada el {new Date(phoneScreen.completed_at).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+            <span className={`text-xs font-semibold px-2.5 py-1.5 rounded-full ${phoneScreen?.decision === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {phoneScreen?.decision === 'pass' ? '✓ Pasa al loop' : '✗ No avanza'}
+            </span>
+          </div>
+
+          {selectedPrincipleData.map(p => {
+            const noteData = phoneScreen?.principle_notes?.[p.slug]
+            const rating = noteData?.rating ?? null
+            const notes = noteData?.notes ?? null
+            const question = noteData?.question ?? null
+            return (
+              <div key={p.slug} className="bg-white rounded-xl border border-gray-200 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">{p.name}</span>
+                  {rating && (
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      rating === 'muy_fuerte' || rating === 'fuerte' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {rating === 'muy_fuerte' ? '↑↑ Muy fuerte' : rating === 'fuerte' ? '↑ Fuerte' : rating === 'debil' ? '↓ Débil' : '↓↓ Muy débil'}
+                    </span>
+                  )}
+                </div>
+                {question && (
+                  <div className="bg-[#E8E7FF] rounded-lg px-3 py-2 mb-2">
+                    <p className="text-xs font-semibold text-[#0800FF] mb-0.5">Pregunta utilizada:</p>
+                    <p className="text-xs text-gray-700">{question}</p>
+                  </div>
+                )}
+                {notes ? (
+                  <p className="text-sm text-gray-700 leading-relaxed">{notes}</p>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Sin notas registradas.</p>
+                )}
+              </div>
+            )
+          })}
+
+          {phoneScreen?.role_competencies?.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Competencias evaluadas</p>
+              <div className="flex flex-wrap gap-2">
+                {phoneScreen.role_competencies.map((c: string, i: number) => (
+                  <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{c}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2">Evaluación final</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{phoneScreen?.overall_summary ?? <span className="text-gray-400 italic">Sin resumen.</span>}</p>
+          </div>
+
+          {/* Análisis de sesión con Gemini — disponible siempre después de completar */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Análisis de sesión — Gemini</h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Sube la grabación de la entrevista. Gemini emite su propio veredicto para el Bar Raiser,
+                independientemente de tu decisión de avance.
+              </p>
+            </div>
+            <SessionAnalysisUploader
+              processCandidateId={pcId}
+              type="phone_screen"
+              existingAnalysis={phoneScreen?.session_analysis ?? null}
+            />
+          </div>
+        </div>
+      )}
+
       {isEvaluation && (
         <form action={submitPhoneScreenEvaluation}>
           <input type="hidden" name="process_candidate_id" value={pcId} />
-          {/* Hidden fields para competencias activas */}
+          {/* Hidden fields para competencias activas y ratings */}
           {activeCompetencies.map(c => <input key={c} type="hidden" name="competencies" value={c} />)}
+          {Object.entries(principleRatings).map(([slug, rating]) => (
+            <input key={slug} type="hidden" name={`rating_${slug}`} value={rating} />
+          ))}
+          {Object.entries(principleQuestions).map(([slug, q]) => q ? (
+            <input key={slug} type="hidden" name={`question_${slug}`} value={q} />
+          ) : null)}
           {/* Hidden fields para principios extra y sus notas */}
           {extraPrinciples.map(slug => (
             <span key={slug}>
@@ -318,12 +434,22 @@ export default function PhoneScreenPage() {
                   {p.antiSignals.map((s, i) => <p key={i} className="text-xs text-red-800 leading-snug mb-1">• {s}</p>)}
                 </div>
               </div>
+              <QuestionBankSelector
+                principle={p}
+                selectedQuestion={principleQuestions[p.slug] ?? null}
+                onSelect={q => setPrincipleQuestions(prev => ({ ...prev, [p.slug]: q }))}
+              />
+              <PrincipleRatingSelector
+                slug={p.slug}
+                value={principleRatings[p.slug] ?? null}
+                onChange={(slug, rating) => setPrincipleRatings(prev => ({ ...prev, [slug]: rating }))}
+              />
               <textarea
                 name={`principle_note_${p.slug}`}
                 rows={3}
-                placeholder="¿Qué evidencia encontraste? Cita ejemplos concretos que dio el candidato..."
-                defaultValue={(phoneScreen?.principle_notes?.[p.slug]) ?? ''}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+                placeholder="Cita ejemplos específicos del candidato. Esto lo leerá el Bar Raiser."
+                defaultValue={phoneScreen?.principle_notes?.[p.slug]?.notes ?? phoneScreen?.principle_notes?.[p.slug] ?? ''}
+                className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
               />
             </div>
           ))}

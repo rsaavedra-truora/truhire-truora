@@ -27,6 +27,35 @@ El sweetspot: exigencia alta en la barra de calidad, pero generosidad en el bene
 
 ---
 
+## DOS TIPOS DE CANDIDATO QUE TRUORA QUIERE CONTRATAR
+
+### Tipo 1 — Excelencia demostrada
+Track record claro. Ya lo hizo en condiciones reales. Métricas, escala, impacto verificable.
+El riesgo de contratarlos es bajo porque la evidencia es directa.
+
+### Tipo 2 — Diamante en bruto (igual de importante para Truora)
+No tienen el track record convencional, pero el contexto los limitó — no la capacidad.
+Truora no busca solo a los más caros o con el pedigrí más brillante.
+Busca personas con el patrón correcto que todavía no han tenido las oportunidades para demostrarlo a escala.
+
+**Señales específicas de diamante en bruto — clasifica como GREEN si hay 3 o más:**
+- Autodidactismo verificable: aprendieron algo difícil por su cuenta, sin los recursos que otros tendrían
+- Agencia consistente en escala pequeña: no han gestionado equipos de 50, pero en su contexto siempre tomaron el problema y lo resolvieron
+- Decisiones que priorizan impacto sobre seguridad: dejaron el camino fácil por el difícil aunque el difícil fuera más pequeño en términos absolutos
+- Trayectoria en aceleración: la pendiente de crecimiento es más importante que el punto de partida
+- Frustración de contexto visible: señales de que querían hacer más de lo que su entorno les permitió
+- Curiosidad aplicada: estudian y aplican temas sin que nadie se los pida
+
+**REGLAS CRÍTICAS para no perder diamantes en bruto:**
+- NO penalices la ausencia de métricas grandes si hay presencia de patrón fuerte
+- NO penalices la empresa pequeña o desconocida si hay evidencia de ownership real
+- NO penalices el CV corto si la pendiente de crecimiento es notablemente alta
+- SÍ penaliza la ausencia total de señales de agencia, aunque el CV sea impresionante
+
+Ambos tipos califican para GREEN. Si hay perfiles de referencia en el contexto que muestran personas que llegaron a Truora sin credenciales brillantes y resultaron excepcionales, úsalos para calibrar hacia el patrón — no hacia el pedigrí.
+
+---
+
 ## PASO 1: Validación de identidad
 
 Antes de evaluar, verifica si el CV pertenece a quien dice ser el aplicante.
@@ -217,6 +246,7 @@ export function buildScreeningUserPrompt({
   roleDescription,
   entryMode,
   capa,
+  benchmarks,
 }: {
   candidateName: string
   cvText: string
@@ -224,6 +254,7 @@ export function buildScreeningUserPrompt({
   roleDescription: string | null
   entryMode: 'role_first' | 'talent_first'
   capa: 'liderazgo' | 'funcional'
+  benchmarks?: Array<{ full_name: string; role_at_truora: string; layer?: string | null; cv_text?: string | null; notes?: string | null }>
 }): string {
   const capaContext =
     capa === 'liderazgo'
@@ -237,9 +268,24 @@ export function buildScreeningUserPrompt({
       ? '\n\nEste es un proceso Talent-first. No hay rol específico definido. Evalúa el talento general de la persona. Usa role_fit_level: "na".'
       : '\n\nNo se proporcionó descripción del rol. Usa role_fit_level: "na".'
 
+  // Bloque de benchmarks — personas reales de Truora como anclaje positivo
+  let benchmarkBlock = ''
+  if (benchmarks && benchmarks.length > 0) {
+    const activeBenchmarks = benchmarks.slice(0, 4)
+    benchmarkBlock = `\n\n## Perfiles de referencia — High performers actuales de Truora
+
+Estos son CVs de personas que ya están en Truora y han demostrado ser high performers, independientemente de su rol. El equipo los considera referentes de talento. Úsalos para calibrar tu criterio: detecta los patrones que tienen en común — esos son los patrones que Truora busca en nuevos candidatos.
+
+Nota: Truora busca diamantes en bruto, no los CVs más costosos o con más pedigrí. El patrón importa más que el precio.
+
+${activeBenchmarks.filter(b => b.cv_text).map(b =>
+  `--- Perfil: ${b.full_name} ---\n${b.cv_text!.slice(0, 800)}${b.cv_text!.length > 800 ? '\n[...]' : ''}`
+).join('\n\n')}`
+  }
+
   return `Nombre del aplicante: ${candidateName}
 Proceso: ${roleTitle}
-Capa del proceso: ${capa} — ${capaContext}${roleContext}
+Capa del proceso: ${capa} — ${capaContext}${roleContext}${benchmarkBlock}
 
 CV del candidato (en Markdown):
 ---

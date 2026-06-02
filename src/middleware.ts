@@ -52,6 +52,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // Si hay sesión verificar que el usuario esté activo en TruHire
+  if (user && !isPublicPath) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('is_active')
+      .eq('id', user.id)
+      .single()
+
+    if (profile && profile.is_active === false) {
+      // Usuario desactivado — cerrar sesión y redirigir
+      await supabase.auth.signOut()
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/auth/login'
+      loginUrl.searchParams.set('error', 'account_deactivated')
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   // Si hay sesión y está en /auth/login → redirigir al dashboard
   if (user && pathname === '/auth/login') {
     const dashboardUrl = request.nextUrl.clone()

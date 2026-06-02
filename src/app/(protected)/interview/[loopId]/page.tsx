@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PrincipleRatingSelector, type PrincipleRating } from '@/components/principle-rating'
+import { QuestionBankSelector } from '@/components/question-bank-selector'
+import { SessionAnalysisUploader } from '@/components/session-analysis'
 import { getPrincipleBySlug } from '@/lib/principles-data'
 
 export default function InterviewPage() {
@@ -27,6 +29,7 @@ export default function InterviewPage() {
   // Form state
   const [principleNotes, setPrincipleNotes] = useState<Record<string, string>>({})
   const [principleRatings, setPrincipleRatings] = useState<Record<string, PrincipleRating>>({})
+  const [principleQuestions, setPrincipleQuestions] = useState<Record<string, string | null>>({})
   const [summary, setSummary] = useState('')
   const [conclusion, setConclusion] = useState('')
   const [recommendation, setRecommendation] = useState<boolean | null>(null)
@@ -83,12 +86,14 @@ export default function InterviewPage() {
           setPrincipleNotes(
             Object.fromEntries(Object.entries(notes).map(([k, v]: any) => [k, v?.notes ?? v ?? '']))
           )
-          // Extraer ratings del JSONB
           const ratings: Record<string, PrincipleRating> = {}
+          const questions: Record<string, string | null> = {}
           Object.entries(notes).forEach(([k, v]: any) => {
             if (v?.rating) ratings[k] = v.rating
+            if (v?.question) questions[k] = v.question
           })
           setPrincipleRatings(ratings)
+          setPrincipleQuestions(questions)
           setSummary(eval_.summary ?? '')
           setConclusion(eval_.conclusion ?? '')
           setRecommendation(eval_.recommendation)
@@ -101,16 +106,19 @@ export default function InterviewPage() {
 
   async function saveEvaluation(sign = false) {
     if (!currentUser || !assignment) return
+    // Evaluación firmada — inmutable. No se permiten modificaciones.
+    if (isSigned) return
     setSaving(true)
 
-    // Combinar notas + rating en un solo JSONB por principio
-    const combinedNotes: Record<string, { notes: string; rating: PrincipleRating | null }> = {}
-    Object.keys(principleNotes).forEach(slug => {
-      combinedNotes[slug] = { notes: principleNotes[slug] ?? '', rating: principleRatings[slug] ?? null }
-    })
-    // Incluir principios con rating aunque no tengan notas
-    Object.keys(principleRatings).forEach(slug => {
-      if (!combinedNotes[slug]) combinedNotes[slug] = { notes: '', rating: principleRatings[slug] }
+    // Combinar notas + rating + pregunta en el JSONB por principio
+    const allSlugs = new Set([...Object.keys(principleNotes), ...Object.keys(principleRatings), ...Object.keys(principleQuestions)])
+    const combinedNotes: Record<string, { notes: string; rating: PrincipleRating | null; question: string | null }> = {}
+    allSlugs.forEach(slug => {
+      combinedNotes[slug] = {
+        notes: principleNotes[slug] ?? '',
+        rating: principleRatings[slug] ?? null,
+        question: principleQuestions[slug] ?? null,
+      }
     })
 
     const payload = {
@@ -175,42 +183,35 @@ export default function InterviewPage() {
         </div>
       </div>
 
-      {/* Bloque 1: Contexto del candidato */}
+      {/* Banner: grabar sesión */}
+      {!isSigned && (
+        <div className="bg-[#0800FF] rounded-xl p-4 text-white">
+          <p className="text-sm font-semibold mb-1">📹 Recuerda grabar esta sesión en Google Meet</p>
+          <p className="text-xs opacity-80 leading-relaxed">
+            Después de la entrevista, el agente de AI analiza la grabación de forma independiente
+            y su veredicto aparece junto al tuyo en el debrief del Bar Raiser.
+          </p>
+          <ol className="text-xs opacity-80 mt-2 space-y-0.5 list-none">
+            <li>1. Inicia la grabación al comenzar Google Meet → <strong>Actividades → Grabar</strong></li>
+            <li>2. Al terminar, la grabación queda en tu Google Drive automáticamente</li>
+            <li>3. Firma tu evaluación aquí y luego sube la grabación — vía link de Drive o archivo directo</li>
+          </ol>
+        </div>
+      )}
+
+      {/* Bloque 1: Contexto del candidato — evaluación CIEGA
+           El entrevistador NO ve screening AI ni phone screen para evitar anchoring bias.
+           Solo ve CV y datos del candidato. */}
       <details className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <summary className="px-5 py-4 cursor-pointer flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-900">Contexto del candidato</span>
+          <span className="text-sm font-semibold text-gray-900">Perfil del candidato</span>
           <span className="text-xs text-gray-400">Ver / ocultar</span>
         </summary>
         <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
-          {/* Screening AI */}
-          {screening && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Screening AI</p>
-              <div className="bg-gray-50 rounded-lg p-3">
-                {screening.bucket_reason && <p className="text-sm text-gray-700 font-medium mb-1">{screening.bucket_reason}</p>}
-                {screening.ai_summary && <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{screening.ai_summary}</p>}
-                {(screening.truora_signals?.length > 0) && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {screening.truora_signals.map((s: string, i: number) => (
-                      <span key={i} className="text-xs bg-[#E8E7FF] text-[#0800FF] px-2 py-0.5 rounded-full">
-                        {s.split(':')[0].trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Phone Screen summary */}
-          {phoneScreen?.overall_summary && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Phone Screen — HM</p>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-sm text-gray-600 leading-relaxed">{phoneScreen.overall_summary}</p>
-              </div>
-            </div>
-          )}
+          <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+            <p className="text-xs text-blue-700 font-medium">Evaluación ciega</p>
+            <p className="text-xs text-blue-600 mt-0.5">No ves el resultado del screening AI ni la evaluación del Hiring Manager. Esto es intencional — cada evaluador debe formar su opinión de forma independiente.</p>
+          </div>
 
           {/* CV */}
           {(candidate as any)?.cv_text && (
@@ -299,6 +300,21 @@ export default function InterviewPage() {
                       </div>
                     )}
                   </details>
+
+                  {/* Banco de preguntas */}
+                  {!isSigned && (
+                    <QuestionBankSelector
+                      principle={p}
+                      selectedQuestion={principleQuestions[p.slug] ?? null}
+                      onSelect={q => setPrincipleQuestions(prev => ({ ...prev, [p.slug]: q }))}
+                    />
+                  )}
+                  {isSigned && principleQuestions[p.slug] && (
+                    <div className="bg-[#E8E7FF] rounded-lg px-3 py-2 mb-3">
+                      <p className="text-xs font-semibold text-[#0800FF] mb-0.5">Pregunta utilizada:</p>
+                      <p className="text-xs text-gray-700">{principleQuestions[p.slug]}</p>
+                    </div>
+                  )}
 
                   {/* Rating del principio */}
                   <PrincipleRatingSelector
@@ -405,6 +421,33 @@ export default function InterviewPage() {
           </div>
         )}
       </div>
+
+      {/* Análisis de sesión — bloqueado hasta firma para no sesgar la evaluación humana */}
+      {!isSigned ? (
+        <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-5 text-center">
+          <p className="text-sm text-gray-500 font-medium">Análisis de sesión con Gemini</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Disponible después de firmar tu evaluación — así tu criterio no es influenciado por el AI.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Análisis de sesión — Gemini</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Sube la grabación de Google Meet. Gemini analiza la sesión de forma independiente
+              y emite su propio veredicto para el Bar Raiser.
+            </p>
+          </div>
+          <SessionAnalysisUploader
+            loopId={loopId}
+            processCandidateId={(loop?.process_candidate as any)?.id}
+            type="loop"
+            existingAnalysis={evaluation?.session_analysis ?? null}
+          />
+        </div>
+      )}
+
     </div>
   )
 }

@@ -47,8 +47,8 @@ export default async function DebriefPage({
     { data: existingDecision },
   ] = await Promise.all([
     supabase.from('screenings').select('classification, bucket_reason, ai_summary, truora_signals, strengths, gaps, suggested_capa').eq('process_candidate_id', params.pcId).maybeSingle(),
-    supabase.from('phone_screens').select('assigned_principles, overall_summary, decision, hm:users!hm_id(full_name)').eq('process_candidate_id', params.pcId).maybeSingle(),
-    supabase.from('loops').select('id, bar_raiser_id, assignments:loop_assignments(id, principles, interviewer:users!interviewer_id(id, full_name))').eq('process_candidate_id', params.pcId).maybeSingle(),
+    supabase.from('phone_screens').select('assigned_principles, principle_notes, overall_summary, decision, session_analysis, hm:users!hm_id(full_name)').eq('process_candidate_id', params.pcId).maybeSingle(),
+    supabase.from('loops').select('id, bar_raiser_id, ai_evaluation, assignments:loop_assignments(id, principles, interviewer:users!interviewer_id(id, full_name))').eq('process_candidate_id', params.pcId).maybeSingle(),
     supabase.from('decisions').select('*').eq('process_candidate_id', params.pcId).maybeSingle(),
   ])
 
@@ -57,7 +57,7 @@ export default async function DebriefPage({
   if (loop) {
     const { data: evals } = await supabase
       .from('evaluations')
-      .select('interviewer_id, principle_notes, summary, conclusion, recommendation, signed_at')
+      .select('interviewer_id, principle_notes, summary, conclusion, recommendation, signed_at, session_analysis')
       .eq('loop_id', loop.id)
     evaluations = evals ?? []
   }
@@ -94,6 +94,22 @@ export default async function DebriefPage({
           )}
         </div>
       </div>
+
+      {/* Grid de principios × entrevistadores — PRIMERO para el Bar Raiser */}
+      {(assignments.length > 0 || phoneScreen) && (
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Grid de evaluaciones por principio</p>
+            <p className="text-xs text-gray-400 mt-0.5">Calificación que cada entrevistador asignó a cada principio evaluado. Hover sobre la calificación para ver las notas.</p>
+          </div>
+          <PrincipleGrid
+            phoneScreen={phoneScreen}
+            assignments={assignments}
+            evaluations={evaluations}
+            loopId={loop?.id ?? null}
+          />
+        </div>
+      )}
 
       {/* Resumen de votos */}
       {evaluations.length > 0 && (
@@ -201,22 +217,6 @@ export default async function DebriefPage({
         )
       })}
 
-      {/* Grid de principios × entrevistadores */}
-      {assignments.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Grid de evaluaciones por principio</p>
-            <p className="text-xs text-gray-400 mt-0.5">Calificación que cada entrevistador asignó a cada principio evaluado</p>
-          </div>
-          <div className="overflow-x-auto">
-            <PrincipleGrid
-              phoneScreen={phoneScreen}
-              assignments={assignments}
-              evaluations={evaluations}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Decisión del Bar Raiser */}
       <div className="bg-white rounded-xl border-2 border-[#0800FF] p-6">
@@ -249,112 +249,200 @@ export default async function DebriefPage({
 }
 
 function PrincipleGrid({
-  phoneScreen, assignments, evaluations,
+  phoneScreen, assignments, evaluations, loopId,
 }: {
   phoneScreen: any
   assignments: any[]
   evaluations: any[]
+  loopId: string | null
 }) {
-  // Recopilar todos los principios evaluados (HM + entrevistadores)
-  const allPrincipalSlugs = new Set<string>()
+  // Mutable Set — se agregan slugs de AI después de procesar las filas humanas
+  const slugSet = new Set<string>([
+    ...(phoneScreen?.assigned_principles ?? []),
+    ...assignments.flatMap(a => a.principles as string[] ?? []),
+  ])
 
-  const hmPrinciples: string[] = phoneScreen?.assigned_principles ?? []
-  hmPrinciples.forEach(s => allPrincipalSlugs.add(s))
+  type RowType = 'hm' | 'hm_ai' | 'interviewer' | 'interviewer_ai'
+  const rows: Array<{
+    name: string
+    type: RowType
+    assignedSlugs: string[]
+    principleNotes: Record<string, any>
+    recommendation: boolean | null | undefined
+    aiVerdict?: string | null
+  }> = []
 
-  assignments.forEach(a => {
-    ;(a.principles as string[])?.forEach(s => allPrincipalSlugs.add(s))
-  })
+  // Helper: normaliza un JSONB de principle_notes al shape {notes, rating, question}
+  function normalizePrincipleNotes(raw: any): Record<string, any> {
+    const parsed: Record<string, any> = JSON.parse(JSON.stringify(raw ?? {}))
+    const out: Record<string, any> = {}
+    Object.keys(parsed).forEach(slug => {
+      const val = parsed[slug]
+      out[slug] = {
+        notes: val?.notes ?? '',
+        rating: val?.rating ?? null,
+        question: val?.question ?? null,
+      }
+    })
+    return out
+  }
 
-  const allSlugs = Array.from(allPrincipalSlugs)
-
-  // Filas: HM + cada entrevistador
-  const rows: Array<{ name: string; type: 'hm' | 'interviewer'; principleNotes: Record<string, any>; recommendation?: boolean | null }> = []
-
+  // --- HM humano ---
   if (phoneScreen) {
     rows.push({
       name: `HM — ${(phoneScreen.hm as any)?.full_name ?? 'Hiring Manager'}`,
       type: 'hm',
-      principleNotes: phoneScreen.principle_notes ?? {},
+      assignedSlugs: phoneScreen.assigned_principles ?? [],
+      principleNotes: normalizePrincipleNotes(phoneScreen.principle_notes),
       recommendation: phoneScreen.decision === 'pass',
     })
+    // --- HM AI (phone screen session analysis) ---
+    const psAI = phoneScreen.session_analysis
+    if (psAI?.principle_notes) {
+      const aiSlugs = Object.keys(psAI.principle_notes)
+      aiSlugs.forEach(s => slugSet.add(s))
+      rows.push({
+        name: `AI — ${(phoneScreen.hm as any)?.full_name ?? 'Phone Screen'}`,
+        type: 'hm_ai',
+        assignedSlugs: aiSlugs,
+        principleNotes: normalizePrincipleNotes(psAI.principle_notes),
+        recommendation: psAI.recommendation ?? (psAI.ai_verdict === 'hire' ? true : psAI.ai_verdict === 'no_hire' ? false : null),
+        aiVerdict: psAI.ai_verdict ?? null,
+      })
+    }
   }
 
+  // --- Entrevistadores del loop (humano + AI) ---
   assignments.forEach(a => {
     const interviewer = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
     const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
+
     rows.push({
       name: interviewer?.full_name ?? '—',
       type: 'interviewer',
-      principleNotes: evaluation?.principle_notes ?? {},
-      recommendation: evaluation?.recommendation,
+      assignedSlugs: a.principles ?? [],
+      principleNotes: normalizePrincipleNotes(evaluation?.principle_notes),
+      recommendation: evaluation?.recommendation ?? null,
     })
+
+    // AI por entrevistador (session_analysis guardado en evaluations.session_analysis)
+    const intAI = evaluation?.session_analysis
+    if (intAI?.principle_notes) {
+      const aiSlugs = Object.keys(intAI.principle_notes)
+      aiSlugs.forEach(s => slugSet.add(s))
+      rows.push({
+        name: `AI — ${interviewer?.full_name ?? 'Entrevistador'}`,
+        type: 'interviewer_ai',
+        assignedSlugs: aiSlugs,
+        principleNotes: normalizePrincipleNotes(intAI.principle_notes),
+        recommendation: intAI.recommendation ?? (intAI.ai_verdict === 'hire' ? true : intAI.ai_verdict === 'no_hire' ? false : null),
+        aiVerdict: intAI.ai_verdict ?? null,
+      })
+    }
   })
 
+  const allSlugs = Array.from(slugSet)
+
   return (
-    <table className="w-full text-sm" style={{ minWidth: `${200 + allSlugs.length * 140}px` }}>
-      <thead>
-        <tr className="bg-gray-50 border-b border-gray-100">
-          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 w-48">Entrevistador</th>
-          {allSlugs.map(slug => {
-            const p = getPrincipleBySlug(slug)
-            return (
-              <th key={slug} className="text-left px-3 py-3 text-xs font-medium text-gray-500">
-                <div className="max-w-[130px]">
-                  <p className="text-[#0800FF] font-semibold leading-tight">{p?.name ?? slug}</p>
-                </div>
-              </th>
-            )
-          })}
-          <th className="text-left px-3 py-3 text-xs font-medium text-gray-500">Recomendación</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100">
-        {rows.map((row, i) => (
-          <tr key={i} className="hover:bg-gray-50">
-            <td className="px-4 py-3">
-              <p className="text-sm font-medium text-gray-900">{row.name}</p>
-              <p className="text-xs text-gray-400">{row.type === 'hm' ? 'Phone screen' : 'Loop'}</p>
-            </td>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm table-fixed">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-100">
+            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500" style={{width:'20%'}}>Entrevistador</th>
             {allSlugs.map(slug => {
-              const data = row.principleNotes[slug]
-              const rating = data?.rating ?? null
-              const notes = data?.notes ?? (typeof data === 'string' ? data : null)
-              const didEvaluate = row.type === 'hm'
-                ? (phoneScreen?.assigned_principles as string[])?.includes(slug)
-                : assignments.find(a => {
-                    const iv = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
-                    return evaluations.find(e => e.interviewer_id === iv?.id) && (a.principles as string[])?.includes(slug)
-                  })
+              const p = getPrincipleBySlug(slug)
               return (
-                <td key={slug} className="px-3 py-3">
-                  {didEvaluate ? (
-                    <div className="space-y-1">
-                      <RatingBadge rating={rating} />
-                      {notes && (
-                        <p className="text-xs text-gray-500 max-w-[130px] leading-snug line-clamp-2" title={notes}>
-                          {notes}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-200">—</span>
-                  )}
-                </td>
+                <th key={slug} className="text-left px-2 py-3 text-xs font-medium text-gray-500" style={{width:`${Math.floor(72/allSlugs.length)}%`}}>
+                  <p className="text-[#0800FF] font-semibold leading-tight text-xs">{p?.name ?? slug}</p>
+                </th>
               )
             })}
-            <td className="px-3 py-3">
-              {row.recommendation !== null && row.recommendation !== undefined ? (
-                <span className={`text-lg ${row.recommendation ? 'text-green-600' : 'text-red-500'}`}>
-                  {row.recommendation ? '👍' : '👎'}
-                </span>
-              ) : (
-                <span className="text-xs text-gray-300">—</span>
-              )}
-            </td>
+            <th className="text-left px-2 py-3 text-xs font-medium text-gray-500" style={{width:'8%'}}>Rec.</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {rows.map((row, i) => (
+            <tr key={i} className={`${row.type === 'hm_ai' || row.type === 'interviewer_ai' ? 'bg-violet-50/40 hover:bg-violet-50' : 'hover:bg-gray-50'}`}>
+              <td className="px-4 py-4">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="text-sm font-medium text-gray-900">{row.name}</p>
+                  {(row.type === 'hm_ai' || row.type === 'interviewer_ai') && (
+                    <span className="text-xs bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-medium">AI</span>
+                  )}
+                  {row.aiVerdict && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                      row.aiVerdict === 'hire' ? 'bg-green-100 text-green-700'
+                      : row.aiVerdict === 'no_hire' ? 'bg-red-100 text-red-700'
+                      : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      {row.aiVerdict === 'hire' ? '✓ Hire' : row.aiVerdict === 'no_hire' ? '✗ No Hire' : '~ Talent Pool'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">
+                  {row.type === 'hm' ? 'Phone screen'
+                    : row.type === 'hm_ai' ? 'Análisis AI — Phone screen'
+                    : row.type === 'interviewer_ai'
+                    ? (loopId
+                        ? <Link href={`/interview/${loopId}/ai-analysis`} className="text-violet-600 hover:underline">Ver análisis →</Link>
+                        : 'Análisis AI')
+                    : 'Loop'}
+                </p>
+              </td>
+              {allSlugs.map(slug => {
+                const evaluated = row.assignedSlugs.includes(slug)
+                const data = row.principleNotes[slug]
+                const rating = data?.rating ?? null
+                const notes = data?.notes ?? null
+                const question = data?.question ?? null
+                return (
+                  <td key={slug} className="px-3 py-4">
+                    {evaluated ? (
+                      rating ? (
+                        /* Tiene rating — badge con tooltip */
+                        <div className="relative group inline-block">
+                          <RatingBadge rating={rating} />
+                          {(notes || question) && (
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-xs rounded-xl p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-xl z-50"
+                              style={{ width: 'max-content', maxWidth: '320px', whiteSpace: 'normal' }}>
+                              {question && (
+                                <div className={notes ? 'mb-3 pb-3 border-b border-gray-700' : ''}>
+                                  <p className="font-semibold text-blue-300 mb-1.5">Pregunta utilizada:</p>
+                                  <p className="leading-relaxed text-gray-100">{question}</p>
+                                </div>
+                              )}
+                              {notes && (
+                                <div>
+                                  <p className="font-semibold text-gray-300 mb-1.5">Notas:</p>
+                                  <p className="leading-relaxed text-gray-100">{notes}</p>
+                                </div>
+                              )}
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Evaluado pero sin rating aún */
+                        <span className="text-xs text-amber-500 font-medium">Pendiente</span>
+                      )
+                    ) : (
+                      /* No le correspondía evaluar este principio */
+                      <span className="text-xs text-gray-200">—</span>
+                    )}
+                  </td>
+                )
+              })}
+              <td className="px-3 py-4">
+                {row.recommendation !== null && row.recommendation !== undefined
+                  ? <span className="text-lg">{row.recommendation ? '👍' : '👎'}</span>
+                  : <span className="text-xs text-gray-300">—</span>
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 

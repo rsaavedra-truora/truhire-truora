@@ -6,13 +6,13 @@
  * Débil / Muy débil → Debilidad
  */
 
-export type PrincipleRating = 'muy_fuerte' | 'fuerte' | 'debil' | 'muy_debil'
+export type PrincipleRating = 'muy_fuerte' | 'fuerte' | 'intermedio' | 'debil' | 'muy_debil'
 
 export const RATING_CONFIG: Record<PrincipleRating, {
   label: string
   shortLabel: string
   icon: string
-  isStrength: boolean
+  isStrength: boolean | null // null = neutro
   bg: string
   selectedBg: string
   text: string
@@ -40,6 +40,17 @@ export const RATING_CONFIG: Record<PrincipleRating, {
     text: 'text-green-600',
     selectedText: 'text-white',
     border: 'border-green-300',
+  },
+  intermedio: {
+    label: 'Intermedio',
+    shortLabel: 'Intermedio',
+    icon: '→',
+    isStrength: null,
+    bg: 'bg-white',
+    selectedBg: 'bg-blue-400',
+    text: 'text-blue-600',
+    selectedText: 'text-white',
+    border: 'border-blue-300',
   },
   debil: {
     label: 'Débil',
@@ -88,7 +99,7 @@ export function PrincipleRatingSelector({ slug, value, onChange, disabled }: Pri
   return (
     <div>
       <p className="text-xs font-medium text-gray-500 mb-2">Calificación de este principio</p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {(Object.entries(RATING_CONFIG) as [PrincipleRating, typeof RATING_CONFIG[PrincipleRating]][]).map(([key, config]) => {
           const isSelected = value === key
           return (
@@ -111,6 +122,7 @@ export function PrincipleRatingSelector({ slug, value, onChange, disabled }: Pri
       </div>
       <div className="flex items-center justify-between mt-1.5">
         <span className="text-xs text-green-600 font-medium">← Fortaleza</span>
+        <span className="text-xs text-blue-500 font-medium">Intermedio</span>
         <span className="text-xs text-red-500 font-medium">Debilidad →</span>
       </div>
     </div>

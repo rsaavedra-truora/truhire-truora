@@ -68,6 +68,14 @@ export async function POST(request: NextRequest) {
 
     const calibrationBlock = buildCalibrationBlock(calibrationExamples)
 
+    // Cargar benchmarks activos (unicornios del equipo como anclaje positivo)
+    const { data: benchmarks } = await supabase
+      .from('talent_benchmarks')
+      .select('full_name, role_at_truora, layer, cv_text, notes')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(4)
+
     const userPrompt = buildScreeningUserPrompt({
       candidateName: candidate.full_name,
       cvText: candidate.cv_text,
@@ -75,6 +83,7 @@ export async function POST(request: NextRequest) {
       roleDescription: proc.role_description,
       entryMode: proc.entry_mode,
       capa: proc.capa_intencional,
+      benchmarks: benchmarks ?? [],
     }) + calibrationBlock
 
     const completion = await openai.chat.completions.create({

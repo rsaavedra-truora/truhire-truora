@@ -3,6 +3,10 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CAPA_LABELS } from '@/lib/types'
 import { getPrincipleBySlug } from '@/lib/principles-data'
+import { getProcessPermissions } from '@/lib/permissions'
+import { updateCandidateStatus } from '@/app/actions/candidates'
+import { CandidateStatusControl, StatusBadgeReadOnly } from '@/components/candidate-status-control'
+import { ChallengeUploader } from '@/components/challenge-uploader'
 
 export default async function CandidateProfilePage({
   params,
@@ -29,6 +33,9 @@ export default async function CandidateProfilePage({
 
   const candidate = pc.candidate as any
   const proc = pc.process as any
+
+  // Permisos del usuario actual para este proceso — enforced server-side
+  const perms = await getProcessPermissions(params.id, params.pcId)
 
   // Queries separadas para mayor confiabilidad
   const [
@@ -69,14 +76,16 @@ export default async function CandidateProfilePage({
 
   return (
     <div className="max-w-4xl mx-auto space-y-3">
-      {/* Header */}
+      {/* Header con estado editable para recruiter, solo lectura para el resto */}
       <div className="mb-4">
         <Link href={`/processes/${params.id}`} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-3">
           ← {proc?.title}
         </Link>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{candidate?.full_name}</h1>
+            <h1 className="text-2xl font-semibold text-gray-900" style={{ letterSpacing: '-0.02em' }}>
+              {candidate?.full_name}
+            </h1>
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               <span className="text-sm text-gray-500">{candidate?.email}</span>
               {candidate?.linkedin_url && (
@@ -84,13 +93,22 @@ export default async function CandidateProfilePage({
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-600">
-              {statusLabels[pc.status] ?? pc.status}
-            </span>
+
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${proc?.capa_intencional === 'liderazgo' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'}`}>
               {CAPA_LABELS[proc?.capa_intencional as keyof typeof CAPA_LABELS]}
             </span>
+
+            {/* Estado del candidato */}
+            {perms.canManageProcess ? (
+              <CandidateStatusControl
+                pcId={params.pcId}
+                processId={params.id}
+                currentStatus={pc.status}
+              />
+            ) : (
+              <StatusBadgeReadOnly status={pc.status} />
+            )}
           </div>
         </div>
       </div>
@@ -112,9 +130,10 @@ export default async function CandidateProfilePage({
         )}
       </Section>
 
-      {/* 02 — Screening AI */}
+      {/* 02 — Screening AI (solo Recruiter, head_of_people y Bar Raiser) */}
+      {perms.canSeeScreeningAI && (
       <Section
-        number="02" title="Screening AI"
+        number="02" title="Screening AI — BETA"
         status={screening ? 'done' : 'pending'}
         badge={screening ? classificationLabels[screening.classification] : undefined}
         badgeColor={screening ? classificationColors[screening.classification] : undefined}
@@ -157,16 +176,15 @@ export default async function CandidateProfilePage({
           </div>
         ) : <EmptyState text="El screening AI aún no se ha ejecutado." />}
       </Section>
+      )}
 
-      {/* 03 — Phone Screen */}
-      <Section
+      {/* 03 — Phone Screen: visible para recruiter, HM y Bar Raiser */}
+      {perms.canSeePhoneScreen && <Section
         number="03" title="Phone Screen — Hiring Manager"
         status={phoneScreen?.completed_at ? 'done' : phoneScreen ? 'in_progress' : 'pending'}
         badge={phoneScreen?.decision === 'pass' ? '✓ Pasa al loop' : phoneScreen?.decision === 'no_pass' ? '✗ No avanza' : undefined}
         badgeColor={phoneScreen?.decision === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}
-        action={!phoneScreen ? { href: `/processes/${params.id}/candidates/${params.pcId}/phone-screen`, label: 'Configurar →' }
-          : !phoneScreen.completed_at ? { href: `/processes/${params.id}/candidates/${params.pcId}/phone-screen`, label: 'Completar evaluación →' }
-          : undefined}
+        action={{ href: `/processes/${params.id}/candidates/${params.pcId}/phone-screen`, label: phoneScreen?.completed_at ? 'Ver evaluación →' : !phoneScreen ? 'Configurar →' : 'Completar evaluación →' }}
       >
         {phoneScreen ? (
           <div className="space-y-3">
@@ -192,33 +210,30 @@ export default async function CandidateProfilePage({
             )}
           </div>
         ) : <EmptyState text="El phone screen aún no ha sido configurado." />}
-      </Section>
+      </Section>}
 
       {/* 04 — Reto */}
-      <Section number="04" title="Reto" status={challenge?.evaluated_at ? 'done' : challenge?.submitted_at ? 'in_progress' : 'pending'} optional>
-        {challenge ? (
-          <div className="space-y-3">
-            {challenge.spec_text && (
-              <details>
-                <summary className="text-xs text-[#0800FF] cursor-pointer hover:underline">Ver especificación ▼</summary>
-                <p className="text-sm text-gray-600 mt-2 leading-relaxed">{challenge.spec_text}</p>
-              </details>
-            )}
-            {challenge.delivery_url && (
-              <a href={challenge.delivery_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0800FF] hover:underline block">Entrega del candidato →</a>
-            )}
-            {challenge.ai_evaluation && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Evaluación AI</p>
-                  {challenge.ai_score && <span className="text-xs font-bold text-[#0800FF]">{challenge.ai_score}/10</span>}
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{challenge.ai_evaluation}</p>
+      {perms.canManageProcess && (
+        <Section
+          number="04" title="Reto"
+          status={challenge?.evaluated_at ? 'done' : challenge?.submitted_at ? 'in_progress' : 'pending'}
+          optional
+        >
+          <ChallengeUploader
+            processCandidateId={params.pcId}
+            existing={challenge ? { spec_text: challenge.spec_text, delivery_url: challenge.delivery_url } : null}
+          />
+          {challenge?.ai_evaluation && (
+            <div className="bg-gray-50 rounded-xl p-4 mt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Evaluación AI</p>
+                {challenge.ai_score && <span className="text-xs font-bold text-[#0800FF]">{challenge.ai_score}/10</span>}
               </div>
-            )}
-          </div>
-        ) : <EmptyState text="No hay reto configurado para este proceso." />}
-      </Section>
+              <p className="text-sm text-gray-600 leading-relaxed">{challenge.ai_evaluation}</p>
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* 05 — Loop */}
       <Section
@@ -229,7 +244,10 @@ export default async function CandidateProfilePage({
         {loop ? (
           <div className="space-y-3">
             <div className="text-xs text-gray-500">
-              Bar Raiser: <strong className="text-gray-700">{(loop.bar_raiser as any)?.full_name ?? '—'}</strong>
+              {perms.canSeeBarRaiserIdentity
+                ? <span>Bar Raiser: <strong className="text-gray-700">{(loop.bar_raiser as any)?.full_name ?? '—'}</strong></span>
+                : <span>Bar Raiser: <strong className="text-gray-700">Confidencial</strong></span>
+              }
               {loop.scheduled_at && <span> · {new Date(loop.scheduled_at).toLocaleDateString('es', { day: 'numeric', month: 'long' })}</span>}
             </div>
             <div className="space-y-3">
@@ -259,7 +277,8 @@ export default async function CandidateProfilePage({
                         <span className="text-lg flex-shrink-0">{evaluation.recommendation ? '👍' : '👎'}</span>
                       )}
                     </div>
-                    {isSigned && evaluation?.conclusion && (
+                    {/* Conclusión: solo visible si el usuario tiene permiso para ver eval de otros */}
+                    {isSigned && evaluation?.conclusion && perms.canSeeOtherEvaluations && (
                       <p className="text-sm text-gray-600 mt-3 leading-relaxed border-t border-green-200 pt-3">{evaluation.conclusion}</p>
                     )}
                     {!isSigned && (
@@ -274,6 +293,21 @@ export default async function CandidateProfilePage({
           </div>
         ) : <EmptyState text="El loop aún no ha sido configurado." />}
       </Section>
+
+
+      {/* Feedback al candidato rechazado — aplica en cualquier etapa de rechazo */}
+      {(pc.status === 'rejected' || (pc.status === 'screening' && screening?.classification === 'red')) && perms.canSendFeedback && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-orange-800">Candidato no avanzó</p>
+            <p className="text-xs text-orange-600 mt-0.5">Envía un email de feedback empático. El AI genera un borrador, tú lo revisas antes de enviar.</p>
+          </div>
+          <Link href={`/processes/${params.id}/candidates/${params.pcId}/feedback`}
+            className="text-xs px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex-shrink-0">
+            Enviar feedback →
+          </Link>
+        </div>
+      )}
 
       {/* 06 — Debrief */}
       <Section

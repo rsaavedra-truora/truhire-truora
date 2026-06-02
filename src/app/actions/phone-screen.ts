@@ -79,6 +79,28 @@ export async function setupPhoneScreen(formData: FormData) {
     await sendEmail({ to: candidate.email, ...email })
   }
 
+  // Notificar al HM si es diferente al recruiter actual
+  if (hmId !== user.id) {
+    const { data: hm } = await supabase.from('users').select('email, full_name').eq('id', hmId).single()
+    if ((hm as any)?.email) {
+      const psUrl = `${process.env.NEXT_PUBLIC_APP_URL}/processes/${pc.process_id}/candidates/${pcId}/phone-screen`
+      await sendEmail({
+        to: (hm as any).email,
+        subject: `Tienes un phone screen asignado — ${proc?.title}`,
+        html: `
+<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
+  <div style="margin-bottom: 24px;"><div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;"><span style="color: white; font-weight: 700; font-size: 14px;">T</span></div></div>
+  <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">Hola ${(hm as any).full_name?.split(' ')[0]},</h1>
+  <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
+    Tienes un <strong style="color: #0B1020;">phone screen asignado</strong> para el proceso de <strong style="color: #0B1020;">${proc?.title}</strong>. Realiza la entrevista y completa tu evaluación en TruHire.
+  </p>
+  <a href="${psUrl}" style="display: inline-block; background: #0800FF; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">Ir a mi evaluación →</a>
+  <p style="font-size: 13px; color: #8892A6; margin-top: 32px;">— TruHire · Truora</p>
+</div>`,
+      })
+    }
+  }
+
   revalidatePath(`/processes/${pc.process_id}`)
   redirect(`/processes/${pc.process_id}`)
 }
@@ -94,8 +116,9 @@ export async function submitPhoneScreenEvaluation(formData: FormData) {
   const overallSummary = formData.get('overall_summary') as string
   const decision = formData.get('decision') as 'pass' | 'no_pass'
 
-  // Extraer notas por principio y competencia
-  for (const [key, value] of formData.entries()) {
+  // Extraer notas y ratings por principio
+  const ratings: Record<string, string> = {}
+  for (const [key, value] of Array.from(formData.entries())) {
     if (key.startsWith('principle_note_')) {
       const principle = key.replace('principle_note_', '')
       principleNotes[principle] = value as string
@@ -104,7 +127,30 @@ export async function submitPhoneScreenEvaluation(formData: FormData) {
       const competency = key.replace('competency_note_', '')
       competencyNotes[competency] = value as string
     }
+    if (key.startsWith('rating_')) {
+      const principle = key.replace('rating_', '')
+      ratings[principle] = value as string
+    }
   }
+
+  // Extraer preguntas seleccionadas por principio
+  const questions: Record<string, string> = {}
+  for (const [key, value] of Array.from(formData.entries())) {
+    if (key.startsWith('question_')) {
+      questions[key.replace('question_', '')] = value as string
+    }
+  }
+
+  // Combinar notas + rating + pregunta en el JSONB
+  const allSlugs = new Set([...Object.keys(principleNotes), ...Object.keys(ratings), ...Object.keys(questions)])
+  const combinedPrincipleNotes: Record<string, { notes: string; rating: string | null; question: string | null }> = {}
+  allSlugs.forEach(slug => {
+    combinedPrincipleNotes[slug] = {
+      notes: principleNotes[slug] ?? '',
+      rating: ratings[slug] ?? null,
+      question: questions[slug] ?? null,
+    }
+  })
 
   const { data: ps } = await supabase
     .from('phone_screens')
@@ -117,7 +163,7 @@ export async function submitPhoneScreenEvaluation(formData: FormData) {
   await supabase
     .from('phone_screens')
     .update({
-      principle_notes: principleNotes,
+      principle_notes: combinedPrincipleNotes,
       competency_notes: competencyNotes,
       overall_summary: overallSummary,
       decision,

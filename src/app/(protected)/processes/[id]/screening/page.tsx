@@ -132,7 +132,7 @@ export default function ScreeningPage() {
     }
   }
 
-  async function overrideClassification(pcId: string, screeningId: string, newClass: Classification) {
+  async function overrideClassification(pcId: string, screeningId: string, newClass: Classification, reasoning?: string) {
     const card = candidates.find(c => c.pcId === pcId)
     const originalClass = card?.classification
 
@@ -150,6 +150,7 @@ export default function ScreeningPage() {
           recruiter_id: user.id,
           ai_classification: originalClass,
           recruiter_classification: newClass,
+          recruiter_reasoning: reasoning ?? null,
           agreed: false,
         })
       }
@@ -213,9 +214,15 @@ export default function ScreeningPage() {
           <Link href={`/processes/${processId}`} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
             ← {process?.title}
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Screening de candidatos</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-gray-900">Screening de candidatos</h1>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">BETA</span>
+          </div>
           <p className="text-sm text-gray-500 mt-0.5">
             {candidates.length} candidatos · {green.length} para avanzar · {unscreened.length} sin screening
+          </p>
+          <p className="text-xs text-amber-600 mt-1 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 max-w-xl">
+            El agente está en entrenamiento. Revisa el perfil antes de decidir — si cambias la clasificación, el agente aprende de tu criterio.
           </p>
         </div>
         <Link href={`/processes/${processId}/candidates/add`} className="btn-truora text-sm">
@@ -415,6 +422,14 @@ export default function ScreeningPage() {
                                 className="text-xs px-2.5 py-1 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC] inline-block"
                               >
                                 Configurar phone screen →
+                              </Link>
+                            )}
+                            {col === 'red' && (
+                              <Link
+                                href={`/processes/${processId}/candidates/${c.pcId}/feedback`}
+                                className="text-xs px-2.5 py-1 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 inline-block"
+                              >
+                                Dar feedback →
                               </Link>
                             )}
                             {col !== 'green' && (
