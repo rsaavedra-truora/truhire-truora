@@ -14,6 +14,7 @@ export default function ApplyPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [consentChecked, setConsentChecked] = useState(false)
 
   function handleFileDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -39,6 +40,11 @@ export default function ApplyPage() {
 
     if (!selectedFile) {
       setError('Por favor sube tu CV en PDF.')
+      return
+    }
+
+    if (!consentChecked) {
+      setError('Debes aceptar el aviso de privacidad para continuar.')
       return
     }
 
@@ -204,6 +210,31 @@ export default function ApplyPage() {
             />
           </div>
 
+          {/* Consentimiento LFPDPPP */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={e => setConsentChecked(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0800FF] focus:ring-[#0800FF] cursor-pointer flex-shrink-0"
+              />
+              <span className="text-sm text-gray-600 leading-relaxed">
+                He leído y acepto el{' '}
+                <a
+                  href="https://www.truora.com/aviso-de-privacidad"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0800FF] hover:underline font-medium"
+                >
+                  Aviso de Privacidad
+                </a>{' '}
+                de Truora. Consiento el tratamiento de mis datos personales (nombre, correo electrónico, perfil profesional y CV) con la finalidad de participar en este proceso de selección, conforme a la{' '}
+                <span className="font-medium">Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP)</span>.
+              </span>
+            </label>
+          </div>
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
               <p className="text-sm text-red-700">{error}</p>
@@ -212,7 +243,7 @@ export default function ApplyPage() {
 
           <button
             type="submit"
-            disabled={step === 'uploading'}
+            disabled={step === 'uploading' || !consentChecked}
             className="w-full py-3 bg-[#0800FF] text-white font-medium rounded-xl hover:bg-[#0600CC] active:bg-[#050099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {step === 'uploading' ? (
@@ -227,7 +258,7 @@ export default function ApplyPage() {
           </button>
 
           <p className="text-xs text-gray-400 text-center pb-6">
-            Al enviar confirmas que la información es verídica. Tus datos se usan únicamente para este proceso de selección.
+            Tus datos se usan únicamente para este proceso de selección y no serán compartidos con terceros sin tu consentimiento.
           </p>
         </form>
       </main>

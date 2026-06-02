@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { PROCESS_STATUS_LABELS, CAPA_LABELS, ENTRY_MODE_LABELS } from '@/lib/types'
 import type { ProcessStatus, CapaIntencional, EntryMode } from '@/lib/types'
 import { CloseProcessButton } from '@/components/close-process-button'
+import { CopyUrlButton } from '@/components/copy-url-button'
 
 export default async function ProcessDetailPage({
   params,
@@ -119,9 +120,12 @@ export default async function ProcessDetailPage({
               </div>
               {process.role_slug && (
                 <div>
-                  <dt className="text-xs text-gray-500">URL de aplicación</dt>
-                  <dd className="text-xs text-[#0800FF] mt-0.5 font-mono break-all">
-                    /apply/{process.role_slug}
+                  <dt className="text-xs text-gray-500 mb-1">URL de aplicación</dt>
+                  <dd className="flex items-start gap-2">
+                    <span className="text-xs text-[#0800FF] font-mono break-all leading-relaxed">
+                      {`${process.env.NEXT_PUBLIC_APP_URL}/apply/${process.role_slug}`}
+                    </span>
+                    <CopyUrlButton slug={process.role_slug} />
                   </dd>
                 </div>
               )}
