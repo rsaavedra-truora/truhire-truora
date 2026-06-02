@@ -15,8 +15,6 @@
 import { extractText } from 'unpdf'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
-
 /**
  * Extrae texto crudo de un buffer PDF usando unpdf
  */
@@ -34,6 +32,7 @@ export async function convertCVToMarkdown(rawText: string): Promise<string> {
     throw new Error('El PDF no tiene suficiente texto para procesar.')
   }
 
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     max_tokens: 2048,
