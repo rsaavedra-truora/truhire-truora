@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Screening AI automático
     const screeningResult = await runScreening({
+      openai,
       candidateName: fullName,
       cvText: cvMarkdown,
       processTitle: proc.title,
@@ -186,8 +187,9 @@ export async function POST(request: NextRequest) {
 }
 
 async function runScreening({
-  candidateName, cvText, processTitle, roleDescription, entryMode, capa,
+  openai, candidateName, cvText, processTitle, roleDescription, entryMode, capa,
 }: {
+  openai: OpenAI
   candidateName: string
   cvText: string
   processTitle: string
