@@ -20,9 +20,8 @@ import { processPDFToMarkdown } from '@/lib/pdf-utils'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt } from '@/lib/screening-prompt'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
-
 export async function POST(request: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
     const formData = await request.formData()
 

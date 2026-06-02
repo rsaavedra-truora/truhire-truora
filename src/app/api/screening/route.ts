@@ -3,9 +3,8 @@ import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt, buildCalibrationBlock } from '@/lib/screening-prompt'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
-
 export async function POST(request: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
     const supabase = await createClient()
 

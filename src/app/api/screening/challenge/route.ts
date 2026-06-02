@@ -10,8 +10,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
-
 const CHALLENGE_SYSTEM_PROMPT = `Eres el agente de screening de TruHire. Un recruiter está cuestionando tu clasificación de un candidato.
 
 Tu rol en esta conversación:
@@ -29,6 +27,7 @@ Si mantienes tu clasificación, no incluyas ese JSON.
 Responde en español. Máximo 4 oraciones por respuesta — sé conciso y específico.`
 
 export async function POST(request: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

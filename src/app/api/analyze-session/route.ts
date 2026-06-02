@@ -16,9 +16,6 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!)
-
 /** Extrae el fileId de cualquier formato de link de Google Drive */
 function extractDriveFileId(url: string): string | null {
   const patterns = [
@@ -33,6 +30,8 @@ function extractDriveFileId(url: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+  const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!)
   let tempFile: string | null = null
 
   try {
