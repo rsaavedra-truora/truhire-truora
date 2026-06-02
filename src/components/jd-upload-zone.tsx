@@ -82,14 +82,14 @@ export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
             <p className="text-sm text-gray-600">
               <span className="text-[#0800FF] font-medium">Arrastra el JD</span> o haz clic para seleccionar
             </p>
-            <p className="text-xs text-gray-400">PDF, Word (.docx), Markdown o texto plano · Máx. 10MB</p>
+            <p className="text-xs text-gray-400">PDF, Word, Excel, Markdown o texto plano · Máx. 10MB</p>
           </div>
         )}
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.docx,.doc,.md,.txt"
+        accept=".pdf,.docx,.doc,.md,.txt,.xlsx,.xls"
         className="hidden"
         onChange={e => {
           const f = e.target.files?.[0]

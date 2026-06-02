@@ -50,7 +50,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ text })
     }
 
-    return NextResponse.json({ error: 'Formato no soportado. Usa PDF, Word, Markdown o texto plano.' }, { status: 400 })
+    // Excel — xlsx/xls
+    if (name.endsWith('.xlsx') || name.endsWith('.xls') ||
+        file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel') {
+      const XLSX = await import('xlsx')
+      const workbook = XLSX.read(buffer, { type: 'buffer' })
+      const lines: string[] = []
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName]
+        const csv = XLSX.utils.sheet_to_csv(sheet, { skipHidden: true })
+        const cleaned = csv.split('\n').filter(r => r.replace(/,/g, '').trim()).join('\n')
+        if (cleaned) lines.push(`## ${sheetName}\n${cleaned}`)
+      }
+      text = lines.join('\n\n').trim()
+      if (!text) return NextResponse.json({ error: 'El Excel no tiene contenido legible.' }, { status: 400 })
+      return NextResponse.json({ text })
+    }
+
+    return NextResponse.json({ error: 'Formato no soportado. Usa PDF, Word, Excel, Markdown o texto plano.' }, { status: 400 })
 
   } catch (err: any) {
     console.error('[extract-text]', err?.message)
