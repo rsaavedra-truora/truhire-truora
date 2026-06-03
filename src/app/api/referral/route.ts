@@ -7,6 +7,9 @@
  * Requiere autenticación (cookie de sesión @truora.com).
  */
 
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { processPDFToMarkdown } from '@/lib/pdf-utils'

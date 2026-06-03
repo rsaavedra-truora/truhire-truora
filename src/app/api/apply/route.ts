@@ -14,6 +14,9 @@
  * 7. Retorna el resultado
  */
 
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 import { processPDFToMarkdown } from '@/lib/pdf-utils'
