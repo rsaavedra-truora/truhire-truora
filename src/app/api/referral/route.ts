@@ -12,7 +12,7 @@ export const maxDuration = 60
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { processPDFToMarkdown } from '@/lib/pdf-utils'
+import { extractTextFromPDF } from '@/lib/pdf-utils'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt } from '@/lib/screening-prompt'
 import OpenAI from 'openai'
 
@@ -25,55 +25,50 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
     const formData = await request.formData()
-    const processId  = formData.get('process_id') as string
-    const fullName   = (formData.get('full_name') as string)?.trim()
-    const email      = (formData.get('email') as string)?.trim().toLowerCase()
+    const processId   = formData.get('process_id') as string
+    const fullName    = (formData.get('full_name') as string)?.trim()
+    const email       = (formData.get('email') as string)?.trim().toLowerCase()
     const linkedinUrl = (formData.get('linkedin_url') as string)?.trim() || null
-    const cvFile     = formData.get('cv') as File | null
+    const cvFile      = formData.get('cv') as File | null
 
-    if (!processId || !fullName || !email) {
+    if (!processId || !fullName || !email)
       return NextResponse.json({ error: 'Nombre, email y proceso son obligatorios.' }, { status: 400 })
-    }
-    if (!cvFile || cvFile.size === 0) {
+    if (!cvFile || cvFile.size === 0)
       return NextResponse.json({ error: 'El CV en PDF es obligatorio.' }, { status: 400 })
-    }
-    if (cvFile.type !== 'application/pdf') {
+    if (cvFile.type !== 'application/pdf')
       return NextResponse.json({ error: 'Solo se aceptan archivos PDF.' }, { status: 400 })
-    }
 
-    // Obtener datos del proceso
-    const { data: process } = await supabase
-      .from('processes')
-      .select('id, title, role_description, entry_mode, capa_intencional')
-      .eq('id', processId)
-      .single()
+    // Verificar proceso existe
+    const { data: proc } = await supabase
+      .from('processes').select('id').eq('id', processId).single()
+    if (!proc) return NextResponse.json({ error: 'Proceso no encontrado.' }, { status: 404 })
 
-    if (!process) return NextResponse.json({ error: 'Proceso no encontrado.' }, { status: 404 })
-
-    // PDF → Markdown
+    // Extraer texto del PDF (sin IA — solo Mozilla PDF.js, rápido)
     const cvBuffer = Buffer.from(await cvFile.arrayBuffer())
-    const cvMarkdown = await processPDFToMarkdown(cvBuffer)
+    const cvText = await extractTextFromPDF(cvBuffer)
 
     // Subir PDF a Storage
     const fileName = `${processId}/${Date.now()}-${email.replace('@', '-at-')}.pdf`
     const { error: uploadError } = await supabase.storage
       .from('cvs')
       .upload(fileName, cvBuffer, { contentType: 'application/pdf', upsert: false })
-    const cvUrl = uploadError ? null : supabase.storage.from('cvs').getPublicUrl(fileName).data.publicUrl
+    const cvUrl = uploadError
+      ? null
+      : supabase.storage.from('cvs').getPublicUrl(fileName).data.publicUrl
 
     // Crear o actualizar candidato
     let candidateId: string
     const { data: existing } = await supabase
-      .from('candidates').select('id').eq('email', email).single()
+      .from('candidates').select('id').eq('email', email).maybeSingle()
 
     if (existing) {
       candidateId = existing.id
       await supabase.from('candidates')
-        .update({ full_name: fullName, linkedin_url: linkedinUrl, cv_text: cvMarkdown, cv_url: cvUrl })
+        .update({ full_name: fullName, linkedin_url: linkedinUrl, cv_text: cvText, cv_url: cvUrl })
         .eq('id', candidateId)
     } else {
       const { data: newC, error } = await supabase.from('candidates')
-        .insert({ full_name: fullName, email, linkedin_url: linkedinUrl, cv_text: cvMarkdown, cv_url: cvUrl })
+        .insert({ full_name: fullName, email, linkedin_url: linkedinUrl, cv_text: cvText, cv_url: cvUrl })
         .select('id').single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       candidateId = newC.id
@@ -81,30 +76,35 @@ export async function POST(request: NextRequest) {
 
     // Verificar duplicado en proceso
     const { data: existingPC } = await supabase.from('process_candidates')
-      .select('id').eq('process_id', processId).eq('candidate_id', candidateId).single()
+      .select('id').eq('process_id', processId).eq('candidate_id', candidateId).maybeSingle()
     if (existingPC) return NextResponse.json({ error: 'Este candidato ya está en el proceso.' }, { status: 409 })
 
-    // Crear process_candidate
+    // Crear process_candidate en estado 'applied'
     const { data: pc, error: pcError } = await supabase.from('process_candidates')
       .insert({ process_id: processId, candidate_id: candidateId, status: 'applied' })
       .select('id').single()
     if (pcError) return NextResponse.json({ error: pcError.message }, { status: 500 })
 
-    // Registrar referral en process_participants
+    // Registrar referrer
     await supabase.from('process_participants').upsert({
-      process_id: processId,
-      user_id: user.id,
-      role_in_process: 'referrer',
+      process_id: processId, user_id: user.id, role_in_process: 'referrer',
     })
 
-    // Screening automático
+    // Obtener datos del proceso para el screening
+    const { data: procFull } = await supabase
+      .from('processes')
+      .select('title, role_description, entry_mode, capa_intencional')
+      .eq('id', processId)
+      .single()
+
+    // Screening AI
     const userPrompt = buildScreeningUserPrompt({
       candidateName: fullName,
-      cvText: cvMarkdown,
-      roleTitle: process.title,
-      roleDescription: process.role_description,
-      entryMode: process.entry_mode as any,
-      capa: process.capa_intencional as any,
+      cvText,
+      roleTitle: procFull?.title ?? '',
+      roleDescription: procFull?.role_description ?? null,
+      entryMode: procFull?.entry_mode as any,
+      capa: procFull?.capa_intencional as any,
     })
 
     const completion = await openai.chat.completions.create({
@@ -137,11 +137,8 @@ export async function POST(request: NextRequest) {
     await supabase.from('processes')
       .update({ status: 'screening' }).eq('id', processId).eq('status', 'open')
 
-    return NextResponse.json({
-      success: true,
-      classification: screeningResult.classification,
-      pcId: pc.id,
-    })
+    return NextResponse.json({ success: true, classification: screeningResult.classification, pcId: pc.id })
+
   } catch (error: any) {
     console.error('[Referral API] Error:', error)
     return NextResponse.json({ error: error.message ?? 'Error interno' }, { status: 500 })
