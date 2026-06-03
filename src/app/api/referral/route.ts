@@ -7,14 +7,14 @@
  * Requiere autenticación (cookie de sesión @truora.com).
  */
 
-export const runtime = 'nodejs'
-export const maxDuration = 60
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { extractTextFromPDF } from '@/lib/pdf-utils'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt } from '@/lib/screening-prompt'
 import OpenAI from 'openai'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })

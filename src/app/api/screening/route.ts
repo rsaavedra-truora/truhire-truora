@@ -1,10 +1,10 @@
-export const runtime = 'nodejs'
-export const maxDuration = 60
-
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt, buildCalibrationBlock } from '@/lib/screening-prompt'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })

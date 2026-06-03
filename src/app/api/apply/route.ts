@@ -14,14 +14,14 @@
  * 7. Retorna el resultado
  */
 
-export const runtime = 'nodejs'
-export const maxDuration = 60
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 import { processPDFToMarkdown } from '@/lib/pdf-utils'
 import { SCREENING_SYSTEM_PROMPT, buildScreeningUserPrompt } from '@/lib/screening-prompt'
 import OpenAI from 'openai'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
