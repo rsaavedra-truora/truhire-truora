@@ -11,6 +11,8 @@ export default async function ProcessDetailPage({
 }: {
   params: { id: string }
 }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://truhire-truora.vercel.app'
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -123,7 +125,7 @@ export default async function ProcessDetailPage({
                   <dt className="text-xs text-gray-500 mb-1">URL de aplicación</dt>
                   <dd className="flex items-start gap-2">
                     <span className="text-xs text-[#0800FF] font-mono break-all leading-relaxed">
-                      {`${process.env.NEXT_PUBLIC_APP_URL}/apply/${process.role_slug}`}
+                      {`${appUrl}/apply/${process.role_slug}`}
                     </span>
                     <CopyUrlButton slug={process.role_slug} />
                   </dd>
