@@ -11,7 +11,7 @@ export default async function ProcessDetailPage({
 }: {
   params: { id: string }
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://truhire-truora.vercel.app'
+  const appUrl = (globalThis as any).process?.env?.NEXT_PUBLIC_APP_URL ?? 'https://truhire-truora.vercel.app'
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
