@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import type { UserRole } from '@/lib/types'
 import {
   LayoutDashboard, Users, Briefcase, ClipboardList,
-  BarChart2, Settings, Star, BookOpen,
+  BarChart2, Settings, Star, BookOpen, UsersRound,
 } from 'lucide-react'
 
 interface NavGroup { label?: string; items: NavItem[] }
@@ -42,6 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Administración',
     items: [
       { label: 'Configuración', href: '/settings', icon: Settings, roles: ['head_of_people'] },
+      { label: 'Directorio', href: '/settings/directory', icon: UsersRound, roles: ['recruiter', 'head_of_people'] },
       { label: 'Calibración AI', href: '/settings/calibration', icon: BarChart2, roles: ['recruiter', 'head_of_people'] },
     ],
   },
@@ -53,7 +54,7 @@ export function Sidebar({ userRole }: { userRole: UserRole }) {
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-gray-100">
+      <Link href="/dashboard" className="h-14 flex items-center px-5 border-b border-gray-100 hover:bg-gray-50 transition-colors">
         <div className="flex items-center gap-2">
           <img
             src="/logo-truora.png"
@@ -71,7 +72,7 @@ export function Sidebar({ userRole }: { userRole: UserRole }) {
           </div>
           <span className="text-xs font-bold tracking-widest text-[#0800FF]">HIRE</span>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-3">
