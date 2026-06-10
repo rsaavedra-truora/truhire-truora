@@ -18,7 +18,9 @@ export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+    const key = process.env.OPENAI_API_KEY
+    console.log('[referral] OPENAI_API_KEY present:', !!key, 'length:', key?.length, 'starts:', key?.slice(0, 7))
+    const openai = new OpenAI({ apiKey: key! })
     console.log('[referral] 1 - start')
     const supabase = await createClient()
     console.log('[referral] 2 - supabase client created')
