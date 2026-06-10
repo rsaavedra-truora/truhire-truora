@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { PersonSearch } from '@/components/person-search'
 
 interface PoolCandidate {
@@ -10,6 +11,8 @@ interface PoolCandidate {
   full_name: string
   email: string
   linkedin_url: string | null
+  cv_url: string | null
+  has_cv_text: boolean
   talent_pool_source: string | null
   talent_pool_notes: string | null
   added_to_pool_at: string | null
@@ -88,8 +91,8 @@ export default function TalentPoolPage() {
     const { data: direct } = await supabase
       .from('candidates')
       .select(`
-        id, full_name, email, linkedin_url, talent_pool_source,
-        talent_pool_notes, talent_pool_recommended_by, added_to_pool_at,
+        id, full_name, email, linkedin_url, cv_url, cv_text,
+        talent_pool_source, talent_pool_notes, talent_pool_recommended_by, added_to_pool_at,
         added_by:users!added_to_pool_by(full_name)
       `)
       .eq('in_talent_pool', true)
@@ -101,7 +104,7 @@ export default function TalentPoolPage() {
       .select(`
         id, truora_fit_level, signals, gaps, suggested_roles, ai_summary,
         process_candidate:process_candidates(
-          candidate:candidates(id, full_name, email, linkedin_url,
+          candidate:candidates(id, full_name, email, linkedin_url, cv_url, cv_text,
             in_talent_pool, talent_pool_source, talent_pool_notes, added_to_pool_at)
         )
       `)
@@ -149,6 +152,8 @@ export default function TalentPoolPage() {
         full_name: c.full_name,
         email: c.email,
         linkedin_url: c.linkedin_url,
+        cv_url: (c as any).cv_url ?? null,
+        has_cv_text: !!((c as any).cv_text?.length > 100),
         talent_pool_source: c.talent_pool_source,
         talent_pool_notes: c.talent_pool_notes,
         added_to_pool_at: c.added_to_pool_at,
@@ -175,6 +180,8 @@ export default function TalentPoolPage() {
         full_name: c.full_name,
         email: c.email,
         linkedin_url: c.linkedin_url,
+        cv_url: c.cv_url ?? null,
+        has_cv_text: !!(c.cv_text?.length > 100),
         talent_pool_source: c.talent_pool_source ?? 'process',
         talent_pool_notes: c.talent_pool_notes,
         added_to_pool_at: c.added_to_pool_at,
@@ -361,7 +368,9 @@ export default function TalentPoolPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900">{c.full_name}</p>
+                      <Link href={`/candidates/${c.id}`} className="font-semibold text-gray-900 hover:text-[#0800FF] transition-colors">
+                        {c.full_name}
+                      </Link>
                       {c.screening && (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${FIT_COLORS[c.screening.truora_fit_level] ?? 'bg-gray-100 text-gray-600'}`}>
                           {FIT_LABELS[c.screening.truora_fit_level] ?? c.screening.truora_fit_level}
@@ -373,9 +382,9 @@ export default function TalentPoolPage() {
                       {/* Recalificar */}
                       <button
                         onClick={() => rescreen(c.id)}
-                        disabled={rescreeningId === c.id}
-                        title="Recalificar con AI"
-                        className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-[#0800FF] transition-colors disabled:opacity-50"
+                        disabled={rescreeningId === c.id || !c.has_cv_text}
+                        title={c.has_cv_text ? 'Recalificar con AI' : 'Sube el CV primero para poder recalificar'}
+                        className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-[#0800FF] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         {rescreeningId === c.id ? (
                           <svg className="animate-spin w-3.5 h-3.5 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
@@ -391,6 +400,23 @@ export default function TalentPoolPage() {
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">{c.email}</p>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      {c.cv_url && (
+                        <a href={c.cv_url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-[#0800FF] hover:underline flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                          </svg>
+                          Ver CV
+                        </a>
+                      )}
+                      {!c.cv_url && !c.has_cv_text && (
+                        <span className="text-xs text-amber-500 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                          </svg>
+                          Sin CV — el rescreen no funcionará
+                        </span>
+                      )}
                       {c.linkedin_url && (
                         <a href={c.linkedin_url} target="_blank" rel="noopener noreferrer"
                           className="text-xs text-[#0800FF] hover:underline">LinkedIn →</a>

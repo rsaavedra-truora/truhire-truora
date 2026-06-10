@@ -29,10 +29,8 @@ type CandidateRow = {
 export function CandidatesTableClient({ candidates }: { candidates: CandidateRow[] }) {
   const router = useRouter()
 
-  function getProfileUrl(r: CandidateRow): string | null {
-    const pc = r.process_candidates[0]
-    if (!pc?.process?.id) return null
-    return `/processes/${pc.process.id}/candidates/${pc.id}`
+  function getProfileUrl(r: CandidateRow): string {
+    return `/candidates/${r.id}`
   }
 
   const columns = [
@@ -43,13 +41,9 @@ export function CandidatesTableClient({ candidates }: { candidates: CandidateRow
         const url = getProfileUrl(r)
         return (
           <div>
-            {url ? (
-              <Link href={url} className="font-semibold text-gray-900 hover:text-[#0800FF] transition-colors text-sm" onClick={e => e.stopPropagation()}>
-                {r.full_name}
-              </Link>
-            ) : (
-              <p className="font-semibold text-gray-900 text-sm">{r.full_name}</p>
-            )}
+            <Link href={url} className="font-semibold text-gray-900 hover:text-[#0800FF] transition-colors text-sm" onClick={e => e.stopPropagation()}>
+              {r.full_name}
+            </Link>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-xs text-gray-400">{r.email}</p>
               {r.linkedin_url && (
@@ -125,10 +119,7 @@ export function CandidatesTableClient({ candidates }: { candidates: CandidateRow
       columns={columns}
       rowKey={r => r.id}
       emptyMessage="No hay candidatos aún."
-      onRowClick={r => {
-        const url = getProfileUrl(r)
-        if (url) router.push(url)
-      }}
+      onRowClick={r => router.push(getProfileUrl(r))}
     />
   )
 }
