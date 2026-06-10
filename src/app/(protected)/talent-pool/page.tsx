@@ -227,7 +227,7 @@ export default function TalentPoolPage() {
     }
 
     setShowPanel(false)
-    setForm({ full_name: '', email: '', linkedin_url: '', source: 'referral', referred_by: '', notes: '' })
+    setForm({ full_name: '', email: '', linkedin_url: '', source: 'referral', referred_by: '', recommended_by: '', notes: '' })
     setCvFile(null)
     setSubmitting(false)
     loadData()
