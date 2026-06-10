@@ -17,14 +17,18 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+    console.log('[referral] 1 - start')
     const supabase = await createClient()
+    console.log('[referral] 2 - supabase client created')
 
     const { data: { user } } = await supabase.auth.getUser()
+    console.log('[referral] 3 - user:', user?.id ?? 'null')
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
     const formData = await request.formData()
+    console.log('[referral] 4 - formData parsed')
     const processId   = formData.get('process_id') as string
     const fullName    = (formData.get('full_name') as string)?.trim()
     const email       = (formData.get('email') as string)?.trim().toLowerCase()
@@ -43,9 +47,11 @@ export async function POST(request: NextRequest) {
       .from('processes').select('id').eq('id', processId).single()
     if (!proc) return NextResponse.json({ error: 'Proceso no encontrado.' }, { status: 404 })
 
+    console.log('[referral] 5 - before PDF extract')
     // Extraer texto del PDF (sin IA — solo Mozilla PDF.js, rápido)
     const cvBuffer = Buffer.from(await cvFile.arrayBuffer())
     const cvText = await extractTextFromPDF(cvBuffer)
+    console.log('[referral] 6 - PDF extracted, chars:', cvText.length)
 
     // Subir PDF a Storage
     const fileName = `${processId}/${Date.now()}-${email.replace('@', '-at-')}.pdf`
@@ -97,6 +103,7 @@ export async function POST(request: NextRequest) {
       .eq('id', processId)
       .single()
 
+    console.log('[referral] 7 - candidate saved, id:', candidateId, 'pc id:', pc.id)
     // Screening AI
     const userPrompt = buildScreeningUserPrompt({
       candidateName: fullName,
@@ -107,6 +114,7 @@ export async function POST(request: NextRequest) {
       capa: procFull?.capa_intencional as any,
     })
 
+    console.log('[referral] 8 - calling OpenAI screening')
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       response_format: { type: 'json_object' },

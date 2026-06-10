@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
 export async function POST(request: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
     const { cvText } = await request.json()
     if (!cvText) return NextResponse.json({ full_name: '', last_role: '' })
 

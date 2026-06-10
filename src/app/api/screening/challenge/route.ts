@@ -27,8 +27,8 @@ Si mantienes tu clasificación, no incluyas ese JSON.
 Responde en español. Máximo 4 oraciones por respuesta — sé conciso y específico.`
 
 export async function POST(request: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

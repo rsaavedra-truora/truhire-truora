@@ -24,8 +24,8 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
     const formData = await request.formData()
 
     const processSlug = formData.get('process_slug') as string

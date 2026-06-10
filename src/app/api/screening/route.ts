@@ -7,8 +7,8 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
