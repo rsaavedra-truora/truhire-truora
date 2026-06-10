@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import { CandidateEditPanel } from '@/components/candidate-edit-panel'
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   applied:      { label: 'Aplicó',        color: 'bg-gray-100 text-gray-600' },
@@ -182,6 +183,15 @@ export default async function CandidateProfilePage({ params }: { params: { candi
                 </div>
               )}
             </dl>
+
+            {/* Editar / Eliminar */}
+            <CandidateEditPanel candidate={{
+              id: candidate.id,
+              full_name: candidate.full_name,
+              email: candidate.email,
+              linkedin_url: candidate.linkedin_url,
+              cv_url: candidate.cv_url,
+            }} />
           </div>
         </div>
 
