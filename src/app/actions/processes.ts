@@ -19,13 +19,11 @@ export async function createProcess(formData: FormData) {
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
 
   // Resolve HM by email if provided
+  // Si el HM no ha hecho login todavía, se guarda sin ID — no bloquea
   let hiring_manager_id: string | null = null
   if (hiring_manager_email) {
     const { data: hmUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', hiring_manager_email)
-      .maybeSingle()
+      .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
     hiring_manager_id = hmUser?.id ?? null
   }
 
@@ -66,12 +64,11 @@ export async function updateProcess(formData: FormData) {
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
 
-  // Resolver HM por email
-  let hiring_manager_id: string | null | undefined = undefined // undefined = no cambiar
+  // Resolver HM por email — si no ha hecho login aún, se guarda sin ID (no bloquea)
+  let hiring_manager_id: string | null | undefined = undefined
   if (hiring_manager_email !== null) {
     const { data: hmUser } = await supabase
       .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
-    if (hiring_manager_email && !hmUser) throw new Error(`No se encontró ningún usuario con el email ${hiring_manager_email}. Debe haber ingresado a TruHire al menos una vez.`)
     hiring_manager_id = hmUser?.id ?? null
   }
 
