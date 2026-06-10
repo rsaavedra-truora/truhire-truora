@@ -63,6 +63,8 @@ export default function TalentPoolPage() {
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [rescreeningId, setRescreeningId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [benchmarkState, setBenchmarkState] = useState<Record<string, { notes: string; saving: boolean; saved: boolean }>>({})
+  const [benchmarkOpenId, setBenchmarkOpenId] = useState<string | null>(null)
   const [processes, setProcesses] = useState<Process[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -233,6 +235,29 @@ export default function TalentPoolPage() {
     setCvFile(null)
     setSubmitting(false)
     loadData()
+  }
+
+  async function addAsBenchmark(candidateId: string, fullName: string, cvText: string | null) {
+    const state = benchmarkState[candidateId]
+    setBenchmarkState(prev => ({ ...prev, [candidateId]: { ...prev[candidateId] ?? { notes: '' }, saving: true, saved: false } }))
+
+    const res = await fetch('/api/benchmarks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: fullName,
+        cv_text: cvText ?? '',
+        notes: state?.notes ?? '',
+        layer: 'talent_pool',
+      }),
+    })
+
+    if (res.ok) {
+      setBenchmarkState(prev => ({ ...prev, [candidateId]: { ...prev[candidateId], saving: false, saved: true } }))
+      setTimeout(() => setBenchmarkOpenId(null), 1500)
+    } else {
+      setBenchmarkState(prev => ({ ...prev, [candidateId]: { ...prev[candidateId], saving: false } }))
+    }
   }
 
   async function rescreen(candidateId: string) {
@@ -419,6 +444,54 @@ export default function TalentPoolPage() {
                     {c.talent_pool_notes && (
                       <p className="text-xs text-gray-400 mt-1 italic">"{c.talent_pool_notes}"</p>
                     )}
+
+                    {/* Confirmar como referencia Truora → calibra el AI */}
+                    <div className="mt-3">
+                      {benchmarkOpenId !== c.id ? (
+                        <button
+                          onClick={() => {
+                            setBenchmarkOpenId(c.id)
+                            if (!benchmarkState[c.id]) {
+                              setBenchmarkState(prev => ({ ...prev, [c.id]: { notes: '', saving: false, saved: false } }))
+                            }
+                          }}
+                          className="text-xs text-gray-400 hover:text-violet-600 flex items-center gap-1.5 transition-colors group"
+                        >
+                          <svg className="w-3 h-3 group-hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.4 2.798H4.198c-1.43 0-2.4-1.798-1.4-2.798L4.2 15.3"/>
+                          </svg>
+                          Confirmar como referencia Truora → entrena el AI
+                        </button>
+                      ) : (
+                        <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 space-y-2.5">
+                          <div>
+                            <p className="text-xs font-semibold text-violet-800">Confirmar como referencia de talento Truora</p>
+                            <p className="text-xs text-violet-600 mt-0.5">
+                              Su CV se agregará al pool de calibración. El AI usará este perfil como referencia en futuros screenings.
+                            </p>
+                          </div>
+                          <textarea
+                            value={benchmarkState[c.id]?.notes ?? ''}
+                            onChange={e => setBenchmarkState(prev => ({ ...prev, [c.id]: { ...prev[c.id], notes: e.target.value } }))}
+                            placeholder="¿Por qué encaja con Truora? Ej: Gran track record en B2B SaaS, lideró 0→$3M ARR, ownership real..."
+                            rows={2}
+                            className="w-full px-3 py-2 border border-violet-200 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-violet-400 resize-none"
+                          />
+                          <div className="flex gap-2 items-center">
+                            <button
+                              onClick={() => addAsBenchmark(c.id, c.full_name, null)}
+                              disabled={benchmarkState[c.id]?.saving}
+                              className="px-3 py-1.5 text-xs font-medium bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 transition-colors"
+                            >
+                              {benchmarkState[c.id]?.saved ? '✓ Agregado al pool de calibración' : benchmarkState[c.id]?.saving ? 'Guardando...' : 'Confirmar'}
+                            </button>
+                            <button onClick={() => setBenchmarkOpenId(null)} className="text-xs text-gray-400 hover:text-gray-600">
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Acciones */}

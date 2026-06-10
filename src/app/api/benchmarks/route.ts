@@ -7,13 +7,23 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { full_name, cv_text } = await request.json()
+    const { full_name, cv_text, notes, layer } = await request.json()
     if (!full_name) return NextResponse.json({ error: 'El nombre es obligatorio.' }, { status: 400 })
+
+    // Si viene del talent pool, buscar el cv_text del candidato por full_name
+    let finalCvText = cv_text || null
+    if (!finalCvText && layer === 'talent_pool') {
+      const { data: candidate } = await supabase
+        .from('candidates').select('cv_text').eq('full_name', full_name).maybeSingle()
+      finalCvText = candidate?.cv_text ?? null
+    }
 
     const { error } = await supabase.from('talent_benchmarks').insert({
       full_name,
-      role_at_truora: '—',
-      cv_text: cv_text || null,
+      role_at_truora: layer === 'talent_pool' ? 'Talent Pool' : '—',
+      cv_text: finalCvText,
+      notes: notes || null,
+      layer: layer || null,
       added_by: user.id,
       is_active: true,
     })
