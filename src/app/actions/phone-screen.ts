@@ -34,7 +34,8 @@ export async function setupPhoneScreen(formData: FormData) {
 
   const proc = pc.process as any
   const candidate = pc.candidate as any
-  const hmId = proc?.hiring_manager_or_sponsor_id ?? user.id
+  const hmId = proc?.hiring_manager_or_sponsor_id ?? null
+  if (!hmId) throw new Error('Este proceso no tiene Hiring Manager asignado. Edita el proceso y asigna uno antes de configurar el phone screen.')
 
   // Crear o actualizar phone screen
   const { error } = await supabase
