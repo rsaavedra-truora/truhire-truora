@@ -61,6 +61,8 @@ export default function TalentPoolPage() {
   const [showPanel, setShowPanel] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [assigningId, setAssigningId] = useState<string | null>(null)
+  const [rescreeningId, setRescreeningId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [processes, setProcesses] = useState<Process[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -233,6 +235,32 @@ export default function TalentPoolPage() {
     loadData()
   }
 
+  async function rescreen(candidateId: string) {
+    setRescreeningId(candidateId)
+    setError(null)
+    const res = await fetch('/api/talent-pool/rescreen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidateId }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setError(data.error ?? 'Error al recalificar.'); setRescreeningId(null); return }
+    // Actualizar screening en el estado local
+    setCandidates(prev => prev.map(c => {
+      if (c.id !== candidateId) return c
+      return { ...c, screening: data.screening }
+    }))
+    setRescreeningId(null)
+  }
+
+  async function removeFromPool(candidateId: string) {
+    await supabase.from('candidates')
+      .update({ in_talent_pool: false })
+      .eq('id', candidateId)
+    setCandidates(prev => prev.filter(c => c.id !== candidateId))
+    setConfirmDeleteId(null)
+  }
+
   async function assignToProcess(candidateId: string, processId: string) {
     // Verificar si ya está en el proceso
     const { data: existing } = await supabase
@@ -317,6 +345,24 @@ export default function TalentPoolPage() {
                       {!c.screening && (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Sin screening</span>
                       )}
+                      {/* Recalificar */}
+                      <button
+                        onClick={() => rescreen(c.id)}
+                        disabled={rescreeningId === c.id}
+                        title="Recalificar con AI"
+                        className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-[#0800FF] transition-colors disabled:opacity-50"
+                      >
+                        {rescreeningId === c.id ? (
+                          <svg className="animate-spin w-3.5 h-3.5 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                          </svg>
+                        )}
+                      </button>
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">{c.email}</p>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -353,8 +399,19 @@ export default function TalentPoolPage() {
                       </div>
                     )}
 
+                    {/* Estado recalificando */}
+                    {rescreeningId === c.id && (
+                      <p className="text-xs text-[#0800FF] mt-2 flex items-center gap-1.5">
+                        <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Analizando con Truora DNA AI...
+                      </p>
+                    )}
+
                     {/* Resumen AI */}
-                    {c.screening?.ai_summary && (
+                    {c.screening?.ai_summary && rescreeningId !== c.id && (
                       <p className="text-sm text-gray-600 mt-2 leading-relaxed">{c.screening.ai_summary}</p>
                     )}
 
@@ -370,6 +427,7 @@ export default function TalentPoolPage() {
                       onClick={async () => {
                         if (assigningId === c.id) { setAssigningId(null); return }
                         setAssigningId(c.id)
+                        setConfirmDeleteId(null)
                         await loadProcesses()
                       }}
                       className="px-3 py-1.5 text-xs font-medium border border-[#0800FF] text-[#0800FF] rounded-lg hover:bg-[#E8E7FF] transition-colors whitespace-nowrap"
@@ -382,6 +440,31 @@ export default function TalentPoolPage() {
                     >
                       Crear proceso →
                     </button>
+
+                    {/* Eliminar del pool */}
+                    {confirmDeleteId === c.id ? (
+                      <div className="flex gap-1.5 items-center">
+                        <button
+                          onClick={() => removeFromPool(c.id)}
+                          className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          Confirmar
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setConfirmDeleteId(c.id); setAssigningId(null) }}
+                        className="px-3 py-1.5 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
+                      >
+                        Quitar del pool
+                      </button>
+                    )}
                   </div>
                 </div>
 
