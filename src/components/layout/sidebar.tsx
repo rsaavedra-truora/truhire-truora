@@ -41,7 +41,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Administración',
     items: [
-      { label: 'Configuración', href: '/settings', icon: Settings, roles: ['head_of_people'] },
       { label: 'Directorio', href: '/settings/directory', icon: UsersRound, roles: ['recruiter', 'head_of_people'] },
       { label: 'Calibración AI', href: '/settings/calibration', icon: BarChart2, roles: ['recruiter', 'head_of_people'] },
     ],
