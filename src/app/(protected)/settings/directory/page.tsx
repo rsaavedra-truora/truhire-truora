@@ -47,10 +47,16 @@ export default function DirectoryPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: dir } = await supabase
+    const { data: dir, error: dirError } = await supabase
       .from('truora_directory')
       .select('*')
       .order('full_name')
+
+    if (dirError) {
+      console.error('[directory] error:', dirError)
+      alert('Error cargando directorio: ' + dirError.message)
+    }
+    console.log('[directory] rows:', dir?.length, dir?.[0])
 
     const { data: users } = await supabase
       .from('users')
