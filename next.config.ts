@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['mammoth'],
+  serverExternalPackages: ['mammoth', 'openai', '@google/generative-ai', '@google-ai/generativelanguage'],
   images: {
     remotePatterns: [
       {
