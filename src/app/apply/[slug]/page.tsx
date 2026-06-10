@@ -222,7 +222,7 @@ export default function ApplyPage() {
               <span className="text-sm text-gray-600 leading-relaxed">
                 He leído y acepto el{' '}
                 <a
-                  href="https://www.truora.com/aviso-de-privacidad"
+                  href="https://www.truora.com/es/aviso-de-privacidad-integral"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#0800FF] hover:underline font-medium"
