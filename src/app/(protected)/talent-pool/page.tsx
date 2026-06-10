@@ -121,7 +121,7 @@ export default function TalentPoolPage() {
     const recommendedEmails = (direct ?? [])
       .map((c: any) => c.talent_pool_recommended_by)
       .filter(Boolean)
-    let recommendedNames = new Map<string, string>()
+    const recommendedNames = new Map<string, string>()
     if (recommendedEmails.length > 0) {
       const { data: dirPeople } = await supabase
         .from('truora_directory')
