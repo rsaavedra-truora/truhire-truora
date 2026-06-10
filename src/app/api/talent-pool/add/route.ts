@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     const linkedinUrl = (formData.get('linkedin_url') as string)?.trim() || null
     const source = (formData.get('source') as string) || 'other'
     const referredBy = (formData.get('referred_by') as string)?.trim() || null
+    const recommendedBy = (formData.get('recommended_by') as string)?.trim() || null
     const notes = (formData.get('notes') as string)?.trim() || null
     const cvFile = formData.get('cv') as File | null
 
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
         in_talent_pool: true,
         talent_pool_source: source,
         talent_pool_notes: notes,
+        talent_pool_recommended_by: recommendedBy,
         added_to_pool_by: user.id,
         added_to_pool_at: new Date().toISOString(),
       }).eq('id', candidateId)
@@ -100,6 +102,7 @@ export async function POST(request: NextRequest) {
         in_talent_pool: true,
         talent_pool_source: source,
         talent_pool_notes: notes,
+        talent_pool_recommended_by: recommendedBy,
         added_to_pool_by: user.id,
         added_to_pool_at: new Date().toISOString(),
       }).select('id').single()

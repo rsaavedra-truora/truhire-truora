@@ -14,6 +14,7 @@ interface PoolCandidate {
   talent_pool_notes: string | null
   added_to_pool_at: string | null
   added_by_name: string | null
+  recommended_by_name?: string | null
   screening: {
     id: string
     truora_fit_level: string
@@ -66,7 +67,7 @@ export default function TalentPoolPage() {
   // Form state
   const [form, setForm] = useState({
     full_name: '', email: '', linkedin_url: '', source: 'referral',
-    referred_by: '', notes: '',
+    referred_by: '', recommended_by: '', notes: '',
   })
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -84,7 +85,7 @@ export default function TalentPoolPage() {
       .from('candidates')
       .select(`
         id, full_name, email, linkedin_url, talent_pool_source,
-        talent_pool_notes, added_to_pool_at,
+        talent_pool_notes, talent_pool_recommended_by, added_to_pool_at,
         added_by:users!added_to_pool_by(full_name)
       `)
       .eq('in_talent_pool', true)
@@ -116,6 +117,19 @@ export default function TalentPoolPage() {
 
     const screeningMap = new Map(poolScreenings.map(s => [s.candidate_id, s]))
 
+    // Resolver nombres de recommended_by desde el directorio
+    const recommendedEmails = (direct ?? [])
+      .map((c: any) => c.talent_pool_recommended_by)
+      .filter(Boolean)
+    let recommendedNames = new Map<string, string>()
+    if (recommendedEmails.length > 0) {
+      const { data: dirPeople } = await supabase
+        .from('truora_directory')
+        .select('email, full_name')
+        .in('email', recommendedEmails)
+      ;(dirPeople ?? []).forEach((p: any) => recommendedNames.set(p.email, p.full_name))
+    }
+
     // Merge: directo + proceso (evitar duplicados por email)
     const seen = new Set<string>()
     const merged: PoolCandidate[] = []
@@ -125,6 +139,7 @@ export default function TalentPoolPage() {
       if (seen.has(c.email)) continue
       seen.add(c.email)
       const s = screeningMap.get(c.id)
+      const recEmail = (c as any).talent_pool_recommended_by
       merged.push({
         id: c.id,
         full_name: c.full_name,
@@ -134,6 +149,7 @@ export default function TalentPoolPage() {
         talent_pool_notes: c.talent_pool_notes,
         added_to_pool_at: c.added_to_pool_at,
         added_by_name: (c as any).added_by?.full_name ?? null,
+        recommended_by_name: recEmail ? (recommendedNames.get(recEmail) ?? recEmail) : null,
         screening: s ? {
           id: s.id,
           truora_fit_level: s.truora_fit_level,
@@ -197,6 +213,7 @@ export default function TalentPoolPage() {
     fd.set('linkedin_url', form.linkedin_url)
     fd.set('source', form.source)
     fd.set('referred_by', form.referred_by)
+    fd.set('recommended_by', form.recommended_by)
     fd.set('notes', form.notes)
     if (cvFile) fd.set('cv', cvFile)
 
@@ -302,7 +319,7 @@ export default function TalentPoolPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">{c.email}</p>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {c.linkedin_url && (
                         <a href={c.linkedin_url} target="_blank" rel="noopener noreferrer"
                           className="text-xs text-[#0800FF] hover:underline">LinkedIn →</a>
@@ -310,8 +327,15 @@ export default function TalentPoolPage() {
                       {c.talent_pool_source && (
                         <span className="text-xs text-gray-400">
                           {SOURCE_LABELS[c.talent_pool_source] ?? c.talent_pool_source}
-                          {c.added_by_name && ` · por ${c.added_by_name}`}
                         </span>
+                      )}
+                      {(c as any).recommended_by_name && (
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                          💬 {(c as any).recommended_by_name}
+                        </span>
+                      )}
+                      {c.added_by_name && c.added_by_name !== (c as any).recommended_by_name && (
+                        <span className="text-xs text-gray-400">subido por {c.added_by_name}</span>
                       )}
                       {c.added_to_pool_at && (
                         <span className="text-xs text-gray-400">
@@ -490,7 +514,7 @@ export default function TalentPoolPage() {
 
               {form.source === 'referral' && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Referido por</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Referido formalmente por</label>
                   <PersonSearch
                     value={form.referred_by}
                     onChange={(email) => setForm(f => ({ ...f, referred_by: email }))}
@@ -498,6 +522,18 @@ export default function TalentPoolPage() {
                   />
                 </div>
               )}
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  ¿Quién en Truora lo conoce o recomienda?
+                  <span className="text-gray-400 font-normal ml-1">(puede ser diferente a quien sube)</span>
+                </label>
+                <PersonSearch
+                  value={form.recommended_by}
+                  onChange={(email) => setForm(f => ({ ...f, recommended_by: email }))}
+                  placeholder="Ej: Mariangel, Daniel..."
+                />
+              </div>
 
               {/* Notas */}
               <div>
