@@ -62,12 +62,25 @@ export async function updateProcess(formData: FormData) {
   const capa_intencional = formData.get('capa_intencional') as string
   const role_slug = (formData.get('role_slug') as string)?.trim().toLowerCase().replace(/\s+/g, '-') || null
   const role_description = formData.get('role_description') as string || null
+  const hiring_manager_email = (formData.get('hiring_manager_email') as string)?.trim() || null
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
 
+  // Resolver HM por email
+  let hiring_manager_id: string | null | undefined = undefined // undefined = no cambiar
+  if (hiring_manager_email !== null) {
+    const { data: hmUser } = await supabase
+      .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
+    if (hiring_manager_email && !hmUser) throw new Error(`No se encontró ningún usuario con el email ${hiring_manager_email}. Debe haber ingresado a TruHire al menos una vez.`)
+    hiring_manager_id = hmUser?.id ?? null
+  }
+
+  const updatePayload: Record<string, any> = { title, entry_mode, capa_intencional, role_slug, role_description }
+  if (hiring_manager_id !== undefined) updatePayload.hiring_manager_or_sponsor_id = hiring_manager_id
+
   const { error } = await supabase
     .from('processes')
-    .update({ title, entry_mode, capa_intencional, role_slug, role_description })
+    .update(updatePayload)
     .eq('id', processId)
 
   if (error) throw new Error(error.message)
