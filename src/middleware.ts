@@ -56,9 +56,9 @@ export async function middleware(request: NextRequest) {
   if (user && !isPublicPath) {
     const { data: profile } = await supabase
       .from('users')
-      .select('is_active')
+      .select('id, is_active')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile && profile.is_active === false) {
       // Usuario desactivado — cerrar sesión y redirigir
@@ -67,6 +67,19 @@ export async function middleware(request: NextRequest) {
       loginUrl.pathname = '/auth/login'
       loginUrl.searchParams.set('error', 'account_deactivated')
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Si el usuario está autenticado pero no tiene perfil en public.users,
+    // crearlo ahora para evitar el loop
+    if (!profile) {
+      await supabase.from('users').upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? '',
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        role: 'interviewer',
+        is_active: true,
+      }, { onConflict: 'id', ignoreDuplicates: true })
     }
   }
 
