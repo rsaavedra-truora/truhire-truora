@@ -4,6 +4,7 @@ import { useState, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createProcess } from '@/app/actions/processes'
 import { JDUploadZone } from '@/components/jd-upload-zone'
+import { PersonSearch } from '@/components/person-search'
 
 export default function NewProcessPage() {
   const router = useRouter()
@@ -11,12 +12,14 @@ export default function NewProcessPage() {
   const [entryMode, setEntryMode] = useState<'role_first' | 'talent_first'>('role_first')
   const [capa, setCapa] = useState<'liderazgo' | 'funcional'>('funcional')
   const [error, setError] = useState<string | null>(null)
+  const [hmEmail, setHmEmail] = useState('')
   const descRef = useRef<HTMLTextAreaElement>(null)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const fd = new FormData(e.currentTarget)
+    fd.set('hiring_manager_email', hmEmail)
     startTransition(async () => {
       try {
         await createProcess(fd)
@@ -116,8 +119,11 @@ export default function NewProcessPage() {
             {entryMode === 'talent_first' ? 'Sponsor' : 'Hiring manager'}
             <span className="text-gray-400 font-normal text-xs ml-1">(opcional)</span>
           </h2>
-          <input name="hiring_manager_email" type="email" placeholder="nombre@truora.com"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]" />
+          <PersonSearch
+            value={hmEmail}
+            onChange={(email) => setHmEmail(email)}
+            placeholder="Buscar por nombre..."
+          />
         </div>
 
         {error && (

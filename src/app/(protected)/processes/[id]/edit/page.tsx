@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateProcess } from '@/app/actions/processes'
+import { PersonSearch } from '@/components/person-search'
 
 export default function EditProcessPage() {
   const router = useRouter()
@@ -100,12 +101,11 @@ export default function EditProcessPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Hiring Manager / Sponsor
-              <span className="text-gray-400 font-normal text-xs ml-1">(email @truora.com)</span>
             </label>
-            <input
-              type="email" value={hmEmail} onChange={e => setHmEmail(e.target.value)}
-              placeholder="alejandra@truora.com"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+            <PersonSearch
+              value={hmEmail}
+              onChange={(email) => setHmEmail(email)}
+              placeholder="Buscar por nombre..."
             />
           </div>
 

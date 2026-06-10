@@ -5,17 +5,21 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { TRUORA_PRINCIPLES, DIMENSION_COLORS } from '@/lib/principles-data'
 import { createLoop } from '@/app/actions/loop'
+import { PersonSearch } from '@/components/person-search'
 
-interface TruoraUser {
+interface DirectoryPerson {
   id: string
-  full_name: string | null
+  full_name: string
   email: string
-  role: string
+  area: string | null
+  position: string | null
   is_bar_raiser_certified: boolean
 }
 
 interface InterviewerAssignment {
-  userId: string
+  email: string
+  userId: string | null   // null si aún no ha entrado a TruHire
+  name: string
   principles: string[]
 }
 
@@ -29,12 +33,12 @@ export default function LoopSetupPage() {
   const [loading, setLoading] = useState(true)
   const [candidate, setCandidate] = useState<any>(null)
   const [proc, setProc] = useState<any>(null)
-  const [users, setUsers] = useState<TruoraUser[]>([])
   const [assignments, setAssignments] = useState<InterviewerAssignment[]>([
-    { userId: '', principles: [] },
-    { userId: '', principles: [] },
+    { email: '', userId: null, name: '', principles: [] },
+    { email: '', userId: null, name: '', principles: [] },
   ])
-  const [barRaiserId, setBarRaiserId] = useState('')
+  const [barRaiserEmail, setBarRaiserEmail] = useState('')
+  const [barRaiserId, setBarRaiserId] = useState<string | null>(null)
   const [scheduledAt, setScheduledAt] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -42,21 +46,25 @@ export default function LoopSetupPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: pc }, { data: allUsers }] = await Promise.all([
-      supabase.from('process_candidates').select(`
-        id,
-        candidate:candidates(full_name, email),
-        process:processes(id, title, capa_intencional, hiring_manager_or_sponsor_id)
-      `).eq('id', pcId).single(),
-      supabase.from('users').select('id, full_name, email, role, is_bar_raiser_certified').order('full_name'),
-    ])
+    const { data: pc } = await supabase.from('process_candidates').select(`
+      id,
+      candidate:candidates(full_name, email),
+      process:processes(id, title, capa_intencional, hiring_manager_or_sponsor_id)
+    `).eq('id', pcId).single()
     if (pc) { setCandidate(pc.candidate); setProc(pc.process) }
-    if (allUsers) setUsers(allUsers as TruoraUser[])
     setLoading(false)
   }
 
-  function setInterviewer(index: number, userId: string) {
-    setAssignments(prev => prev.map((a, i) => i === index ? { ...a, userId } : a))
+  async function resolveEmailToUserId(email: string): Promise<string | null> {
+    const { data } = await supabase.from('users').select('id').eq('email', email).maybeSingle()
+    return data?.id ?? null
+  }
+
+  async function setInterviewer(index: number, email: string, person: any) {
+    const userId = email ? await resolveEmailToUserId(email) : null
+    setAssignments(prev => prev.map((a, i) =>
+      i === index ? { ...a, email, userId, name: person?.full_name ?? '' } : a
+    ))
   }
 
   function togglePrinciple(index: number, slug: string) {
@@ -70,7 +78,7 @@ export default function LoopSetupPage() {
 
   function addInterviewer() {
     if (assignments.length >= 3) return
-    setAssignments(prev => [...prev, { userId: '', principles: [] }])
+    setAssignments(prev => [...prev, { email: '', userId: null, name: '', principles: [] }])
   }
 
   function removeInterviewer(index: number) {
@@ -85,8 +93,7 @@ export default function LoopSetupPage() {
       .flatMap(a => a.principles)
   }
 
-  const barRaisers = users.filter(u => u.is_bar_raiser_certified)
-  const potentialInterviewers = users.filter(u => u.id !== barRaiserId)
+  const assignedEmails = assignments.map(a => a.email).filter(Boolean)
 
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Cargando...</div>
 
@@ -100,20 +107,22 @@ export default function LoopSetupPage() {
         </p>
       </div>
 
-      <form action={async (fd) => {
+      <form action={async () => {
         setError(null)
-        // Validar
+        if (!barRaiserEmail) { setError('Debes seleccionar un Bar Raiser.'); return }
         for (const a of assignments) {
-          if (!a.userId) { setError('Asigna un entrevistador a cada fila.'); return }
+          if (!a.email) { setError('Asigna un entrevistador a cada fila.'); return }
+          if (!a.userId) { setError(`${a.name || a.email} aún no ha ingresado a TruHire. Debe hacer login primero.`); return }
           if (a.principles.length < 2) { setError('Cada entrevistador necesita al menos 2 principios.'); return }
         }
-        // Agregar assignments al formData
+        if (!barRaiserId) { setError('El Bar Raiser seleccionado aún no ha ingresado a TruHire. Debe hacer login primero.'); return }
+
         const newFd = new FormData()
         newFd.set('process_candidate_id', pcId)
         newFd.set('bar_raiser_id', barRaiserId)
         newFd.set('scheduled_at', scheduledAt)
         for (const a of assignments) {
-          newFd.append('interviewer_ids', a.userId)
+          newFd.append('interviewer_ids', a.userId!)
           for (const p of a.principles) newFd.append(`principles_${a.userId}`, p)
         }
         try { await createLoop(newFd) }
@@ -125,20 +134,21 @@ export default function LoopSetupPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
           <h2 className="text-sm font-semibold text-gray-900 mb-1">Bar Raiser</h2>
           <p className="text-xs text-gray-500 mb-3">Tiene la última palabra en el debrief. No puede ser el sponsor del candidato.</p>
-          <select
-            value={barRaiserId}
-            onChange={e => setBarRaiserId(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
-            required
-          >
-            <option value="">Selecciona el Bar Raiser...</option>
-            {barRaisers.map(u => (
-              <option key={u.id} value={u.id}>{u.full_name ?? u.email}</option>
-            ))}
-          </select>
-          {barRaisers.length === 0 && (
-            <p className="text-xs text-amber-600 mt-1">No hay Bar Raisers certificados en el sistema todavía.</p>
-          )}
+          <PersonSearch
+            value={barRaiserEmail}
+            onChange={async (email, person) => {
+              setBarRaiserEmail(email)
+              if (email) {
+                const uid = await resolveEmailToUserId(email)
+                setBarRaiserId(uid)
+              } else {
+                setBarRaiserId(null)
+              }
+            }}
+            filterBarRaiser={true}
+            excludeEmails={assignedEmails}
+            placeholder="Buscar Bar Raiser..."
+          />
         </div>
 
         {/* Entrevistadores */}
@@ -158,25 +168,23 @@ export default function LoopSetupPage() {
             const used = usedPrinciples(idx)
             return (
               <div key={idx} className="border border-gray-100 rounded-xl p-4 space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-gray-400 w-4">#{idx + 1}</span>
-                    <select
-                      value={assignment.userId}
-                      onChange={e => setInterviewer(idx, e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
-                    >
-                      <option value="">Selecciona entrevistador...</option>
-                      {potentialInterviewers
-                        .filter(u => u.id === assignment.userId || !assignments.some((a, i) => i !== idx && a.userId === u.id))
-                        .map(u => (
-                          <option key={u.id} value={u.id}>{u.full_name ?? u.email} · {u.role}</option>
-                        ))
-                      }
-                    </select>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2 flex-1">
+                    <span className="text-xs font-mono text-gray-400 w-4 mt-3">#{idx + 1}</span>
+                    <div className="flex-1">
+                      <PersonSearch
+                        value={assignment.email}
+                        onChange={(email, person) => setInterviewer(idx, email, person)}
+                        excludeEmails={[barRaiserEmail, ...assignedEmails.filter((_, i) => i !== idx)]}
+                        placeholder="Buscar entrevistador..."
+                      />
+                      {assignment.email && !assignment.userId && (
+                        <p className="text-xs text-amber-600 mt-1">⚠ Aún no ha ingresado a TruHire</p>
+                      )}
+                    </div>
                   </div>
                   {assignments.length > 2 && (
-                    <button type="button" onClick={() => removeInterviewer(idx)} className="text-xs text-red-400 hover:text-red-600">Quitar</button>
+                    <button type="button" onClick={() => removeInterviewer(idx)} className="text-xs text-red-400 hover:text-red-600 mt-3">Quitar</button>
                   )}
                 </div>
 
