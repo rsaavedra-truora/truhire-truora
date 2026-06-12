@@ -8,6 +8,7 @@ import { setupPhoneScreen, submitPhoneScreenEvaluation } from '@/app/actions/pho
 import { PrincipleRatingSelector, type PrincipleRating } from '@/components/principle-rating'
 import { QuestionBankSelector } from '@/components/question-bank-selector'
 import { SessionAnalysisUploader } from '@/components/session-analysis'
+import { PersonSearch } from '@/components/person-search'
 
 export default function PhoneScreenPage() {
   const params = useParams()
@@ -25,6 +26,8 @@ export default function PhoneScreenPage() {
   const [competencies, setCompetencies] = useState<string[]>([''])
   const [calendlyUrl, setCalendlyUrl] = useState('')
   const [sendInvite, setSendInvite] = useState(true)
+  const [hmEmail, setHmEmail] = useState('')
+  const [processHmId, setProcessHmId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Estado para evaluación
@@ -47,7 +50,7 @@ export default function PhoneScreenPage() {
       .select(`
         id, status,
         candidate:candidates(full_name, email, linkedin_url, cv_text),
-        process:processes(title, capa_intencional, entry_mode),
+        process:processes(title, capa_intencional, entry_mode, hiring_manager_or_sponsor_id, hiring_manager_or_sponsor:users!hiring_manager_or_sponsor_id(id, email, full_name)),
         phone_screen:phone_screens(
           id, assigned_principles, role_competencies,
           principle_notes, competency_notes, overall_summary,
@@ -59,6 +62,11 @@ export default function PhoneScreenPage() {
       .single()
 
     if (pc) {
+      const proc = Array.isArray(pc.process) ? pc.process[0] : pc.process
+      const hm = (proc as any)?.hiring_manager_or_sponsor
+      const hmData = Array.isArray(hm) ? hm[0] : hm
+      if (hmData?.id) setProcessHmId(hmData.id)
+      if (hmData?.email) setHmEmail(hmData.email)
       setCandidate(pc.candidate)
       setScreening(Array.isArray(pc.screening) ? pc.screening[0] : pc.screening)
       const ps = Array.isArray(pc.phone_screen) ? pc.phone_screen[0] : pc.phone_screen
@@ -309,11 +317,28 @@ export default function PhoneScreenPage() {
             </div>
           </div>
 
+          {/* HM — mostrar siempre, editable si no está asignado */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Hiring Manager</h2>
+            <p className="text-xs text-gray-500 mb-3">
+              {processHmId ? 'HM asignado al proceso. Puedes cambiarlo si es necesario.' : 'Este proceso no tiene HM asignado. Selecciónalo aquí para continuar.'}
+            </p>
+            <input type="hidden" name="hm_email_override" value={hmEmail} />
+            <PersonSearch
+              value={hmEmail}
+              onChange={(email) => setHmEmail(email)}
+              placeholder="Buscar Hiring Manager..."
+            />
+            {!processHmId && !hmEmail && (
+              <p className="text-xs text-amber-600 mt-2">⚠ Debes asignar un HM para configurar el phone screen.</p>
+            )}
+          </div>
+
           {error && <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4"><p className="text-sm text-red-700">{error}</p></div>}
 
           <div className="flex gap-3">
             <button type="submit"
-              disabled={selectedPrinciples.length !== 2 || competencies.filter(c => c.trim()).length === 0}
+              disabled={selectedPrinciples.length !== 2 || competencies.filter(c => c.trim()).length === 0 || !hmEmail}
               className="btn-truora disabled:opacity-50 disabled:cursor-not-allowed">
               Guardar y {sendInvite && calendlyUrl ? 'enviar invitación al candidato' : 'continuar'}
             </button>

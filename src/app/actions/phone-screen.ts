@@ -34,8 +34,23 @@ export async function setupPhoneScreen(formData: FormData) {
 
   const proc = pc.process as any
   const candidate = pc.candidate as any
-  const hmId = proc?.hiring_manager_or_sponsor_id ?? null
-  if (!hmId) throw new Error('Este proceso no tiene Hiring Manager asignado. Edita el proceso y asigna uno antes de configurar el phone screen.')
+  // HM puede venir del proceso O del formData si se seleccionó en el phone screen setup
+  const hmEmailOverride = formData.get('hm_email_override') as string | null
+  let hmId = proc?.hiring_manager_or_sponsor_id ?? null
+
+  if (!hmId && hmEmailOverride) {
+    const { data: hmUser } = await supabase
+      .from('users').select('id').eq('email', hmEmailOverride).maybeSingle()
+    if (hmUser) {
+      hmId = hmUser.id
+      // Actualizar el proceso con el HM
+      await supabase.from('processes')
+        .update({ hiring_manager_or_sponsor_id: hmId })
+        .eq('id', pc.process_id)
+    }
+  }
+
+  if (!hmId) throw new Error('Debes asignar un Hiring Manager antes de configurar el phone screen.')
 
   // Crear o actualizar phone screen
   const { error } = await supabase
