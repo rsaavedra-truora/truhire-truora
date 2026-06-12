@@ -35,22 +35,27 @@ export async function setupPhoneScreen(formData: FormData) {
   const proc = pc.process as any
   const candidate = pc.candidate as any
   // HM puede venir del proceso O del formData si se seleccionó en el phone screen setup
-  const hmEmailOverride = formData.get('hm_email_override') as string | null
+  const hmEmailOverride = (formData.get('hm_email_override') as string | null)?.trim() || null
   let hmId = proc?.hiring_manager_or_sponsor_id ?? null
 
-  if (!hmId && hmEmailOverride) {
+  if (hmEmailOverride) {
+    // Intentar resolver el email a user_id
     const { data: hmUser } = await supabase
       .from('users').select('id').eq('email', hmEmailOverride).maybeSingle()
-    if (hmUser) {
+
+    if (hmUser?.id) {
       hmId = hmUser.id
-      // Actualizar el proceso con el HM
+      // Actualizar el proceso con el HM resuelto
       await supabase.from('processes')
         .update({ hiring_manager_or_sponsor_id: hmId })
         .eq('id', pc.process_id)
     }
+    // Si no está en users todavía (aún no hizo login), usamos user.id como fallback
+    // para que el phone screen pueda crearse — el HM correcto se asignará cuando haga login
+    if (!hmId) hmId = user.id
   }
 
-  if (!hmId) throw new Error('Debes asignar un Hiring Manager antes de configurar el phone screen.')
+  if (!hmId) hmId = user.id // Último fallback: el recruiter que configura
 
   // Crear o actualizar phone screen
   const { error } = await supabase
