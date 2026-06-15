@@ -2,119 +2,242 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* ─── Truora Design System — CSS Variables ─────────────────────────────── */
+:root {
+  /* Primary */
+  --truora-primary:        #0800FF;
+  --truora-primary-hover:  #0600CC;
+  --truora-primary-active: #050099;
+  --truora-primary-soft:   #E5E4FF;
+
+  /* Ink (texto) */
+  --truora-ink:        #0B1020;
+  --truora-ink-muted:  #4A5374;
+  --truora-ink-subtle: #8892A6;
+
+  /* Superficies */
+  --truora-line:       #E1E5EE;
+  --truora-bg:         #FFFFFF;
+  --truora-bg-soft:    #F7F8FB;
+  --truora-bg-canvas:  #F2F4F9;
+
+  /* Semánticos */
+  --truora-success: #10B981;
+  --truora-warning: #F59E0B;
+  --truora-danger:  #EF4444;
+
+  /* Radios */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+
+  /* shadcn compat */
+  --background:           0 0% 100%;
+  --foreground:           228 47% 10%;
+  --card:                 0 0% 100%;
+  --card-foreground:      228 47% 10%;
+  --popover:              0 0% 100%;
+  --popover-foreground:   228 47% 10%;
+  --primary:              241 100% 50%;
+  --primary-foreground:   0 0% 100%;
+  --secondary:            220 14% 96%;
+  --secondary-foreground: 228 47% 10%;
+  --muted:                220 14% 96%;
+  --muted-foreground:     215 16% 47%;
+  --accent:               220 14% 96%;
+  --accent-foreground:    228 47% 10%;
+  --destructive:          0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border:               219 22% 90%;
+  --input:                219 22% 90%;
+  --ring:                 241 100% 50%;
+  --radius:               0.5rem;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    /* Truora Blue #0800FF → HSL: 241 100% 50% */
-    --primary: 241 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 241 100% 50%;
-
-    --radius: 0.5rem;
-  }
-
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: var(--truora-ink);
+    background: var(--truora-bg-canvas);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--truora-ink);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
 
   /* Scrollbar sutil */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full;
-  }
+  ::-webkit-scrollbar        { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: var(--truora-line); border-radius: var(--radius-full); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--truora-ink-subtle); }
 }
 
+/* ─── Components ─────────────────────────────────────────────────────────── */
 @layer components {
-  /* Badges de screening */
-  .badge-green {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800;
+
+  /* ── CTA primario ───────────────────────────────────────────────────── */
+  .btn-truora {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5 rounded-lg
+           text-white font-semibold text-sm
+           transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--truora-primary);
+    box-shadow: 0 1px 2px rgba(8, 0, 255, 0.12);
+    --tw-ring-color: var(--truora-primary);
   }
-  .badge-yellow {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+  .btn-truora:hover:not(:disabled)  { background: var(--truora-primary-hover); }
+  .btn-truora:active:not(:disabled) { background: var(--truora-primary-active); }
+
+  /* ── Botón secundario ──────────────────────────────────────────────── */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5 rounded-lg
+           font-medium text-sm
+           transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    color: var(--truora-primary);
+    border: 1.5px solid var(--truora-primary);
+    background: transparent;
+    --tw-ring-color: var(--truora-primary);
   }
-  .badge-red {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  .btn-secondary:hover:not(:disabled) { background: var(--truora-primary-soft); }
+
+  /* ── Botón ghost ───────────────────────────────────────────────────── */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2 rounded-lg
+           font-medium text-sm
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    color: var(--truora-ink-muted);
+    background: transparent;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--truora-bg-soft);
+    color: var(--truora-ink);
   }
 
-  /* Cards con mejor sombra */
+  /* ── Cards ──────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-xl border border-gray-200;
-    box-shadow: 0 1px 3px rgba(11,16,32,0.04);
+    background: var(--truora-bg);
+    border: 1px solid var(--truora-line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 2px rgba(11, 16, 32, 0.04);
+  }
+  .card-hover {
+    @apply transition-all duration-150;
+  }
+  .card-hover:hover {
+    border-color: var(--truora-primary);
+    box-shadow: 0 4px 16px rgba(11, 16, 32, 0.08);
   }
 
-  /* Tablas profesionales */
+  /* ── Inputs ─────────────────────────────────────────────────────────── */
+  .input-truora {
+    @apply w-full px-3.5 py-2.5 rounded-lg text-sm
+           transition-all duration-150
+           focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
+    height: 44px;
+    color: var(--truora-ink);
+    background: var(--truora-bg);
+    border: 1px solid var(--truora-line);
+  }
+  .input-truora::placeholder     { color: var(--truora-ink-subtle); }
+  .input-truora:hover             { border-color: var(--truora-ink-muted); }
+  .input-truora:focus-visible     {
+    border-color: var(--truora-primary);
+    box-shadow: 0 0 0 3px rgba(8, 0, 255, 0.12);
+  }
+
+  /* ── Tablas de datos ────────────────────────────────────────────────── */
   .data-table {
     @apply w-full text-sm;
+    border-collapse: collapse;
   }
   .data-table thead tr {
-    @apply bg-gray-50 border-b border-gray-100;
+    background: var(--truora-bg-soft);
+    border-bottom: 1px solid var(--truora-line);
   }
   .data-table thead th {
-    @apply text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider;
-    letter-spacing: 0.06em;
+    @apply text-left px-5 py-3 font-semibold;
+    font-size: 0.8125rem;     /* 13px */
+    color: var(--truora-ink-muted);
+    /* ❌ NO uppercase — design system says text-transform: none */
   }
   .data-table tbody tr {
-    @apply border-b border-gray-50 hover:bg-blue-50/30 transition-colors;
+    border-bottom: 1px solid var(--truora-bg-soft);
+    transition: background 100ms;
   }
-  .data-table tbody tr:last-child {
-    @apply border-b-0;
-  }
-  .data-table tbody td {
-    @apply px-5 py-3.5;
-  }
+  .data-table tbody tr:last-child  { border-bottom: 0; }
+  .data-table tbody tr:hover       { background: var(--truora-bg-soft); }
+  .data-table tbody td             { @apply px-5 py-3.5; color: var(--truora-ink); }
 
-  /* CTA principal Truora */
-  .btn-truora {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-           bg-[#0800FF] text-white font-semibold text-sm
-           hover:bg-[#0600CC] active:bg-[#0500AA]
-           transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0800FF] focus-visible:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed;
-    box-shadow: 0 1px 2px rgba(8,0,255,0.15);
+  /* ── Badges / Pills ─────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
+  .badge-primary  { background: var(--truora-primary-soft); color: var(--truora-primary); }
+  .badge-success  { background: #D1FAE5; color: #065F46; }
+  .badge-warning  { background: #FEF3C7; color: #92400E; }
+  .badge-danger   { background: #FEE2E2; color: #991B1B; }
+  .badge-neutral  { background: var(--truora-bg-canvas); color: var(--truora-ink-muted); }
 
-  /* Page headers */
+  /* Legacy screening badges */
+  .badge-green  { @apply badge badge-success; }
+  .badge-yellow { @apply badge badge-warning; }
+  .badge-red    { @apply badge badge-danger; }
+
+  /* ── Page header ────────────────────────────────────────────────────── */
   .page-header h1 {
-    @apply text-2xl font-bold text-gray-900;
+    font-size: 1.375rem;   /* 22px */
+    font-weight: 700;
+    color: var(--truora-ink);
     letter-spacing: -0.02em;
   }
   .page-header p {
-    @apply text-sm text-gray-500 mt-0.5;
+    font-size: 0.875rem;
+    color: var(--truora-ink-muted);
+    margin-top: 2px;
+  }
+
+  /* ── Stat / metric card ─────────────────────────────────────────────── */
+  .metric-card {
+    @apply card p-5 flex flex-col gap-1;
+  }
+  .metric-card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--truora-ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metric-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--truora-ink);
+    line-height: 1;
   }
 }

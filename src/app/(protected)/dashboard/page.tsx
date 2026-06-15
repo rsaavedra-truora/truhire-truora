@@ -9,19 +9,15 @@ export const metadata = { title: 'Dashboard' }
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Perfil con rol
   const { data: profile } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Procesos activos (el RLS filtra según el rol automáticamente)
   const { data: processes } = await supabase
     .from('processes')
     .select(`
@@ -33,34 +29,24 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // Métricas rápidas (solo recruiters y head_of_people ven los totales reales)
-  const { count: totalOpen } = await supabase
-    .from('processes')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'open')
+  const { count: totalOpen }      = await supabase.from('processes').select('*', { count: 'exact', head: true }).eq('status', 'open')
+  const { count: totalScreening } = await supabase.from('processes').select('*', { count: 'exact', head: true }).eq('status', 'screening')
+  const { count: totalLoop }      = await supabase.from('processes').select('*', { count: 'exact', head: true }).eq('status', 'loop')
 
-  const { count: totalScreening } = await supabase
-    .from('processes')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'screening')
-
-  const { count: totalLoop } = await supabase
-    .from('processes')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'loop')
-
-  const isRecruiterOrAdmin =
-    profile?.role === 'recruiter' || profile?.role === 'head_of_people'
+  const isRecruiterOrAdmin = profile?.role === 'recruiter' || profile?.role === 'head_of_people'
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header de página */}
+      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1
+            className="text-xl font-semibold"
+            style={{ color: 'var(--truora-ink)', letterSpacing: '-0.02em' }}
+          >
             Buenos días, {profile?.full_name?.split(' ')[0] ?? 'equipo'} 👋
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm mt-0.5" style={{ color: 'var(--truora-ink-muted)' }}>
             Aquí está el estado de los procesos activos.
           </p>
         </div>
@@ -71,37 +57,32 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Métricas rápidas */}
+      {/* Métricas */}
       {isRecruiterOrAdmin && (
         <div className="grid grid-cols-3 gap-4">
-          <MetricCard
-            label="Procesos abiertos"
-            value={totalOpen ?? 0}
-            color="blue"
-          />
-          <MetricCard
-            label="En screening"
-            value={totalScreening ?? 0}
-            color="yellow"
-          />
-          <MetricCard
-            label="En interview loop"
-            value={totalLoop ?? 0}
-            color="violet"
-          />
+          <MetricCard label="Procesos abiertos" value={totalOpen ?? 0}      accent="var(--truora-primary)" />
+          <MetricCard label="En screening"       value={totalScreening ?? 0} accent="#F59E0B" />
+          <MetricCard label="En interview loop"  value={totalLoop ?? 0}      accent="#7C3AED" />
         </div>
       )}
 
       {/* Tabla de procesos activos */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-900">
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{ background: 'var(--truora-bg)', border: '1px solid var(--truora-line)', boxShadow: '0 1px 2px rgba(11,16,32,0.04)' }}
+      >
+        <div
+          className="px-5 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid var(--truora-line)' }}
+        >
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--truora-ink)' }}>
             Procesos activos
           </h2>
           {isRecruiterOrAdmin && (
             <Link
               href="/processes"
-              className="text-xs text-[#0800FF] hover:underline font-medium"
+              className="text-xs font-medium hover:underline"
+              style={{ color: 'var(--truora-primary)' }}
             >
               Ver todos →
             </Link>
@@ -109,14 +90,15 @@ export default async function DashboardPage() {
         </div>
 
         {!processes || processes.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm" style={{ color: 'var(--truora-ink-muted)' }}>
               No hay procesos activos por el momento.
             </p>
             {isRecruiterOrAdmin && (
               <Link
                 href="/processes/new"
-                className="mt-3 inline-block text-sm text-[#0800FF] hover:underline font-medium"
+                className="mt-3 inline-block text-sm font-medium hover:underline"
+                style={{ color: 'var(--truora-primary)' }}
               >
                 Crear el primer proceso →
               </Link>
@@ -125,58 +107,44 @@ export default async function DashboardPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Proceso
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Capa
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Modo
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Manager / Sponsor
-                </th>
+              <tr style={{ background: 'var(--truora-bg-soft)', borderBottom: '1px solid var(--truora-line)' }}>
+                <Th>Proceso</Th>
+                <Th>Capa</Th>
+                <Th>Modo</Th>
+                <Th>Estado</Th>
+                <Th>Manager / Sponsor</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {processes.map((p) => (
                 <tr
                   key={p.id}
-                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="transition-colors cursor-pointer"
+                  style={{ borderBottom: '1px solid var(--truora-bg-soft)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--truora-bg-soft)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                 >
                   <td className="px-5 py-3.5">
                     <Link
                       href={`/processes/${p.id}`}
-                      className="font-medium text-gray-900 hover:text-[#0800FF]"
+                      className="font-medium hover:underline"
+                      style={{ color: 'var(--truora-ink)' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--truora-primary)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--truora-ink)'}
                     >
                       {p.title}
                     </Link>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        p.capa_intencional === 'liderazgo'
-                          ? 'bg-violet-100 text-violet-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {p.capa_intencional === 'liderazgo'
-                        ? 'Liderazgo'
-                        : 'Funcional'}
-                    </span>
+                    <CapaBadge capa={p.capa_intencional} />
                   </td>
-                  <td className="px-4 py-3.5 text-gray-500 text-xs">
+                  <td className="px-4 py-3.5 text-xs" style={{ color: 'var(--truora-ink-muted)' }}>
                     {p.entry_mode === 'role_first' ? 'Role-first' : 'Talent-first'}
                   </td>
                   <td className="px-4 py-3.5">
                     <StatusBadge status={p.status as ProcessStatus} />
                   </td>
-                  <td className="px-4 py-3.5 text-gray-500">
+                  <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--truora-ink-muted)' }}>
                     {(p.hiring_manager_or_sponsor as any)?.full_name ?? '—'}
                   </td>
                 </tr>
@@ -189,54 +157,69 @@ export default async function DashboardPage() {
   )
 }
 
-// -------------------------------------------------------
-// Subcomponentes
-// -------------------------------------------------------
+// ── Subcomponentes ─────────────────────────────────────────────────────────
 
-function MetricCard({
-  label,
-  value,
-  color,
-}: {
-  label: string
-  value: number
-  color: 'blue' | 'yellow' | 'violet'
-}) {
-  const colorMap = {
-    blue:   'bg-blue-50 text-[#0800FF]',
-    yellow: 'bg-yellow-50 text-yellow-700',
-    violet: 'bg-violet-50 text-violet-700',
-  }
+function Th({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+    <th
+      className="text-left px-5 py-3 font-semibold"
+      style={{ fontSize: '0.8125rem', color: 'var(--truora-ink-muted)' }}
+    >
+      {children}
+    </th>
+  )
+}
+
+function MetricCard({ label, value, accent }: { label: string; value: number; accent: string }) {
+  return (
+    <div
+      className="rounded-xl p-5"
+      style={{ background: 'var(--truora-bg)', border: '1px solid var(--truora-line)', boxShadow: '0 1px 2px rgba(11,16,32,0.04)' }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--truora-ink-muted)' }}>
         {label}
       </p>
-      <p
-        className={`text-3xl font-bold mt-1 ${colorMap[color].split(' ')[1]}`}
-      >
+      <p className="text-3xl font-bold mt-1.5" style={{ color: accent, letterSpacing: '-0.03em', lineHeight: 1 }}>
         {value}
       </p>
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: ProcessStatus }) {
-  const colorMap: Record<ProcessStatus, string> = {
-    draft:          'bg-gray-100 text-gray-600',
-    open:           'bg-blue-100 text-blue-700',
-    screening:      'bg-yellow-100 text-yellow-700',
-    phone_screen:   'bg-sky-100 text-sky-700',
-    challenge:      'bg-orange-100 text-orange-700',
-    loop:           'bg-violet-100 text-violet-700',
-    decision:       'bg-purple-100 text-purple-700',
-    closed_hire:    'bg-green-100 text-green-700',
-    closed_no_hire: 'bg-red-100 text-red-700',
-  }
+function CapaBadge({ capa }: { capa: string }) {
+  const isLiderazgo = capa === 'liderazgo'
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colorMap[status] ?? 'bg-gray-100 text-gray-600'}`}
+      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+      style={{
+        background: isLiderazgo ? '#F3F0FF' : 'var(--truora-primary-soft)',
+        color: isLiderazgo ? '#5B21B6' : 'var(--truora-primary)',
+      }}
     >
+      {isLiderazgo ? 'Liderazgo' : 'Funcional'}
+    </span>
+  )
+}
+
+function StatusBadge({ status }: { status: ProcessStatus }) {
+  const map: Record<ProcessStatus, { bg: string; color: string; dot: string }> = {
+    draft:          { bg: 'var(--truora-bg-canvas)', color: 'var(--truora-ink-muted)', dot: 'var(--truora-ink-subtle)' },
+    open:           { bg: 'var(--truora-primary-soft)', color: 'var(--truora-primary)', dot: 'var(--truora-primary)' },
+    screening:      { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    phone_screen:   { bg: '#EDE9FE', color: '#5B21B6', dot: '#8B5CF6' },
+    challenge:      { bg: '#FFEDD5', color: '#9A3412', dot: '#F97316' },
+    loop:           { bg: '#F5F3FF', color: '#4C1D95', dot: '#7C3AED' },
+    decision:       { bg: '#FAF5FF', color: '#6B21A8', dot: '#A855F7' },
+    closed_hire:    { bg: '#D1FAE5', color: '#065F46', dot: 'var(--truora-success)' },
+    closed_no_hire: { bg: '#FEE2E2', color: '#991B1B', dot: 'var(--truora-danger)' },
+  }
+  const s = map[status] ?? map.draft
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
+      style={{ background: s.bg, color: s.color }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.dot }} />
       {PROCESS_STATUS_LABELS[status] ?? status}
     </span>
   )

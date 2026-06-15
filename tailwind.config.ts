@@ -14,12 +14,29 @@ const config: Config = {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Truora brand
+        // Truora Design System — tokens completos
         truora: {
-          blue:    '#0800FF',
-          violet:  '#3C1AE9',
-          orange:  '#EE792F',
-          'blue-light': '#E8E7FF',
+          // Primary
+          primary:        '#0800FF',
+          'primary-hover': '#0600CC',
+          'primary-active':'#050099',
+          'primary-soft': '#E5E4FF',
+          // Texto / ink
+          ink:            '#0B1020',
+          'ink-muted':    '#4A5374',
+          'ink-subtle':   '#8892A6',
+          // Superficies
+          line:           '#E1E5EE',
+          bg:             '#FFFFFF',
+          'bg-soft':      '#F7F8FB',
+          'bg-canvas':    '#F2F4F9',
+          // Semánticos
+          success:        '#10B981',
+          warning:        '#F59E0B',
+          danger:         '#EF4444',
+          // Legacy aliases (backward compat)
+          blue:           '#0800FF',
+          'blue-light':   '#E5E4FF',
         },
         border: 'hsl(var(--border))',
         input:  'hsl(var(--input))',
