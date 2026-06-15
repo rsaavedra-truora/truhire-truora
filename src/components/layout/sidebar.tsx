@@ -120,30 +120,11 @@ export function Sidebar({ userRole }: { userRole: UserRole }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors"
-                      style={
+                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
                         isActive
-                          ? {
-                              background: 'var(--truora-primary-soft)',
-                              color: 'var(--truora-primary)',
-                              fontWeight: 600,
-                            }
-                          : {
-                              color: 'var(--truora-ink-muted)',
-                            }
-                      }
-                      onMouseEnter={e => {
-                        if (!isActive) {
-                          (e.currentTarget as HTMLAnchorElement).style.background = 'var(--truora-bg-soft)'
-                          ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--truora-ink)'
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!isActive) {
-                          (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
-                          ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--truora-ink-muted)'
-                        }
-                      }}
+                          ? 'bg-truora-primary-soft text-truora-primary font-semibold'
+                          : 'text-truora-ink-muted hover:bg-truora-bg-soft hover:text-truora-ink'
+                      }`}
                     >
                       <Icon
                         size={15}

@@ -93,15 +93,10 @@ export default function LoginPage() {
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg
-                       font-medium text-sm transition-colors duration-150
+                       font-medium text-sm text-truora-ink transition-colors duration-150
+                       bg-truora-bg hover:bg-truora-bg-soft
+                       border border-truora-line
                        disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              color: 'var(--truora-ink)',
-              background: 'var(--truora-bg)',
-              border: '1.5px solid var(--truora-line)',
-            }}
-            onMouseEnter={e => !loading && ((e.currentTarget as HTMLButtonElement).style.background = 'var(--truora-bg-soft)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--truora-bg)')}
           >
             {loading ? (
               <svg className="animate-spin h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24"

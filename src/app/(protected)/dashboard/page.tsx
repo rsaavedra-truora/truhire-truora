@@ -119,18 +119,12 @@ export default async function DashboardPage() {
               {processes.map((p) => (
                 <tr
                   key={p.id}
-                  className="transition-colors cursor-pointer"
-                  style={{ borderBottom: '1px solid var(--truora-bg-soft)' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--truora-bg-soft)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  className="transition-colors cursor-pointer hover:bg-truora-bg-soft border-b border-truora-line/50 last:border-b-0"
                 >
                   <td className="px-5 py-3.5">
                     <Link
                       href={`/processes/${p.id}`}
-                      className="font-medium hover:underline"
-                      style={{ color: 'var(--truora-ink)' }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--truora-primary)'}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--truora-ink)'}
+                      className="font-medium text-truora-ink hover:text-truora-primary hover:underline transition-colors"
                     >
                       {p.title}
                     </Link>
