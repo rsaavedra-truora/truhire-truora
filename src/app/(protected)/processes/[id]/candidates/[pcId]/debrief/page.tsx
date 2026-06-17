@@ -14,15 +14,6 @@ export default async function DebriefPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Verificar que es Bar Raiser o head_of_people
-  const { data: currentUser } = await supabase
-    .from('users')
-    .select('role, is_bar_raiser_certified, full_name')
-    .eq('id', user.id)
-    .single()
-
-  const canDecide = (currentUser as any)?.is_bar_raiser_certified || (currentUser as any)?.role === 'head_of_people'
-
   // Datos del candidato
   const { data: pc } = await supabase
     .from('process_candidates')
@@ -238,10 +229,8 @@ export default async function DebriefPage({
               Decidido el {new Date(existingDecision.decided_at).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
-        ) : canDecide ? (
-          <DebriefForm pcId={params.pcId} capa={proc?.capa_intencional} />
         ) : (
-          <p className="text-sm text-gray-500 italic">Solo el Bar Raiser certificado asignado a este proceso puede tomar la decisión final.</p>
+          <DebriefForm pcId={params.pcId} capa={proc?.capa_intencional} />
         )}
       </div>
     </div>

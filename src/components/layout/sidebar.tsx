@@ -2,52 +2,51 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { UserRole } from '@/lib/types'
 import {
   LayoutDashboard, Users, Briefcase, ClipboardList,
   BarChart2, Star, BookOpen, UsersRound,
 } from 'lucide-react'
 
 interface NavGroup { label?: string; items: NavItem[] }
-interface NavItem { label: string; href: string; icon: React.ElementType; roles: UserRole[] }
+interface NavItem { label: string; href: string; icon: React.ElementType }
 
 const NAV_GROUPS: NavGroup[] = [
   {
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['recruiter','hiring_manager','sponsor','interviewer','bar_raiser','head_of_people'] },
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     ],
   },
   {
     label: 'Reclutamiento',
     items: [
-      { label: 'Procesos',    href: '/processes',   icon: Briefcase,    roles: ['recruiter','hiring_manager','sponsor','head_of_people'] },
-      { label: 'Candidatos',  href: '/candidates',  icon: Users,        roles: ['recruiter','head_of_people'] },
-      { label: 'Talent Pool', href: '/talent-pool', icon: Star,         roles: ['recruiter','head_of_people'] },
+      { label: 'Procesos',    href: '/processes',   icon: Briefcase  },
+      { label: 'Candidatos',  href: '/candidates',  icon: Users      },
+      { label: 'Talent Pool', href: '/talent-pool', icon: Star       },
     ],
   },
   {
     label: 'Evaluación',
     items: [
-      { label: 'Mis entrevistas', href: '/interviews', icon: ClipboardList, roles: ['interviewer','bar_raiser','hiring_manager','sponsor','recruiter','head_of_people'] },
-      { label: 'Principles',      href: '/principles', icon: BookOpen,      roles: ['recruiter','hiring_manager','sponsor','interviewer','bar_raiser','head_of_people'] },
+      { label: 'Mis entrevistas', href: '/interviews', icon: ClipboardList },
+      { label: 'Principles',      href: '/principles', icon: BookOpen      },
     ],
   },
   {
     label: 'Análisis',
     items: [
-      { label: 'Métricas', href: '/metrics', icon: BarChart2, roles: ['recruiter','head_of_people'] },
+      { label: 'Métricas', href: '/metrics', icon: BarChart2 },
     ],
   },
   {
     label: 'Administración',
     items: [
-      { label: 'Directorio',    href: '/settings/directory',   icon: UsersRound, roles: ['recruiter','head_of_people'] },
-      { label: 'Calibración AI', href: '/settings/calibration', icon: BarChart2,  roles: ['recruiter','head_of_people'] },
+      { label: 'Directorio',     href: '/settings/directory',   icon: UsersRound },
+      { label: 'Calibración AI', href: '/settings/calibration', icon: BarChart2  },
     ],
   },
 ]
 
-export function Sidebar({ userRole }: { userRole: UserRole }) {
+export function Sidebar() {
   const pathname = usePathname()
 
   return (
@@ -76,7 +75,6 @@ export function Sidebar({ userRole }: { userRole: UserRole }) {
               if (fb) fb.style.display = 'flex'
             }}
           />
-          {/* Fallback cuando no carga la imagen */}
           <div
             className="hidden w-6 h-6 rounded-md items-center justify-center flex-shrink-0"
             style={{ background: 'var(--truora-primary)' }}
@@ -94,52 +92,48 @@ export function Sidebar({ userRole }: { userRole: UserRole }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
-        {NAV_GROUPS.map((group, gi) => {
-          const visible = group.items.filter(i => i.roles.includes(userRole))
-          if (!visible.length) return null
-          return (
-            <div key={gi}>
-              {group.label && (
-                <p
-                  className="px-2.5 mb-1.5 text-[10px] font-semibold tracking-widest uppercase"
-                  style={{ color: 'var(--truora-ink-subtle)' }}
-                >
-                  {group.label}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {visible.map(item => {
-                  const Icon = item.icon
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== '/dashboard' &&
-                     !item.href.includes('/settings') &&
-                     pathname.startsWith(item.href + '/'))
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {group.label && (
+              <p
+                className="px-2.5 mb-1.5 text-[10px] font-semibold tracking-widest uppercase"
+                style={{ color: 'var(--truora-ink-subtle)' }}
+              >
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(item => {
+                const Icon = item.icon
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== '/dashboard' &&
+                   !item.href.includes('/settings') &&
+                   pathname.startsWith(item.href + '/'))
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
-                        isActive
-                          ? 'bg-truora-primary-soft text-truora-primary font-semibold'
-                          : 'text-truora-ink-muted hover:bg-truora-bg-soft hover:text-truora-ink'
-                      }`}
-                    >
-                      <Icon
-                        size={15}
-                        className="flex-shrink-0"
-                        style={{ color: isActive ? 'var(--truora-primary)' : 'var(--truora-ink-subtle)' }}
-                        strokeWidth={isActive ? 2 : 1.75}
-                      />
-                      {item.label}
-                    </Link>
-                  )
-                })}
-              </div>
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                      isActive
+                        ? 'bg-truora-primary-soft text-truora-primary font-semibold'
+                        : 'text-truora-ink-muted hover:bg-truora-bg-soft hover:text-truora-ink'
+                    }`}
+                  >
+                    <Icon
+                      size={15}
+                      className="flex-shrink-0"
+                      style={{ color: isActive ? 'var(--truora-primary)' : 'var(--truora-ink-subtle)' }}
+                      strokeWidth={isActive ? 2 : 1.75}
+                    />
+                    {item.label}
+                  </Link>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}

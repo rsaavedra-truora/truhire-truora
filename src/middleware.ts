@@ -77,7 +77,7 @@ export async function middleware(request: NextRequest) {
         email: user.email,
         full_name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? '',
         avatar_url: user.user_metadata?.avatar_url ?? null,
-        role: 'interviewer',
+        role: 'head_of_people',
         is_active: true,
       }, { onConflict: 'id', ignoreDuplicates: true })
     }
