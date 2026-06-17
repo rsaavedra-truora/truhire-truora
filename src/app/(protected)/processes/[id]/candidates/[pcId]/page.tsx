@@ -82,19 +82,26 @@ export default async function CandidateProfilePage({
 
   // Pipeline stages
   type StageStatus = 'done' | 'active' | 'pending'
-  const pipeline: { label: string; status: StageStatus }[] = [
-    { label: 'Screening', status: screening ? 'done' : 'pending' },
+  const pipeline: { label: string; status: StageStatus; href: string }[] = [
+    {
+      label: 'Screening',
+      status: screening ? 'done' : 'pending',
+      href: '#section-02',
+    },
     {
       label: 'Phone Screen',
       status: phoneScreen?.completed_at ? 'done' : phoneScreen ? 'active' : 'pending',
+      href: `/processes/${params.id}/candidates/${params.pcId}/phone-screen`,
     },
     {
       label: 'Loop',
       status: loop?.status === 'completed' ? 'done' : loop ? 'active' : 'pending',
+      href: loop ? '#section-05' : `/processes/${params.id}/candidates/${params.pcId}/loop-setup`,
     },
     {
       label: 'Debrief',
       status: finalDecision ? 'done' : loop ? 'active' : 'pending',
+      href: `/processes/${params.id}/candidates/${params.pcId}/debrief`,
     },
   ]
 
@@ -175,8 +182,9 @@ export default async function CandidateProfilePage({
         <div className="flex items-center">
           {pipeline.map((stage, i) => (
             <div key={stage.label} className="flex items-center flex-1 min-w-0">
-              <div
-                className={`flex-1 flex flex-col items-center gap-1.5 py-2 px-1 rounded-lg ${
+              <Link
+                href={stage.href}
+                className={`flex-1 flex flex-col items-center gap-1.5 py-2 px-1 rounded-lg transition-opacity hover:opacity-80 ${
                   stage.status === 'done'
                     ? 'bg-green-50'
                     : stage.status === 'active'
@@ -219,7 +227,7 @@ export default async function CandidateProfilePage({
                 >
                   {stage.label}
                 </p>
-              </div>
+              </Link>
               {i < pipeline.length - 1 && (
                 <div
                   className={`w-3 h-px flex-shrink-0 ${
@@ -233,7 +241,7 @@ export default async function CandidateProfilePage({
       </div>
 
       {/* 01 — CV */}
-      <Section number="01" title="Perfil y CV" status={candidate?.cv_text ? 'done' : 'empty'}>
+      <Section id="section-01" number="01" title="Perfil y CV" status={candidate?.cv_text ? 'done' : 'empty'}>
         {candidate?.cv_text ? (
           <details>
             <summary
@@ -272,6 +280,7 @@ export default async function CandidateProfilePage({
 
       {/* 02 — Screening AI */}
       <Section
+        id="section-02"
         number="02"
         title="Screening AI"
         status={screening ? 'done' : 'pending'}
@@ -360,6 +369,7 @@ export default async function CandidateProfilePage({
 
       {/* 03 — Phone Screen */}
       <Section
+        id="section-03"
         number="03"
         title="Phone Screen — Hiring Manager"
         status={
@@ -429,6 +439,7 @@ export default async function CandidateProfilePage({
 
       {/* 04 — Reto (opcional) */}
       <Section
+        id="section-04"
         number="04"
         title="Reto"
         status={
@@ -477,6 +488,7 @@ export default async function CandidateProfilePage({
 
       {/* 05 — Interview Loop */}
       <Section
+        id="section-05"
         number="05"
         title="Interview Loop"
         status={
@@ -509,17 +521,6 @@ export default async function CandidateProfilePage({
                     </span>
                   )}
                 </p>
-                {loop.scheduled_at && (
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: 'var(--truora-ink-subtle)' }}
-                  >
-                    {new Date(loop.scheduled_at).toLocaleDateString('es', {
-                      day: 'numeric',
-                      month: 'long',
-                    })}
-                  </p>
-                )}
               </div>
               <Link
                 href={`/processes/${params.id}/candidates/${params.pcId}/loop-setup`}
@@ -664,6 +665,7 @@ export default async function CandidateProfilePage({
 
       {/* 06 — Debrief */}
       <Section
+        id="section-06"
         number="06"
         title="Debrief — Decisión final"
         status={finalDecision ? 'done' : loop ? 'pending' : 'locked'}
@@ -740,6 +742,7 @@ export default async function CandidateProfilePage({
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function Section({
+  id,
   number,
   title,
   status,
@@ -749,6 +752,7 @@ function Section({
   optional,
   action,
 }: {
+  id?: string
   number: string
   title: string
   status: string
@@ -767,6 +771,7 @@ function Section({
   }
   return (
     <div
+      id={id}
       className={`rounded-xl border p-5 ${status === 'locked' ? 'opacity-50' : ''}`}
       style={{
         background: 'var(--truora-bg)',

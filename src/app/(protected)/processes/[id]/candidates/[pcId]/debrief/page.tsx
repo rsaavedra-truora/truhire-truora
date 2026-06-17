@@ -245,11 +245,19 @@ function PrincipleGrid({
   evaluations: any[]
   loopId: string | null
 }) {
-  // Mutable Set — se agregan slugs de AI después de procesar las filas humanas
+  // Principios base (asignados) + extras que los entrevistadores hayan evaluado
   const slugSet = new Set<string>([
     ...(phoneScreen?.assigned_principles ?? []),
     ...assignments.flatMap(a => a.principles as string[] ?? []),
   ])
+  // Agregar principios extra de evaluaciones existentes
+  assignments.forEach(a => {
+    const interviewer = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
+    const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
+    if (evaluation?.principle_notes) {
+      Object.keys(evaluation.principle_notes).forEach(slug => slugSet.add(slug))
+    }
+  })
 
   type RowType = 'hm' | 'hm_ai' | 'interviewer' | 'interviewer_ai'
   const rows: Array<{
@@ -379,21 +387,30 @@ function PrincipleGrid({
                 </p>
               </td>
               {allSlugs.map(slug => {
-                const evaluated = row.assignedSlugs.includes(slug)
+                const wasAssigned = row.assignedSlugs.includes(slug)
                 const data = row.principleNotes[slug]
                 const rating = data?.rating ?? null
                 const notes = data?.notes ?? null
                 const question = data?.question ?? null
+                const isExtra = !wasAssigned && (rating || notes)
                 return (
                   <td key={slug} className="px-3 py-4">
-                    {evaluated ? (
+                    {wasAssigned || isExtra ? (
                       rating ? (
                         /* Tiene rating — badge con tooltip */
                         <div className="relative group inline-block">
-                          <RatingBadge rating={rating} />
+                          <div className="flex items-center gap-1">
+                            <RatingBadge rating={rating} />
+                            {isExtra && (
+                              <span className="text-[9px] font-bold text-violet-500 leading-none">+</span>
+                            )}
+                          </div>
                           {(notes || question) && (
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-xs rounded-xl p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-xl z-50"
                               style={{ width: 'max-content', maxWidth: '320px', whiteSpace: 'normal' }}>
+                              {isExtra && (
+                                <p className="text-violet-300 text-[10px] font-semibold mb-2">Evaluado por iniciativa propia</p>
+                              )}
                               {question && (
                                 <div className={notes ? 'mb-3 pb-3 border-b border-gray-700' : ''}>
                                   <p className="font-semibold text-blue-300 mb-1.5">Pregunta utilizada:</p>
@@ -410,12 +427,12 @@ function PrincipleGrid({
                             </div>
                           )}
                         </div>
-                      ) : (
-                        /* Evaluado pero sin rating aún */
+                      ) : wasAssigned ? (
+                        /* Asignado pero sin rating aún */
                         <span className="text-xs text-amber-500 font-medium">Pendiente</span>
-                      )
+                      ) : null
                     ) : (
-                      /* No le correspondía evaluar este principio */
+                      /* No le correspondía */
                       <span className="text-xs text-gray-200">—</span>
                     )}
                   </td>

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PrincipleRatingSelector, type PrincipleRating } from '@/components/principle-rating'
 import { QuestionBankSelector } from '@/components/question-bank-selector'
 import { SessionAnalysisUploader } from '@/components/session-analysis'
-import { getPrincipleBySlug } from '@/lib/principles-data'
+import { getPrincipleBySlug, TRUORA_PRINCIPLES } from '@/lib/principles-data'
 
 export default function InterviewPage() {
   const params = useParams()
@@ -25,6 +25,8 @@ export default function InterviewPage() {
   const [evaluation, setEvaluation] = useState<any>(null)
   const [expandedPrinciple, setExpandedPrinciple] = useState<string | null>(null)
   const [expandedQuestions, setExpandedQuestions] = useState<string | null>(null)
+  const [extraPrinciples, setExtraPrinciples] = useState<string[]>([])
+  const [showPrinciplePicker, setShowPrinciplePicker] = useState(false)
 
   // Form state
   const [principleNotes, setPrincipleNotes] = useState<Record<string, string>>({})
@@ -98,6 +100,11 @@ export default function InterviewPage() {
           setConclusion(eval_.conclusion ?? '')
           setRecommendation(eval_.recommendation)
           setIsSigned(!!eval_.signed_at)
+
+          // Detectar principios evaluados extra (más allá de los asignados)
+          const assignedSet = new Set(myAssignment.principles as string[])
+          const extraSlugs = Object.keys(notes).filter(slug => !assignedSet.has(slug) && notes[slug])
+          if (extraSlugs.length) setExtraPrinciples(extraSlugs)
         }
       }
     }
@@ -343,6 +350,170 @@ export default function InterviewPage() {
             </div>
           )
         })}
+      </div>
+
+      {/* Bloque 2b: Principios adicionales (opcionales) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Principios adicionales</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              ¿Surgió evidencia relevante de otro principio? Agrégalo — el Bar Raiser lo verá.
+            </p>
+          </div>
+          {!isSigned && (
+            <button
+              type="button"
+              onClick={() => setShowPrinciplePicker(v => !v)}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+              style={{
+                color: 'var(--truora-primary)',
+                borderColor: 'var(--truora-primary)',
+                background: showPrinciplePicker ? 'var(--truora-primary-soft)' : 'transparent',
+              }}
+            >
+              {showPrinciplePicker ? 'Cerrar ✕' : '+ Agregar principio'}
+            </button>
+          )}
+        </div>
+
+        {/* Picker */}
+        {showPrinciplePicker && !isSigned && (
+          <div
+            className="rounded-xl border p-4 grid grid-cols-2 gap-2"
+            style={{ background: 'var(--truora-bg-soft)', borderColor: 'var(--truora-line)' }}
+          >
+            {TRUORA_PRINCIPLES
+              .filter(p => !myPrinciples.some(mp => mp?.slug === p.slug) && !extraPrinciples.includes(p.slug))
+              .map(p => (
+                <button
+                  key={p.slug}
+                  type="button"
+                  onClick={() => {
+                    setExtraPrinciples(prev => [...prev, p.slug])
+                    setExpandedPrinciple(p.slug)
+                    setShowPrinciplePicker(false)
+                  }}
+                  className="text-left p-3 rounded-lg border border-gray-200 bg-white hover:border-[#0800FF] hover:bg-[#E8E7FF] transition-all"
+                >
+                  <span
+                    className="text-xs font-mono font-semibold"
+                    style={{ color: 'var(--truora-primary)' }}
+                  >
+                    {p.id}
+                  </span>
+                  <p className="text-xs font-medium text-gray-800 mt-0.5 leading-tight">{p.name}</p>
+                </button>
+              ))}
+            {TRUORA_PRINCIPLES.filter(
+              p => !myPrinciples.some(mp => mp?.slug === p.slug) && !extraPrinciples.includes(p.slug)
+            ).length === 0 && (
+              <p className="text-xs text-gray-400 col-span-2 text-center py-2">
+                Ya evaluaste todos los principios disponibles.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Extra principle cards */}
+        {extraPrinciples.map(slug => {
+          const p = getPrincipleBySlug(slug)
+          if (!p) return null
+          const isExpanded = expandedPrinciple === slug
+          const showQuestions = expandedQuestions === slug
+          return (
+            <div
+              key={slug}
+              className="bg-white rounded-xl border border-[#0800FF]/20 overflow-hidden"
+            >
+              <div
+                className="px-5 py-4 cursor-pointer flex items-start justify-between gap-3"
+                onClick={() => setExpandedPrinciple(isExpanded ? null : slug)}
+              >
+                <div className="flex items-start gap-2 flex-1 min-w-0">
+                  <span
+                    className="text-xs px-1.5 py-0.5 rounded font-semibold flex-shrink-0 mt-0.5"
+                    style={{ background: 'var(--truora-primary-soft)', color: 'var(--truora-primary)' }}
+                  >
+                    Extra
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{p.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{p.definition}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!isSigned && (
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setExtraPrinciples(prev => prev.filter(s => s !== slug))
+                        setPrincipleNotes(prev => { const n = { ...prev }; delete n[slug]; return n })
+                        setPrincipleRatings(prev => { const r = { ...prev }; delete r[slug]; return r })
+                        setPrincipleQuestions(prev => { const q = { ...prev }; delete q[slug]; return q })
+                      }}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      Quitar
+                    </button>
+                  )}
+                  <span className="text-xs text-gray-400">{isExpanded ? '▲' : '▼'}</span>
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-green-700 mb-2">✓ Señales Hire</p>
+                      {p.signals.map((s, i) => (
+                        <p key={i} className="text-xs text-green-800 leading-snug mb-1.5 flex gap-1.5">
+                          <span className="flex-shrink-0">•</span>{s}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="bg-red-50 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-red-700 mb-2">✗ Anti-señales</p>
+                      {p.antiSignals.map((s, i) => (
+                        <p key={i} className="text-xs text-red-800 leading-snug mb-1.5 flex gap-1.5">
+                          <span className="flex-shrink-0">•</span>{s}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  <PrincipleRatingSelector
+                    slug={p.slug}
+                    value={principleRatings[p.slug] ?? null}
+                    onChange={(s, rating) => setPrincipleRatings(prev => ({ ...prev, [s]: rating }))}
+                    disabled={isSigned}
+                  />
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Evidencia concreta
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={principleNotes[p.slug] ?? ''}
+                      onChange={e => setPrincipleNotes(prev => ({ ...prev, [p.slug]: e.target.value }))}
+                      placeholder="Qué evidencia observaste de este principio durante la entrevista."
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+                      disabled={isSigned}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {extraPrinciples.length === 0 && !showPrinciplePicker && (
+          <p className="text-xs italic" style={{ color: 'var(--truora-ink-subtle)' }}>
+            Sin principios adicionales.
+          </p>
+        )}
       </div>
 
       {/* Bloque 3: Cierre de la evaluación */}
