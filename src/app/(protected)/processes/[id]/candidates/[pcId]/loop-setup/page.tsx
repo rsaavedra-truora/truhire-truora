@@ -39,7 +39,6 @@ export default function LoopSetupPage() {
   ])
   const [barRaiserEmail, setBarRaiserEmail] = useState('')
   const [barRaiserId, setBarRaiserId] = useState<string | null>(null)
-  const [scheduledAt, setScheduledAt] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { loadData() }, [pcId])
@@ -119,7 +118,6 @@ export default function LoopSetupPage() {
         newFd.set('process_candidate_id', pcId)
         newFd.set('bar_raiser_id',    barRaiserId ?? '')
         newFd.set('bar_raiser_email', barRaiserEmail)
-        newFd.set('scheduled_at', scheduledAt)
         for (const a of assignments) {
           newFd.append('interviewer_ids',    a.userId ?? 'null')
           newFd.append('interviewer_emails', a.email)
@@ -238,18 +236,6 @@ export default function LoopSetupPage() {
               </div>
             )
           })}
-        </div>
-
-        {/* Fecha estimada */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-1">Fecha estimada del loop</h2>
-          <p className="text-xs text-gray-500 mb-3">Opcional — para dar contexto a los entrevistadores.</p>
-          <input
-            type="date"
-            value={scheduledAt}
-            onChange={e => setScheduledAt(e.target.value)}
-            className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
-          />
         </div>
 
         {error && (

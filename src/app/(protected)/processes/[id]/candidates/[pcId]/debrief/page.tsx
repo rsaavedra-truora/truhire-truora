@@ -170,39 +170,94 @@ export default async function DebriefPage({
         </div>
       )}
 
-      {/* Evaluaciones del loop */}
+      {/* Evaluaciones del loop — una tarjeta por entrevistador con notas completas */}
       {assignments.map((assignment: any) => {
         const interviewer = Array.isArray(assignment.interviewer) ? assignment.interviewer[0] : assignment.interviewer
         const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
         const isSigned = !!evaluation?.signed_at
+        const principleNotes = evaluation?.principle_notes ?? {}
+
+        // Principios asignados + extras que el entrevistador haya evaluado
+        const assignedSlugs = (assignment.principles as string[]) ?? []
+        const extraSlugs = Object.keys(principleNotes).filter(s => !assignedSlugs.includes(s))
+        const allEvalSlugs = [...assignedSlugs, ...extraSlugs]
+
         return (
-          <div key={assignment.id} className={`bg-white rounded-xl border p-5 ${isSigned ? 'border-gray-200' : 'border-dashed border-gray-300'}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{interviewer?.full_name ?? 'Entrevistador'}</p>
+          <div key={assignment.id} className={`bg-white rounded-xl border ${isSigned ? 'border-gray-200' : 'border-dashed border-gray-300'}`}>
+            {/* Header del entrevistador */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <p className="text-sm font-semibold text-gray-900">{interviewer?.full_name ?? 'Entrevistador'}</p>
                 {isSigned
-                  ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Firmado</span>
+                  ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Firmado</span>
                   : <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Pendiente</span>
                 }
               </div>
               {evaluation?.recommendation !== null && evaluation?.recommendation !== undefined && (
-                <span className="text-xl">{evaluation.recommendation ? '👍' : '👎'}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs font-semibold ${evaluation.recommendation ? 'text-green-700' : 'text-red-600'}`}>
+                    {evaluation.recommendation ? 'Hire' : 'No Hire'}
+                  </span>
+                  <span className="text-xl">{evaluation.recommendation ? '👍' : '👎'}</span>
+                </div>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {(assignment.principles as string[])?.map(slug => {
-                const p = getPrincipleBySlug(slug)
-                return p ? <span key={slug} className="text-xs bg-[#E8E7FF] text-[#0800FF] px-2 py-0.5 rounded-full">{p.name}</span> : null
-              })}
-            </div>
-            {isSigned && evaluation?.conclusion && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-medium text-gray-500 mb-2">Conclusión</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{evaluation.conclusion}</p>
+
+            {!isSigned ? (
+              <p className="text-sm text-gray-400 italic px-5 py-4">
+                Este entrevistador aún no ha firmado su evaluación.
+              </p>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {/* Principios evaluados — uno por uno */}
+                {allEvalSlugs.map(slug => {
+                  const p = getPrincipleBySlug(slug)
+                  const data = principleNotes[slug]
+                  const isExtra = !assignedSlugs.includes(slug)
+                  if (!data && !p) return null
+                  return (
+                    <div key={slug} className="px-5 py-4 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {p && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            isExtra
+                              ? 'bg-violet-100 text-violet-700'
+                              : 'bg-[#E8E7FF] text-[#0800FF]'
+                          }`}>
+                            {isExtra ? '+ ' : ''}{p.name}
+                          </span>
+                        )}
+                        {data?.rating && <RatingBadge rating={data.rating} />}
+                      </div>
+                      {data?.question && (
+                        <p className="text-xs text-gray-500 italic">
+                          <span className="font-medium not-italic text-gray-700">Pregunta:</span>{' '}
+                          {data.question}
+                        </p>
+                      )}
+                      {data?.notes ? (
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                          {data.notes}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">Sin notas escritas.</p>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Conclusión */}
+                {evaluation?.conclusion && (
+                  <div className="px-5 py-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Conclusión
+                    </p>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
+                      {evaluation.conclusion}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-            {!isSigned && (
-              <p className="text-sm text-gray-400 italic">Este entrevistador aún no ha firmado su evaluación.</p>
             )}
           </div>
         )
@@ -397,42 +452,16 @@ function PrincipleGrid({
                   <td key={slug} className="px-3 py-4">
                     {wasAssigned || isExtra ? (
                       rating ? (
-                        /* Tiene rating — badge con tooltip */
-                        <div className="relative group inline-block">
-                          <div className="flex items-center gap-1">
-                            <RatingBadge rating={rating} />
-                            {isExtra && (
-                              <span className="text-[9px] font-bold text-violet-500 leading-none">+</span>
-                            )}
-                          </div>
-                          {(notes || question) && (
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-xs rounded-xl p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-xl z-50"
-                              style={{ width: 'max-content', maxWidth: '320px', whiteSpace: 'normal' }}>
-                              {isExtra && (
-                                <p className="text-violet-300 text-[10px] font-semibold mb-2">Evaluado por iniciativa propia</p>
-                              )}
-                              {question && (
-                                <div className={notes ? 'mb-3 pb-3 border-b border-gray-700' : ''}>
-                                  <p className="font-semibold text-blue-300 mb-1.5">Pregunta utilizada:</p>
-                                  <p className="leading-relaxed text-gray-100">{question}</p>
-                                </div>
-                              )}
-                              {notes && (
-                                <div>
-                                  <p className="font-semibold text-gray-300 mb-1.5">Notas:</p>
-                                  <p className="leading-relaxed text-gray-100">{notes}</p>
-                                </div>
-                              )}
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                            </div>
+                        <div className="flex items-center gap-1">
+                          <RatingBadge rating={rating} />
+                          {isExtra && (
+                            <span className="text-[9px] font-bold text-violet-500 leading-none" title="Evaluado por iniciativa">+</span>
                           )}
                         </div>
                       ) : wasAssigned ? (
-                        /* Asignado pero sin rating aún */
                         <span className="text-xs text-amber-500 font-medium">Pendiente</span>
                       ) : null
                     ) : (
-                      /* No le correspondía */
                       <span className="text-xs text-gray-200">—</span>
                     )}
                   </td>
