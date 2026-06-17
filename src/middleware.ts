@@ -81,6 +81,22 @@ export async function middleware(request: NextRequest) {
         is_active: true,
       }, { onConflict: 'id', ignoreDuplicates: true })
     }
+
+    // Backfill: si hay loop_assignments o loops con pending_email igual al email
+    // del usuario que acaba de entrar, asignarle su ID real ahora
+    if (user.email) {
+      await supabase
+        .from('loop_assignments')
+        .update({ interviewer_id: user.id, pending_email: null })
+        .eq('pending_email', user.email)
+        .is('interviewer_id', null)
+
+      await supabase
+        .from('loops')
+        .update({ bar_raiser_id: user.id, bar_raiser_pending_email: null })
+        .eq('bar_raiser_pending_email', user.email)
+        .is('bar_raiser_id', null)
+    }
   }
 
   // Si hay sesión y está en /auth/login → redirigir al dashboard

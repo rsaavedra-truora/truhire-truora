@@ -112,18 +112,20 @@ export default function LoopSetupPage() {
         if (!barRaiserEmail) { setError('Debes seleccionar un Bar Raiser.'); return }
         for (const a of assignments) {
           if (!a.email) { setError('Asigna un entrevistador a cada fila.'); return }
-          if (!a.userId) { setError(`${a.name || a.email} aún no ha ingresado a TruHire. Debe hacer login primero.`); return }
           if (a.principles.length < 2) { setError('Cada entrevistador necesita al menos 2 principios.'); return }
         }
-        if (!barRaiserId) { setError('El Bar Raiser seleccionado aún no ha ingresado a TruHire. Debe hacer login primero.'); return }
 
         const newFd = new FormData()
         newFd.set('process_candidate_id', pcId)
-        newFd.set('bar_raiser_id', barRaiserId)
+        newFd.set('bar_raiser_id',    barRaiserId ?? '')
+        newFd.set('bar_raiser_email', barRaiserEmail)
         newFd.set('scheduled_at', scheduledAt)
         for (const a of assignments) {
-          newFd.append('interviewer_ids', a.userId!)
-          for (const p of a.principles) newFd.append(`principles_${a.userId}`, p)
+          newFd.append('interviewer_ids',    a.userId ?? 'null')
+          newFd.append('interviewer_emails', a.email)
+          // principios indexados por userId si lo hay, sino por email
+          const key = a.userId ?? a.email
+          for (const p of a.principles) newFd.append(`principles_${key}`, p)
         }
         try { await createLoop(newFd) }
         catch (e: any) { setError(e.message) }
@@ -179,7 +181,7 @@ export default function LoopSetupPage() {
                         placeholder="Buscar entrevistador..."
                       />
                       {assignment.email && !assignment.userId && (
-                        <p className="text-xs text-amber-600 mt-1">⚠ Aún no ha ingresado a TruHire</p>
+                        <p className="text-xs text-amber-600 mt-1">⚠ Aún no ha ingresado a TruHire — se asignará automáticamente cuando haga login</p>
                       )}
                     </div>
                   </div>
