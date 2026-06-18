@@ -14,7 +14,6 @@ export default function LoginPage() {
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
-          hd: 'truora.com',
           access_type: 'offline',
           prompt: 'consent',
         },
@@ -82,11 +81,7 @@ export default function LoginPage() {
             Ingresa con tu cuenta Truora
           </h2>
           <p className="text-sm mb-6" style={{ color: 'var(--truora-ink-muted)' }}>
-            Solo cuentas{' '}
-            <span className="font-medium" style={{ color: 'var(--truora-ink)' }}>
-              @truora.com
-            </span>{' '}
-            tienen acceso a esta plataforma.
+            Solo cuentas corporativas de Truora tienen acceso a esta plataforma.
           </p>
 
           <button

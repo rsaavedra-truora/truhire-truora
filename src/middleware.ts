@@ -52,6 +52,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // Dominios corporativos permitidos
+  const ALLOWED_DOMAINS = ['truora.com', 'zapsign.com.br']
+
+  // Si el usuario logueado no pertenece a un dominio permitido → cerrar sesión
+  if (user && !isPublicPath) {
+    const emailDomain = user.email?.split('@')[1] ?? ''
+    if (!ALLOWED_DOMAINS.includes(emailDomain)) {
+      await supabase.auth.signOut()
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/auth/login'
+      loginUrl.searchParams.set('error', 'unauthorized_domain')
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   // Si hay sesión verificar que el usuario esté activo en TruHire
   if (user && !isPublicPath) {
     const { data: profile } = await supabase
