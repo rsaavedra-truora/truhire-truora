@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -9,11 +9,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   account_deactivated: 'Tu cuenta está desactivada. Contacta al equipo de People.',
 }
 
-export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
+// Isolated so useSearchParams() doesn't block the entire page from static rendering
+function ErrorBanner() {
   const searchParams = useSearchParams()
   const errorParam = searchParams.get('error')
-  const errorMessage = errorParam ? ERROR_MESSAGES[errorParam] ?? 'Ocurrió un error al iniciar sesión.' : null
+  const errorMessage = errorParam
+    ? ERROR_MESSAGES[errorParam] ?? 'Ocurrió un error al iniciar sesión.'
+    : null
+  if (!errorMessage) return null
+  return (
+    <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
+      <span className="text-red-500 flex-shrink-0 mt-0.5">⚠</span>
+      <p className="text-sm text-red-700 leading-snug">{errorMessage}</p>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
   async function handleGoogleLogin() {
@@ -74,13 +87,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Error banner */}
-        {errorMessage && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
-            <span className="text-red-500 flex-shrink-0 mt-0.5">⚠</span>
-            <p className="text-sm text-red-700 leading-snug">{errorMessage}</p>
-          </div>
-        )}
+        {/* Error banner — wrapped in Suspense so useSearchParams() doesn't bail out SSR */}
+        <Suspense fallback={null}>
+          <ErrorBanner />
+        </Suspense>
 
         {/* Card */}
         <div
