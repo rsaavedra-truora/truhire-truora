@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Verificar que el email es @truora.com (doble verificación además del trigger SQL)
-      if (!data.user.email?.endsWith('@truora.com')) {
+      // Verificar que el email pertenece a un dominio corporativo permitido
+      const ALLOWED_DOMAINS = ['truora.com', 'zapsign.com.br']
+      const emailDomain = data.user.email?.split('@')[1] ?? ''
+      if (!ALLOWED_DOMAINS.includes(emailDomain)) {
         await supabase.auth.signOut()
         return NextResponse.redirect(
           `${origin}/auth/login?error=unauthorized_domain`
