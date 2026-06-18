@@ -148,27 +148,65 @@ export default async function DebriefPage({
       )}
 
       {/* Phone Screen — HM */}
-      {phoneScreen && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Screen — {(phoneScreen.hm as any)?.full_name ?? 'HM'}</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${phoneScreen.decision === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {phoneScreen.decision === 'pass' ? '✓ Pasa' : '✗ No pasa'}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {(phoneScreen.assigned_principles as string[])?.map(slug => {
-              const p = getPrincipleBySlug(slug)
-              return p ? <span key={slug} className="text-xs bg-[#E8E7FF] text-[#0800FF] px-2 py-0.5 rounded-full">{p.name}</span> : null
-            })}
-          </div>
-          {phoneScreen.overall_summary && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed">{phoneScreen.overall_summary}</p>
+      {phoneScreen && (() => {
+        const psNotes: Record<string, any> = phoneScreen.principle_notes ?? {}
+        const assignedSlugs: string[] = phoneScreen.assigned_principles ?? []
+        const extraSlugs = Object.keys(psNotes).filter(s => !assignedSlugs.includes(s))
+        const allSlugs = [...assignedSlugs, ...extraSlugs]
+        return (
+          <div className="bg-white rounded-xl border border-gray-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <p className="text-sm font-semibold text-gray-900">
+                Phone Screen — {(phoneScreen.hm as any)?.full_name ?? 'HM'}
+              </p>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${phoneScreen.decision === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {phoneScreen.decision === 'pass' ? '✓ Pasa' : '✗ No pasa'}
+              </span>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="divide-y divide-gray-50">
+              {/* Notas por principio */}
+              {allSlugs.map(slug => {
+                const p = getPrincipleBySlug(slug)
+                const data = psNotes[slug]
+                const isExtra = !assignedSlugs.includes(slug)
+                if (!p && !data) return null
+                return (
+                  <div key={slug} className="px-5 py-4 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {p && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExtra ? 'bg-violet-100 text-violet-700' : 'bg-[#E8E7FF] text-[#0800FF]'}`}>
+                          {isExtra ? '+ ' : ''}{p.name}
+                        </span>
+                      )}
+                      {data?.rating && <RatingBadge rating={data.rating} />}
+                    </div>
+                    {data?.question && (
+                      <p className="text-xs text-gray-500 italic">
+                        <span className="font-medium not-italic text-gray-700">Pregunta:</span>{' '}{data.question}
+                      </p>
+                    )}
+                    {data?.notes ? (
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{data.notes}</p>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">Sin notas escritas.</p>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* Conclusión del HM */}
+              {phoneScreen.overall_summary && (
+                <div className="px-5 py-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Conclusión</p>
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">{phoneScreen.overall_summary}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Evaluaciones del loop — una tarjeta por entrevistador con notas completas */}
       {assignments.map((assignment: any) => {
