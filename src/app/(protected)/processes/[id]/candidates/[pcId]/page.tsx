@@ -531,6 +531,44 @@ export default async function CandidateProfilePage({
               </Link>
             </div>
 
+            {/* Progress indicator */}
+            {(() => {
+              const total = assignments.length
+              const completed = assignments.filter((a: any) => {
+                const iv = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
+                return !!evaluations.find((e: any) => e.interviewer_id === iv?.id && e.signed_at)
+              }).length
+              const pct = total > 0 ? Math.round((completed / total) * 100) : 0
+              return (
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex-1 h-1.5 rounded-full overflow-hidden"
+                    style={{ background: 'var(--truora-bg-soft)' }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${pct}%`,
+                        background: completed === total && total > 0
+                          ? '#16a34a'
+                          : 'var(--truora-primary)',
+                      }}
+                    />
+                  </div>
+                  <p
+                    className="text-xs font-medium flex-shrink-0"
+                    style={{
+                      color: completed === total && total > 0
+                        ? '#16a34a'
+                        : 'var(--truora-ink-muted)',
+                    }}
+                  >
+                    {completed} de {total} evaluaciones completadas
+                  </p>
+                </div>
+              )
+            })()}
+
             {/* Interviewers */}
             <div className="space-y-2">
               {assignments.map((assignment: any) => {

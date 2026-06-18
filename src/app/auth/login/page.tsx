@@ -1,10 +1,19 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+
+const ERROR_MESSAGES: Record<string, string> = {
+  unauthorized_domain: 'Tu cuenta no tiene acceso a TruHire. Usa tu correo corporativo de Truora o ZapSign.',
+  account_deactivated: 'Tu cuenta está desactivada. Contacta al equipo de People.',
+}
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const searchParams = useSearchParams()
+  const errorParam = searchParams.get('error')
+  const errorMessage = errorParam ? ERROR_MESSAGES[errorParam] ?? 'Ocurrió un error al iniciar sesión.' : null
   const supabase = createClient()
 
   async function handleGoogleLogin() {
@@ -64,6 +73,14 @@ export default function LoginPage() {
             Plataforma interna de reclutamiento
           </p>
         </div>
+
+        {/* Error banner */}
+        {errorMessage && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
+            <span className="text-red-500 flex-shrink-0 mt-0.5">⚠</span>
+            <p className="text-sm text-red-700 leading-snug">{errorMessage}</p>
+          </div>
+        )}
 
         {/* Card */}
         <div
