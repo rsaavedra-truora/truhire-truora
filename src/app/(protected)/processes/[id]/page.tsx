@@ -145,7 +145,13 @@ export default async function ProcessDetailPage({
           {process.role_description && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Descripción del rol</h2>
-              <p className="text-sm text-gray-700 leading-relaxed">{process.role_description}</p>
+              <div
+                className="text-sm text-gray-700 leading-relaxed whitespace-pre-line overflow-y-auto"
+                style={{ maxHeight: '320px', fontSize: '12px', lineHeight: '1.7' }}
+              >
+                {process.role_description}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2">Scroll para ver más</p>
             </div>
           )}
         </div>
