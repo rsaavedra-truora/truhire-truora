@@ -53,8 +53,23 @@ export default function LoopSetupPage() {
   }
 
   async function resolveEmailToUserId(email: string): Promise<string | null> {
-    const { data } = await supabase.from('users').select('id').eq('email', email).maybeSingle()
-    return data?.id ?? null
+    const normalized = email.trim().toLowerCase()
+
+    // 1. Buscar directamente en users por email exacto (login email)
+    const { data: directMatch } = await supabase
+      .from('users').select('id').ilike('email', normalized).maybeSingle()
+    if (directMatch?.id) return directMatch.id
+
+    // 2. Si no encontró, buscar login_email en truora_directory para obtener el email real de TruHire
+    const { data: dirEntry } = await supabase
+      .from('truora_directory').select('login_email').ilike('email', normalized).maybeSingle()
+    if (dirEntry?.login_email) {
+      const { data: viaLogin } = await supabase
+        .from('users').select('id').ilike('email', dirEntry.login_email).maybeSingle()
+      if (viaLogin?.id) return viaLogin.id
+    }
+
+    return null
   }
 
   async function setInterviewer(index: number, email: string, person: any) {
