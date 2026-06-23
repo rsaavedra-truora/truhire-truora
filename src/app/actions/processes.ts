@@ -22,13 +22,17 @@ export async function createProcess(formData: FormData) {
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
 
-  // Resolve HM by email if provided
-  // Si el HM no ha hecho login todavía, se guarda sin ID — no bloquea
+  // Resolve HM by email — si no ha hecho login, guardamos pending email
   let hiring_manager_id: string | null = null
+  let hiring_manager_pending_email: string | null = null
   if (hiring_manager_email) {
     const { data: hmUser } = await supabase
       .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
-    hiring_manager_id = hmUser?.id ?? null
+    if (hmUser?.id) {
+      hiring_manager_id = hmUser.id
+    } else {
+      hiring_manager_pending_email = hiring_manager_email
+    }
   }
 
   const { data: process, error } = await supabase
@@ -38,6 +42,7 @@ export async function createProcess(formData: FormData) {
       ...(role_description_structured ? { role_description_structured } : {}),
       recruiter_id: user.id, status: 'open',
       ...(hiring_manager_id ? { hiring_manager_or_sponsor_id: hiring_manager_id } : {}),
+      hiring_manager_pending_email,
     })
     .select()
     .single()
@@ -73,19 +78,31 @@ export async function updateProcess(formData: FormData) {
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
 
-  // Resolver HM por email — si no ha hecho login aún, se guarda sin ID (no bloquea)
-  let hiring_manager_id: string | null | undefined = undefined
-  if (hiring_manager_email !== null) {
-    const { data: hmUser } = await supabase
-      .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
-    hiring_manager_id = hmUser?.id ?? null
-  }
-
+  // Resolver HM por email — si no ha hecho login, guardamos pending_email
   const updatePayload: Record<string, any> = {
     title, entry_mode, capa_intencional, role_slug, role_description,
     role_description_structured: role_description_structured ?? null,
   }
-  if (hiring_manager_id !== undefined) updatePayload.hiring_manager_or_sponsor_id = hiring_manager_id
+
+  if (hiring_manager_email !== null) {
+    // hiring_manager_email es null solo si el campo no vino en el form (nunca en este caso)
+    // Si es string vacío → limpiar ambos campos
+    if (!hiring_manager_email) {
+      updatePayload.hiring_manager_or_sponsor_id = null
+      updatePayload.hiring_manager_pending_email = null
+    } else {
+      const { data: hmUser } = await supabase
+        .from('users').select('id').eq('email', hiring_manager_email).maybeSingle()
+      if (hmUser?.id) {
+        updatePayload.hiring_manager_or_sponsor_id = hmUser.id
+        updatePayload.hiring_manager_pending_email = null
+      } else {
+        // Persona en directorio pero sin cuenta TruHire aún
+        updatePayload.hiring_manager_or_sponsor_id = null
+        updatePayload.hiring_manager_pending_email = hiring_manager_email
+      }
+    }
+  }
 
   const { error } = await supabase
     .from('processes')

@@ -40,7 +40,9 @@ export default function EditProcessPage() {
           setEntryMode(data.entry_mode ?? 'role_first')
           setCapa(data.capa_intencional ?? 'funcional')
           const hm = data.hiring_manager_or_sponsor as any
-          if (hm?.email) setHmEmail(hm.email)
+          // Inicializar con email del HM: cuenta activa primero, luego pending
+          const hmEmailInit = hm?.email ?? (data as any).hiring_manager_pending_email ?? ''
+          if (hmEmailInit) setHmEmail(hmEmailInit)
         }
         setLoading(false)
       })

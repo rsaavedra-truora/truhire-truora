@@ -29,6 +29,17 @@ export default async function ProcessDetailPage({
 
   if (!process) notFound()
 
+  // Si HM tiene pending email (no ha hecho login), buscar nombre en directorio
+  let pendingHMName: string | null = null
+  if (!process.hiring_manager_or_sponsor && process.hiring_manager_pending_email) {
+    const { data: dir } = await supabase
+      .from('truora_directory')
+      .select('full_name')
+      .eq('email', process.hiring_manager_pending_email)
+      .maybeSingle()
+    pendingHMName = (dir as any)?.full_name ?? process.hiring_manager_pending_email
+  }
+
   // Candidatos en este proceso
   const { data: processCandidates } = await supabase
     .from('process_candidates')
@@ -105,7 +116,7 @@ export default async function ProcessDetailPage({
                   {process.entry_mode === 'talent_first' ? 'Sponsor' : 'Hiring manager'}
                 </dt>
                 <dd className="text-sm text-gray-900 mt-0.5 font-medium">
-                  {(process.hiring_manager_or_sponsor as any)?.full_name ?? '—'}
+                  {(process.hiring_manager_or_sponsor as any)?.full_name ?? pendingHMName ?? '—'}
                 </dd>
               </div>
               <div>
