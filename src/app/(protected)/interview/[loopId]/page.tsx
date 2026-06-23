@@ -101,10 +101,9 @@ export default function InterviewPage() {
           setRecommendation(eval_.recommendation)
           setIsSigned(!!eval_.signed_at)
 
-          // Detectar principios evaluados extra (más allá de los asignados)
-          const assignedSet = new Set(myAssignment.principles as string[])
-          const extraSlugs = Object.keys(notes).filter(slug => !assignedSet.has(slug) && notes[slug])
-          if (extraSlugs.length) setExtraPrinciples(extraSlugs)
+          // Cargar todos los principios evaluados (todos son libres)
+          const evaluatedSlugs = Object.keys(notes).filter(slug => notes[slug])
+          if (evaluatedSlugs.length) setExtraPrinciples(evaluatedSlugs)
         }
       }
     }
@@ -160,7 +159,7 @@ export default function InterviewPage() {
     )
   }
 
-  const myPrinciples = (assignment.principles as string[]).map(slug => getPrincipleBySlug(slug)).filter(Boolean)
+  const myPrinciples: any[] = []
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -236,132 +235,16 @@ export default function InterviewPage() {
         </div>
       </details>
 
-      {/* Bloque 2: Principios asignados con notas */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-gray-900">Tus principios asignados</h2>
-        {myPrinciples.map(p => {
-          if (!p) return null
-          const isExpanded = expandedPrinciple === p.slug
-          const showQuestions = expandedQuestions === p.slug
-          return (
-            <div key={p.slug} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              {/* Header del principio */}
-              <div
-                className="px-5 py-4 cursor-pointer flex items-start justify-between gap-3"
-                onClick={() => setExpandedPrinciple(isExpanded ? null : p.slug)}
-              >
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{p.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{p.definition}</p>
-                </div>
-                <span className="text-xs text-gray-400 flex-shrink-0">{isExpanded ? '▲' : '▼'}</span>
-              </div>
-
-              {isExpanded && (
-                <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
-                  {/* Tabla señales/anti-señales */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-green-700 mb-2">✓ Señales Hire</p>
-                      {p.signals.map((s, i) => (
-                        <p key={i} className="text-xs text-green-800 leading-snug mb-1.5 flex gap-1.5">
-                          <span className="flex-shrink-0">•</span>{s}
-                        </p>
-                      ))}
-                    </div>
-                    <div className="bg-red-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-red-700 mb-2">✗ Anti-señales</p>
-                      {p.antiSignals.map((s, i) => (
-                        <p key={i} className="text-xs text-red-800 leading-snug mb-1.5 flex gap-1.5">
-                          <span className="flex-shrink-0">•</span>{s}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preguntas de referencia — colapsables */}
-                  <details>
-                    <summary
-                      className="text-xs font-medium text-[#0800FF] cursor-pointer hover:underline"
-                      onClick={e => { e.preventDefault(); setExpandedQuestions(showQuestions ? null : p.slug) }}
-                    >
-                      {showQuestions ? '▲ Ocultar preguntas de referencia' : '▼ Ver preguntas de referencia'}
-                    </summary>
-                    {showQuestions && (
-                      <div className="mt-3 space-y-3">
-                        {p.questions.map((q, i) => (
-                          <div key={i} className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-medium text-gray-900 mb-1">{q.question}</p>
-                            <div className="space-y-0.5">
-                              {q.followups.map((f, j) => (
-                                <p key={j} className="text-xs text-gray-500 flex gap-1.5">
-                                  <span className="text-[#0800FF] flex-shrink-0">↳</span>{f}
-                                </p>
-                              ))}
-                            </div>
-                            <span className="inline-block mt-1.5 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
-                              {q.evaluates}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </details>
-
-                  {/* Banco de preguntas */}
-                  {!isSigned && (
-                    <QuestionBankSelector
-                      principle={p}
-                      selectedQuestion={principleQuestions[p.slug] ?? null}
-                      onSelect={q => setPrincipleQuestions(prev => ({ ...prev, [p.slug]: q }))}
-                    />
-                  )}
-                  {isSigned && principleQuestions[p.slug] && (
-                    <div className="bg-[#E8E7FF] rounded-lg px-3 py-2 mb-3">
-                      <p className="text-xs font-semibold text-[#0800FF] mb-0.5">Pregunta utilizada:</p>
-                      <p className="text-xs text-gray-700">{principleQuestions[p.slug]}</p>
-                    </div>
-                  )}
-
-                  {/* Rating del principio */}
-                  <PrincipleRatingSelector
-                    slug={p.slug}
-                    value={principleRatings[p.slug] ?? null}
-                    onChange={(slug, rating) => setPrincipleRatings(prev => ({ ...prev, [slug]: rating }))}
-                    disabled={isSigned}
-                  />
-
-                  {/* Notas */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Evidencia concreta — ¿qué te hizo llegar a esa calificación?
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={principleNotes[p.slug] ?? ''}
-                      onChange={e => setPrincipleNotes(prev => ({ ...prev, [p.slug]: e.target.value }))}
-                      placeholder="Cita ejemplos específicos que dio el candidato. Cuanto más concreto, más útil para el Bar Raiser."
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
-                      disabled={isSigned}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Bloque 2b: Principios adicionales (opcionales) */}
+      {/* Bloque 2: Principios evaluados */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Principios adicionales</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Principios evaluados</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              ¿Surgió evidencia relevante de otro principio? Agrégalo — el Bar Raiser lo verá.
+              Selecciona los principios que evaluaste durante la entrevista. Puedes evaluar desde 1 hasta los 8 principios.
             </p>
           </div>
-          {!isSigned && (
+          {!isSigned && extraPrinciples.length > 0 && (
             <button
               type="button"
               onClick={() => setShowPrinciplePicker(v => !v)}
@@ -377,14 +260,14 @@ export default function InterviewPage() {
           )}
         </div>
 
-        {/* Picker */}
-        {showPrinciplePicker && !isSigned && (
+        {/* Picker — siempre visible si no hay principios aún, o cuando se activa */}
+        {(extraPrinciples.length === 0 || showPrinciplePicker) && !isSigned && (
           <div
             className="rounded-xl border p-4 grid grid-cols-2 gap-2"
             style={{ background: 'var(--truora-bg-soft)', borderColor: 'var(--truora-line)' }}
           >
             {TRUORA_PRINCIPLES
-              .filter(p => !myPrinciples.some(mp => mp?.slug === p.slug) && !extraPrinciples.includes(p.slug))
+              .filter(p => !extraPrinciples.includes(p.slug))
               .map(p => (
                 <button
                   key={p.slug}
@@ -405,9 +288,7 @@ export default function InterviewPage() {
                   <p className="text-xs font-medium text-gray-800 mt-0.5 leading-tight">{p.name}</p>
                 </button>
               ))}
-            {TRUORA_PRINCIPLES.filter(
-              p => !myPrinciples.some(mp => mp?.slug === p.slug) && !extraPrinciples.includes(p.slug)
-            ).length === 0 && (
+            {TRUORA_PRINCIPLES.filter(p => !extraPrinciples.includes(p.slug)).length === 0 && (
               <p className="text-xs text-gray-400 col-span-2 text-center py-2">
                 Ya evaluaste todos los principios disponibles.
               </p>
@@ -415,7 +296,7 @@ export default function InterviewPage() {
           </div>
         )}
 
-        {/* Extra principle cards */}
+        {/* Principle cards */}
         {extraPrinciples.map(slug => {
           const p = getPrincipleBySlug(slug)
           if (!p) return null
@@ -435,7 +316,7 @@ export default function InterviewPage() {
                     className="text-xs px-1.5 py-0.5 rounded font-semibold flex-shrink-0 mt-0.5"
                     style={{ background: 'var(--truora-primary-soft)', color: 'var(--truora-primary)' }}
                   >
-                    Extra
+                    {p.id}
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{p.name}</p>
@@ -509,11 +390,6 @@ export default function InterviewPage() {
           )
         })}
 
-        {extraPrinciples.length === 0 && !showPrinciplePicker && (
-          <p className="text-xs italic" style={{ color: 'var(--truora-ink-subtle)' }}>
-            Sin principios adicionales.
-          </p>
-        )}
       </div>
 
       {/* Bloque 3: Cierre de la evaluación */}

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { TRUORA_PRINCIPLES, DIMENSION_COLORS } from '@/lib/principles-data'
 import { createLoop } from '@/app/actions/loop'
 import { PersonSearch } from '@/components/person-search'
 
@@ -20,7 +19,6 @@ interface InterviewerAssignment {
   email: string
   userId: string | null   // null si aún no ha entrado a TruHire
   name: string
-  principles: string[]
 }
 
 export default function LoopSetupPage() {
@@ -34,8 +32,8 @@ export default function LoopSetupPage() {
   const [candidate, setCandidate] = useState<any>(null)
   const [proc, setProc] = useState<any>(null)
   const [assignments, setAssignments] = useState<InterviewerAssignment[]>([
-    { email: '', userId: null, name: '', principles: [] },
-    { email: '', userId: null, name: '', principles: [] },
+    { email: '', userId: null, name: '' },
+    { email: '', userId: null, name: '' },
   ])
   const [barRaiserEmail, setBarRaiserEmail] = useState('')
   const [barRaiserId, setBarRaiserId] = useState<string | null>(null)
@@ -66,30 +64,14 @@ export default function LoopSetupPage() {
     ))
   }
 
-  function togglePrinciple(index: number, slug: string) {
-    setAssignments(prev => prev.map((a, i) => {
-      if (i !== index) return a
-      const has = a.principles.includes(slug)
-      if (!has && a.principles.length >= 3) return a
-      return { ...a, principles: has ? a.principles.filter(p => p !== slug) : [...a.principles, slug] }
-    }))
-  }
-
   function addInterviewer() {
     if (assignments.length >= 3) return
-    setAssignments(prev => [...prev, { email: '', userId: null, name: '', principles: [] }])
+    setAssignments(prev => [...prev, { email: '', userId: null, name: '' }])
   }
 
   function removeInterviewer(index: number) {
     if (assignments.length <= 2) return
     setAssignments(prev => prev.filter((_, i) => i !== index))
-  }
-
-  // Principios ya asignados a otros entrevistadores
-  function usedPrinciples(currentIndex: number) {
-    return assignments
-      .filter((_, i) => i !== currentIndex)
-      .flatMap(a => a.principles)
   }
 
   const assignedEmails = assignments.map(a => a.email).filter(Boolean)
@@ -111,19 +93,15 @@ export default function LoopSetupPage() {
         if (!barRaiserEmail) { setError('Debes seleccionar un Bar Raiser.'); return }
         for (const a of assignments) {
           if (!a.email) { setError('Asigna un entrevistador a cada fila.'); return }
-          if (a.principles.length < 2) { setError('Cada entrevistador necesita al menos 2 principios.'); return }
         }
 
         const newFd = new FormData()
         newFd.set('process_candidate_id', pcId)
-        newFd.set('bar_raiser_id',    barRaiserId ?? '')
+        newFd.set('bar_raiser_id', barRaiserId ?? '')
         newFd.set('bar_raiser_email', barRaiserEmail)
         for (const a of assignments) {
-          newFd.append('interviewer_ids',    a.userId ?? 'null')
+          newFd.append('interviewer_ids', a.userId ?? 'null')
           newFd.append('interviewer_emails', a.email)
-          // principios indexados por userId si lo hay, sino por email
-          const key = a.userId ?? a.email
-          for (const p of a.principles) newFd.append(`principles_${key}`, p)
         }
         try { await createLoop(newFd) }
         catch (e: any) { setError(e.message) }
@@ -156,7 +134,7 @@ export default function LoopSetupPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">Entrevistadores</h2>
-              <p className="text-xs text-gray-500 mt-0.5">2-3 entrevistadores, 2-3 principios cada uno. Los principios no deben solaparse.</p>
+              <p className="text-xs text-gray-500 mt-0.5">2-3 entrevistadores. Cada uno seleccionará los principios que evaluó directamente en su entrevista.</p>
             </div>
             {assignments.length < 3 && (
               <button type="button" onClick={addInterviewer}
@@ -164,78 +142,29 @@ export default function LoopSetupPage() {
             )}
           </div>
 
-          {assignments.map((assignment, idx) => {
-            const used = usedPrinciples(idx)
-            return (
-              <div key={idx} className="border border-gray-100 rounded-xl p-4 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2 flex-1">
-                    <span className="text-xs font-mono text-gray-400 w-4 mt-3">#{idx + 1}</span>
-                    <div className="flex-1">
-                      <PersonSearch
-                        value={assignment.email}
-                        onChange={(email, person) => setInterviewer(idx, email, person)}
-                        excludeEmails={[barRaiserEmail, ...assignedEmails.filter((_, i) => i !== idx)]}
-                        placeholder="Buscar entrevistador..."
-                      />
-                      {assignment.email && !assignment.userId && (
-                        <p className="text-xs text-amber-600 mt-1">⚠ Aún no ha ingresado a TruHire — se asignará automáticamente cuando haga login</p>
-                      )}
-                    </div>
-                  </div>
-                  {assignments.length > 2 && (
-                    <button type="button" onClick={() => removeInterviewer(idx)} className="text-xs text-red-400 hover:text-red-600 mt-3">Quitar</button>
-                  )}
-                </div>
-
-                {/* Selector de principios */}
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2">
-                    Principios asignados ({assignment.principles.length}/3 — mínimo 2)
-                  </p>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {TRUORA_PRINCIPLES.map(p => {
-                      const isSelected = assignment.principles.includes(p.slug)
-                      const isUsedByOther = used.includes(p.slug)
-                      const isFull = !isSelected && assignment.principles.length >= 3
-                      const dimColors = DIMENSION_COLORS[p.dimension]
-                      return (
-                        <button
-                          key={p.slug}
-                          type="button"
-                          onClick={() => !isUsedByOther && !isFull && togglePrinciple(idx, p.slug)}
-                          disabled={isUsedByOther || isFull}
-                          className={`text-left p-2.5 rounded-lg border transition-all relative ${
-                            isSelected ? 'border-[#0800FF] bg-[#E8E7FF]'
-                            : isUsedByOther ? 'border-gray-100 bg-gray-50 opacity-30 cursor-not-allowed'
-                            : isFull ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                            : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <span className={`text-xs font-medium inline-block px-1 py-0.5 rounded mb-1 ${dimColors.bg} ${dimColors.text}`}>
-                            {p.id}
-                          </span>
-                          <p className={`text-xs font-medium leading-tight ${isSelected ? 'text-[#0800FF]' : 'text-gray-700'}`}>
-                            {p.name}
-                          </p>
-                          {isUsedByOther && (
-                            <span className="text-xs text-gray-400 block mt-0.5">ya asignado</span>
-                          )}
-                          {isSelected && (
-                            <div className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-[#0800FF] rounded-full flex items-center justify-center">
-                              <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                              </svg>
-                            </div>
-                          )}
-                        </button>
-                      )
-                    })}
+          {assignments.map((assignment, idx) => (
+            <div key={idx} className="border border-gray-100 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2 flex-1">
+                  <span className="text-xs font-mono text-gray-400 w-4 mt-3">#{idx + 1}</span>
+                  <div className="flex-1">
+                    <PersonSearch
+                      value={assignment.email}
+                      onChange={(email, person) => setInterviewer(idx, email, person)}
+                      excludeEmails={[barRaiserEmail, ...assignedEmails.filter((_, i) => i !== idx)]}
+                      placeholder="Buscar entrevistador..."
+                    />
+                    {assignment.email && !assignment.userId && (
+                      <p className="text-xs text-amber-600 mt-1">⚠ Aún no ha ingresado a TruHire — se asignará automáticamente cuando haga login</p>
+                    )}
                   </div>
                 </div>
+                {assignments.length > 2 && (
+                  <button type="button" onClick={() => removeInterviewer(idx)} className="text-xs text-red-400 hover:text-red-600 mt-3">Quitar</button>
+                )}
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
 
         {error && (

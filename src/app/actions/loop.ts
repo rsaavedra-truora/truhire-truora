@@ -69,11 +69,7 @@ export async function createLoop(formData: FormData) {
       uid = u?.id ?? null
     }
 
-    const principles = uid
-      ? formData.getAll(`principles_${uid}`) as string[]
-      : formData.getAll(`principles_${email}`) as string[]
-
-    if (principles.length < 2) continue
+    const principles: string[] = []  // se seleccionan libremente durante la evaluación
 
     await supabase
       .from('loop_assignments')
