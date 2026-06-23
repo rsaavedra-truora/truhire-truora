@@ -81,7 +81,10 @@ export async function updateProcess(formData: FormData) {
   // Resolver HM por email — si no ha hecho login, guardamos pending_email
   const updatePayload: Record<string, any> = {
     title, entry_mode, capa_intencional, role_slug, role_description,
-    role_description_structured: role_description_structured ?? null,
+  }
+  // Solo incluir si existe la columna (requiere SQL migration)
+  if (role_description_structured !== null) {
+    updatePayload.role_description_structured = role_description_structured
   }
 
   if (hiring_manager_email !== null) {

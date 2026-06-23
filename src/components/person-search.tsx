@@ -35,13 +35,18 @@ export function PersonSearch({
   const supabase = createClient()
 
   // Cargar persona seleccionada si hay valor inicial
+  // IMPORTANTE: usar flag de cancelación para evitar race condition
+  // Si el usuario selecciona otra persona antes de que retorne la query async,
+  // el resultado viejo no debe sobreescribir la nueva selección
   useEffect(() => {
+    let cancelled = false
     if (value && !selected) {
       supabase.from('truora_directory').select('*').eq('email', value).single().then(({ data }) => {
-        if (data) { setSelected(data as Person); setQuery(data.full_name) }
+        if (!cancelled && data) { setSelected(data as Person); setQuery(data.full_name) }
       })
     }
     if (!value) { setSelected(null); setQuery('') }
+    return () => { cancelled = true }
   }, [value])
 
   // Cerrar al click fuera
