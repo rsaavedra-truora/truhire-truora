@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import type { StructuredJD } from '@/app/api/parse-jd/route'
 
 interface JDUploadZoneProps {
-  onExtracted: (text: string) => void
-  descRef: React.RefObject<HTMLTextAreaElement>
+  roleTitle: string
+  onExtracted: (text: string, structured: StructuredJD | null) => void
 }
 
-export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
+export function JDUploadZone({ roleTitle, onExtracted }: JDUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
-  const [extracting, setExtracting] = useState(false)
+  const [stage, setStage] = useState<'idle' | 'extracting' | 'parsing' | 'done' | 'error'>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -17,31 +18,51 @@ export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
   async function handleFile(file: File) {
     setError(null)
     setFileName(file.name)
-    setExtracting(true)
+    setStage('extracting')
+
     try {
+      // Step 1: Extract raw text from document
       const fd = new FormData()
       fd.set('file', file)
-      const res = await fetch('/api/extract-text', { method: 'POST', body: fd })
-      const data = await res.json()
-      if (data.text) {
-        if (descRef.current) descRef.current.value = data.text
-        onExtracted(data.text)
-      } else {
-        setError(data.error ?? 'No se pudo extraer el texto.')
-        setFileName(null)
+      const extractRes = await fetch('/api/extract-text', { method: 'POST', body: fd })
+      const extractData = await extractRes.json()
+
+      if (!extractData.text) {
+        throw new Error(extractData.error ?? 'No se pudo extraer el texto.')
       }
+
+      const rawText: string = extractData.text
+
+      // Step 2: AI structures the JD for the specific role
+      setStage('parsing')
+      const parseRes = await fetch('/api/parse-jd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: rawText, title: roleTitle || 'el cargo' }),
+      })
+      const parseData = await parseRes.json()
+
+      setStage('done')
+      onExtracted(rawText, parseData.structured ?? null)
     } catch (err: any) {
       setError(err.message)
+      setStage('error')
       setFileName(null)
-    } finally {
-      setExtracting(false)
     }
   }
+
+  const busy = stage === 'extracting' || stage === 'parsing'
+
+  const stageLabel = stage === 'extracting'
+    ? 'Extrayendo texto del documento...'
+    : stage === 'parsing'
+    ? 'Estructurando con AI...'
+    : null
 
   return (
     <div className="space-y-2">
       <div
-        onClick={() => !extracting && inputRef.current?.click()}
+        onClick={() => !busy && inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
         onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
         onDrop={e => {
@@ -50,21 +71,29 @@ export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
           if (f) handleFile(f)
         }}
         className={`rounded-xl border-2 border-dashed p-6 text-center transition-colors select-none ${
-          extracting ? 'border-blue-300 bg-blue-50 cursor-wait'
-          : isDragging ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
-          : fileName ? 'border-green-400 bg-green-50 cursor-pointer'
-          : 'border-gray-300 hover:border-[#0800FF] hover:bg-gray-50 cursor-pointer'
+          busy
+            ? 'border-blue-300 bg-blue-50 cursor-wait'
+            : isDragging
+            ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
+            : stage === 'done'
+            ? 'border-green-400 bg-green-50 cursor-pointer'
+            : stage === 'error'
+            ? 'border-red-300 bg-red-50 cursor-pointer'
+            : 'border-gray-300 hover:border-[#0800FF] hover:bg-gray-50 cursor-pointer'
         }`}
       >
-        {extracting ? (
+        {stageLabel ? (
           <div className="flex flex-col items-center gap-2">
             <svg className="animate-spin h-8 w-8 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            <p className="text-sm text-blue-600">Extrayendo texto del archivo...</p>
+            <p className="text-sm text-blue-600 font-medium">{stageLabel}</p>
+            {stage === 'parsing' && (
+              <p className="text-xs text-blue-400">El AI extrae solo la info de este cargo específico</p>
+            )}
           </div>
-        ) : fileName ? (
+        ) : stage === 'done' ? (
           <div className="flex flex-col items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
               <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -72,7 +101,7 @@ export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
               </svg>
             </div>
             <p className="text-sm font-medium text-gray-900">{fileName}</p>
-            <p className="text-xs text-gray-500">Texto extraído correctamente · <span className="text-[#0800FF]">Cambiar archivo</span></p>
+            <p className="text-xs text-gray-500">JD procesado · <span className="text-[#0800FF]">Cambiar archivo</span></p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
@@ -80,16 +109,16 @@ export function JDUploadZone({ onExtracted, descRef }: JDUploadZoneProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             <p className="text-sm text-gray-600">
-              <span className="text-[#0800FF] font-medium">Arrastra el JD</span> o haz clic para seleccionar
+              <span className="text-[#0800FF] font-medium">Sube el Job Description</span> o arrastra aquí
             </p>
-            <p className="text-xs text-gray-400">PDF, Word, Excel, Markdown o texto plano · Máx. 10MB</p>
+            <p className="text-xs text-gray-400">PDF o Word · El AI extrae solo la info de este cargo</p>
           </div>
         )}
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.docx,.doc,.md,.txt,.xlsx,.xls"
+        accept=".pdf,.docx,.doc,.md,.txt"
         className="hidden"
         onChange={e => {
           const f = e.target.files?.[0]

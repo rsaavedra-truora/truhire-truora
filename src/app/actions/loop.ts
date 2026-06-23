@@ -124,7 +124,7 @@ export async function createLoop(formData: FormData) {
     Tu evaluación cubre los principios asignados específicamente para ti.
   </p>
   <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
-    Ingresa a TruHire con tu cuenta <strong>@truora.com</strong> para ver tu entrevista:
+    Ingresa a TruHire con tu cuenta corporativa (Google Workspace) para ver tu entrevista:
   </p>
   <a href="${interviewUrl}"
      style="display: inline-block; background: #0800FF; color: white; text-decoration: none;

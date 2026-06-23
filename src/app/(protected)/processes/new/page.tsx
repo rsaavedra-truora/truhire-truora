@@ -1,10 +1,88 @@
 'use client'
 
-import { useState, useRef, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createProcess } from '@/app/actions/processes'
 import { JDUploadZone } from '@/components/jd-upload-zone'
 import { PersonSearch } from '@/components/person-search'
+import type { StructuredJD } from '@/app/api/parse-jd/route'
+
+function StructuredJDPreview({ jd, onClear }: { jd: StructuredJD; onClear: () => void }) {
+  return (
+    <div className="rounded-xl border border-[#0800FF]/20 bg-[#F5F5FF] p-5 space-y-4">
+      {/* Header chips */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {jd.area && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#0800FF]/10 text-[#0800FF]">
+            {jd.area}
+          </span>
+        )}
+        {jd.seniority && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+            {jd.seniority}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={onClear}
+          className="ml-auto text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2"
+        >
+          Quitar JD
+        </button>
+      </div>
+
+      {/* Summary */}
+      {jd.summary && (
+        <p className="text-sm text-gray-700 leading-relaxed">{jd.summary}</p>
+      )}
+
+      {/* Responsibilities */}
+      {jd.responsibilities?.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Responsabilidades</p>
+          <ul className="space-y-1">
+            {jd.responsibilities.map((r, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0800FF] flex-shrink-0" />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Requirements */}
+      {jd.requirements?.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Requisitos</p>
+          <ul className="space-y-1">
+            {jd.requirements.map((r, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Nice to have */}
+      {jd.nice_to_have?.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Nice to have</p>
+          <ul className="space-y-1">
+            {jd.nice_to_have.map((r, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-500">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function NewProcessPage() {
   const router = useRouter()
@@ -13,13 +91,26 @@ export default function NewProcessPage() {
   const [capa, setCapa] = useState<'liderazgo' | 'funcional'>('funcional')
   const [error, setError] = useState<string | null>(null)
   const [hmEmail, setHmEmail] = useState('')
-  const descRef = useRef<HTMLTextAreaElement>(null)
+  const [roleTitle, setRoleTitle] = useState('')
+  const [structured, setStructured] = useState<StructuredJD | null>(null)
+  const [rawDescription, setRawDescription] = useState('')
+
+  function handleExtracted(text: string, jd: StructuredJD | null) {
+    setRawDescription(text)
+    setStructured(jd)
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const fd = new FormData(e.currentTarget)
     fd.set('hiring_manager_email', hmEmail)
+    // Pass raw description for AI screening compatibility
+    fd.set('role_description', rawDescription)
+    // Pass structured JD as JSON
+    if (structured) {
+      fd.set('role_description_structured', JSON.stringify(structured))
+    }
     startTransition(async () => {
       try {
         await createProcess(fd)
@@ -49,10 +140,17 @@ export default function NewProcessPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Nombre del proceso <span className="text-red-500">*</span>
+              Nombre del cargo <span className="text-red-500">*</span>
             </label>
-            <input name="title" type="text" required placeholder="Ej: Head of Sales LATAM"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]" />
+            <input
+              name="title"
+              type="text"
+              required
+              placeholder="Ej: Head of Sales LATAM"
+              value={roleTitle}
+              onChange={e => setRoleTitle(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+            />
           </div>
 
           <div>
@@ -68,14 +166,14 @@ export default function NewProcessPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Descripción del rol <span className="text-gray-400 font-normal text-xs">(opcional)</span>
+              Job Description <span className="text-gray-400 font-normal text-xs">(opcional)</span>
             </label>
 
-            <JDUploadZone descRef={descRef} onExtracted={() => {}} />
-
-            <textarea ref={descRef} name="role_description" rows={4}
-              placeholder="O escribe la descripción del rol aquí..."
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none" />
+            {structured ? (
+              <StructuredJDPreview jd={structured} onClear={() => { setStructured(null); setRawDescription('') }} />
+            ) : (
+              <JDUploadZone roleTitle={roleTitle} onExtracted={handleExtracted} />
+            )}
           </div>
         </div>
 

@@ -142,16 +142,87 @@ export default async function ProcessDetailPage({
             </dl>
           </div>
 
-          {process.role_description && (
+          {(process.role_description_structured || process.role_description) && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Descripción del rol</h2>
-              <div
-                className="text-sm text-gray-700 leading-relaxed whitespace-pre-line overflow-y-auto"
-                style={{ maxHeight: '320px', fontSize: '12px', lineHeight: '1.7' }}
-              >
-                {process.role_description}
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Scroll para ver más</p>
+              {process.role_description_structured ? (
+                (() => {
+                  const jd = process.role_description_structured as any
+                  return (
+                    <div className="space-y-4">
+                      {/* Area + seniority chips */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {jd.area && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#0800FF]/10 text-[#0800FF]">
+                            {jd.area}
+                          </span>
+                        )}
+                        {jd.seniority && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+                            {jd.seniority}
+                          </span>
+                        )}
+                      </div>
+                      {/* Summary */}
+                      {jd.summary && (
+                        <p className="text-sm text-gray-700 leading-relaxed">{jd.summary}</p>
+                      )}
+                      {/* Responsibilities */}
+                      {jd.responsibilities?.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Responsabilidades</p>
+                          <ul className="space-y-1.5">
+                            {jd.responsibilities.map((r: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0800FF] flex-shrink-0" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* Requirements */}
+                      {jd.requirements?.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Requisitos</p>
+                          <ul className="space-y-1.5">
+                            {jd.requirements.map((r: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* Nice to have */}
+                      {jd.nice_to_have?.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Nice to have</p>
+                          <ul className="space-y-1.5">
+                            {jd.nice_to_have.map((r: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-gray-500">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()
+              ) : (
+                <>
+                  <div
+                    className="text-sm text-gray-700 leading-relaxed whitespace-pre-line overflow-y-auto"
+                    style={{ maxHeight: '320px', fontSize: '12px', lineHeight: '1.7' }}
+                  >
+                    {process.role_description}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-2">Scroll para ver más</p>
+                </>
+              )}
             </div>
           )}
         </div>
