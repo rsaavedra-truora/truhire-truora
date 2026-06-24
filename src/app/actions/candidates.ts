@@ -4,6 +4,33 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+export async function removeCandidateFromProcess(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const pcId = formData.get('pc_id') as string
+  const processId = formData.get('process_id') as string
+
+  // Solo se puede eliminar si el candidato está en applied o screening (no ha avanzado)
+  const { data: pc } = await supabase
+    .from('process_candidates')
+    .select('status')
+    .eq('id', pcId)
+    .eq('process_id', processId)
+    .single()
+
+  if (!pc) throw new Error('Candidato no encontrado en este proceso.')
+  if (!['applied', 'screening'].includes(pc.status)) {
+    throw new Error('Solo se pueden eliminar candidatos en etapa Applied o Screening.')
+  }
+
+  await supabase.from('process_candidates').delete().eq('id', pcId).eq('process_id', processId)
+
+  revalidatePath(`/processes/${processId}`)
+  redirect(`/processes/${processId}`)
+}
+
 export async function addCandidateToProcess(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

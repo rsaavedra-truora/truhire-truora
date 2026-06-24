@@ -5,6 +5,7 @@ import { PROCESS_STATUS_LABELS, CAPA_LABELS, ENTRY_MODE_LABELS } from '@/lib/typ
 import type { ProcessStatus, CapaIntencional, EntryMode } from '@/lib/types'
 import { CloseProcessButton } from '@/components/close-process-button'
 import { CopyUrlButton } from '@/components/copy-url-button'
+import { removeCandidateFromProcess } from '@/app/actions/candidates'
 
 export default async function ProcessDetailPage({
   params,
@@ -305,11 +306,26 @@ export default async function ProcessDetailPage({
                           {new Date(pc.applied_at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
                         </td>
                         <td className="px-4 py-3.5">
-                          {actionLink && (
-                            <Link href={actionLink.href} className="text-xs text-[#0800FF] hover:underline font-medium">
-                              {actionLink.label}
-                            </Link>
-                          )}
+                          <div className="flex items-center gap-3">
+                            {actionLink && (
+                              <Link href={actionLink.href} className="text-xs text-[#0800FF] hover:underline font-medium">
+                                {actionLink.label}
+                              </Link>
+                            )}
+                            {['applied', 'screening'].includes(pc.status) && (
+                              <form action={removeCandidateFromProcess}>
+                                <input type="hidden" name="pc_id" value={pc.id} />
+                                <input type="hidden" name="process_id" value={process.id} />
+                                <button
+                                  type="submit"
+                                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                                  title="Eliminar candidato del proceso"
+                                >
+                                  Eliminar
+                                </button>
+                              </form>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )
