@@ -48,16 +48,13 @@ export default async function DebriefPage({
   if (loop) {
     const { data: evals } = await supabase
       .from('evaluations')
-      .select('interviewer_id, principle_notes, summary, conclusion, recommendation, signed_at, session_analysis')
+      .select('interviewer_id, principle_notes, summary, conclusion, recommendation, signed_at, session_analysis, interviewer:users!interviewer_id(id, full_name)')
       .eq('loop_id', loop.id)
     evaluations = evals ?? []
   }
 
   const assignments = (loop?.assignments as any[]) ?? []
-  const allSigned = assignments.length > 0 && assignments.every(a => {
-    const interviewer = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
-    return evaluations.some(e => e.interviewer_id === interviewer?.id && e.signed_at)
-  })
+  const allSigned = evaluations.length > 0 && evaluations.every(e => !!e.signed_at)
 
   const hireCount = evaluations.filter(e => e.recommendation === true).length
   const noHireCount = evaluations.filter(e => e.recommendation === false).length
@@ -87,7 +84,7 @@ export default async function DebriefPage({
       </div>
 
       {/* Grid de principios × entrevistadores — PRIMERO para el Bar Raiser */}
-      {(assignments.length > 0 || phoneScreen) && (
+      {(assignments.length > 0 || evaluations.length > 0 || phoneScreen) && (
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-5 py-4 border-b border-gray-100">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Grid de evaluaciones por principio</p>
@@ -208,30 +205,27 @@ export default async function DebriefPage({
         )
       })()}
 
-      {/* Evaluaciones del loop — una tarjeta por entrevistador con notas completas */}
-      {assignments.map((assignment: any) => {
-        const interviewer = Array.isArray(assignment.interviewer) ? assignment.interviewer[0] : assignment.interviewer
-        const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
-        const isSigned = !!evaluation?.signed_at
-        const principleNotes = evaluation?.principle_notes ?? {}
-
-        // Principios asignados + extras que el entrevistador haya evaluado
-        const assignedSlugs = (assignment.principles as string[]) ?? []
-        const extraSlugs = Object.keys(principleNotes).filter(s => !assignedSlugs.includes(s))
-        const allEvalSlugs = [...assignedSlugs, ...extraSlugs]
+      {/* Evaluaciones del loop — una tarjeta por entrevistador */}
+      {evaluations.map((evaluation: any, idx: number) => {
+        const interviewer = Array.isArray(evaluation.interviewer)
+          ? evaluation.interviewer[0]
+          : evaluation.interviewer
+        const isSigned = !!evaluation.signed_at
+        const principleNotes = evaluation.principle_notes ?? {}
+        const allEvalSlugs = Object.keys(principleNotes)
 
         return (
-          <div key={assignment.id} className={`bg-white rounded-xl border ${isSigned ? 'border-gray-200' : 'border-dashed border-gray-300'}`}>
+          <div key={idx} className={`bg-white rounded-xl border ${isSigned ? 'border-gray-200' : 'border-dashed border-gray-300'}`}>
             {/* Header del entrevistador */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 <p className="text-sm font-semibold text-gray-900">{interviewer?.full_name ?? 'Entrevistador'}</p>
                 {isSigned
                   ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Firmado</span>
-                  : <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Pendiente</span>
+                  : <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Borrador</span>
                 }
               </div>
-              {evaluation?.recommendation !== null && evaluation?.recommendation !== undefined && (
+              {evaluation.recommendation !== null && evaluation.recommendation !== undefined && (
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-semibold ${evaluation.recommendation ? 'text-green-700' : 'text-red-600'}`}>
                     {evaluation.recommendation ? 'Hire' : 'No Hire'}
@@ -247,22 +241,16 @@ export default async function DebriefPage({
               </p>
             ) : (
               <div className="divide-y divide-gray-50">
-                {/* Principios evaluados — uno por uno */}
                 {allEvalSlugs.map(slug => {
                   const p = getPrincipleBySlug(slug)
                   const data = principleNotes[slug]
-                  const isExtra = !assignedSlugs.includes(slug)
                   if (!data && !p) return null
                   return (
                     <div key={slug} className="px-5 py-4 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         {p && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            isExtra
-                              ? 'bg-violet-100 text-violet-700'
-                              : 'bg-[#E8E7FF] text-[#0800FF]'
-                          }`}>
-                            {isExtra ? '+ ' : ''}{p.name}
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[#E8E7FF] text-[#0800FF]">
+                            {p.name}
                           </span>
                         )}
                         {data?.rating && <RatingBadge rating={data.rating} />}
@@ -274,25 +262,17 @@ export default async function DebriefPage({
                         </p>
                       )}
                       {data?.notes ? (
-                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                          {data.notes}
-                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{data.notes}</p>
                       ) : (
                         <p className="text-xs text-gray-400 italic">Sin notas escritas.</p>
                       )}
                     </div>
                   )
                 })}
-
-                {/* Conclusión */}
-                {evaluation?.conclusion && (
+                {evaluation.conclusion && (
                   <div className="px-5 py-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                      Conclusión
-                    </p>
-                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
-                      {evaluation.conclusion}
-                    </p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Conclusión</p>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">{evaluation.conclusion}</p>
                   </div>
                 )}
               </div>
@@ -341,12 +321,10 @@ function PrincipleGrid({
   // Principios base (asignados) + extras que los entrevistadores hayan evaluado
   const slugSet = new Set<string>([
     ...(phoneScreen?.assigned_principles ?? []),
-    ...assignments.flatMap(a => a.principles as string[] ?? []),
+    ...Object.keys(phoneScreen?.principle_notes ?? {}),
   ])
-  // Agregar principios extra de evaluaciones existentes
-  assignments.forEach(a => {
-    const interviewer = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
-    const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
+  // Agregar principios de todas las evaluaciones del loop
+  evaluations.forEach(evaluation => {
     if (evaluation?.principle_notes) {
       Object.keys(evaluation.principle_notes).forEach(slug => slugSet.add(slug))
     }
@@ -402,17 +380,19 @@ function PrincipleGrid({
     }
   }
 
-  // --- Entrevistadores del loop (humano + AI) ---
-  assignments.forEach(a => {
-    const interviewer = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
-    const evaluation = evaluations.find(e => e.interviewer_id === interviewer?.id)
-
+  // --- Entrevistadores del loop (del nuevo flujo libre, sin assignments) ---
+  evaluations.forEach(evaluation => {
+    const interviewer = Array.isArray(evaluation.interviewer)
+      ? evaluation.interviewer[0]
+      : evaluation.interviewer
+    if (!interviewer) return
     rows.push({
-      name: interviewer?.full_name ?? '—',
+      name: interviewer.full_name ?? 'Entrevistador',
       type: 'interviewer',
-      assignedSlugs: a.principles ?? [],
-      principleNotes: normalizePrincipleNotes(evaluation?.principle_notes),
-      recommendation: evaluation?.recommendation ?? null,
+      assignedSlugs: [],
+      principleNotes: normalizePrincipleNotes(evaluation.principle_notes),
+      recommendation: evaluation.recommendation,
+      aiVerdict: evaluation.session_analysis?.verdict ?? null,
     })
 
     // AI por entrevistador (session_analysis guardado en evaluations.session_analysis)
@@ -421,7 +401,7 @@ function PrincipleGrid({
       const aiSlugs = Object.keys(intAI.principle_notes)
       aiSlugs.forEach(s => slugSet.add(s))
       rows.push({
-        name: `AI — ${interviewer?.full_name ?? 'Entrevistador'}`,
+        name: `AI — ${interviewer.full_name ?? 'Entrevistador'}`,
         type: 'interviewer_ai',
         assignedSlugs: aiSlugs,
         principleNotes: normalizePrincipleNotes(intAI.principle_notes),

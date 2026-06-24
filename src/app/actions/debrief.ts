@@ -28,26 +28,6 @@ export async function submitDecision(formData: FormData) {
     throw new Error('Solo un Bar Raiser certificado puede tomar esta decisión.')
   }
 
-  // I3: Verificar que el BR es participante del proceso (mínima validación de scope)
-  const { data: pcForScope } = await supabase
-    .from('process_candidates')
-    .select('process_id')
-    .eq('id', pcId)
-    .single()
-
-  if (pcForScope) {
-    const { data: participation } = await supabase
-      .from('process_participants')
-      .select('id')
-      .eq('process_id', (pcForScope as any).process_id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (!participation) {
-      throw new Error('No tienes participación asignada en este proceso.')
-    }
-  }
-
   // Guardar la decisión
   const { error } = await supabase.from('decisions').upsert(
     {

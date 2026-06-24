@@ -52,6 +52,14 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // C7: Cargar benchmarks activos para calibración del screening AI
+    const { data: benchmarks } = await supabase
+      .from('talent_benchmarks')
+      .select('full_name, role_at_truora, layer, cv_text, notes')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(4)
+
     // I11: Rate limiting por email — máx 5 aplicaciones en 24h
     const { data: existingCandidateForRateLimit } = await supabase
       .from('candidates').select('id').eq('email', email).maybeSingle()
@@ -154,6 +162,7 @@ export async function POST(request: NextRequest) {
       roleDescription: proc.role_description,
       entryMode: proc.entry_mode,
       capa: proc.capa_intencional,
+      benchmarks: benchmarks ?? [],
     })
 
     const inTalentPool = screeningResult.classification === 'talent_pool'
@@ -207,7 +216,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function runScreening({
-  openai, candidateName, cvText, processTitle, roleDescription, entryMode, capa,
+  openai, candidateName, cvText, processTitle, roleDescription, entryMode, capa, benchmarks,
 }: {
   openai: OpenAI
   candidateName: string
@@ -216,6 +225,7 @@ async function runScreening({
   roleDescription: string | null
   entryMode: string
   capa: string
+  benchmarks?: Array<{ full_name: string; role_at_truora: string; layer?: string | null; cv_text?: string | null; notes?: string | null }>
 }) {
   const userPrompt = buildScreeningUserPrompt({
     candidateName,
@@ -224,6 +234,7 @@ async function runScreening({
     roleDescription,
     entryMode: entryMode as any,
     capa: capa as any,
+    benchmarks,
   })
 
   const completion = await openai.chat.completions.create({
