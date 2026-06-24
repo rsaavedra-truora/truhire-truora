@@ -11,12 +11,10 @@ export async function setupPhoneScreen(formData: FormData) {
   if (!user) redirect('/auth/login')
 
   const pcId = formData.get('process_candidate_id') as string
-  const principles = formData.getAll('principles') as string[]
   const competencies = formData.getAll('competencies') as string[]
   const calendlyUrl = formData.get('calendly_url') as string || null
   const sendInvite = formData.get('send_invite') === 'true'
 
-  if (principles.length !== 2) throw new Error('Debes seleccionar exactamente 2 principios.')
   if (competencies.filter(c => c.trim()).length === 0) throw new Error('Agrega al menos una competencia a evaluar.')
 
   // Obtener datos del proceso y candidato
@@ -64,7 +62,7 @@ export async function setupPhoneScreen(formData: FormData) {
       {
         process_candidate_id: pcId,
         hm_id: hmId,
-        assigned_principles: principles,
+        assigned_principles: [],
         role_competencies: competencies.filter(c => c.trim()),
       },
       { onConflict: 'process_candidate_id' }
@@ -216,7 +214,7 @@ export async function submitPhoneScreenEvaluation(formData: FormData) {
   revalidatePath(`/processes/${processId}`)
 
   if (decision === 'pass') {
-    redirect(`/processes/${processId}/candidates/${pcId}/loop-setup`)
+    redirect(`/processes/${processId}/candidates/${pcId}`)
   } else {
     redirect(`/processes/${processId}/candidates/${pcId}/phone-screen?done=true`)
   }

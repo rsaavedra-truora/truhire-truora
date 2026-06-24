@@ -75,6 +75,12 @@ export default function PhoneScreenPage() {
         setSelectedPrinciples(ps.assigned_principles ?? [])
         setCompetencies(ps.role_competencies?.length ? ps.role_competencies : [''])
         setActiveCompetencies(ps.role_competencies ?? [])
+        // Cargar principios ya evaluados (combinando assigned + notes keys para compat)
+        const existingPrincipleSlugs = new Set([
+          ...(ps.assigned_principles ?? []),
+          ...Object.keys(ps.principle_notes ?? {})
+        ])
+        setExtraPrinciples(Array.from(existingPrincipleSlugs))
         // Cargar ratings y preguntas existentes
         const ratings: Record<string, PrincipleRating> = {}
         const questions: Record<string, string | null> = {}
@@ -183,81 +189,6 @@ export default function PhoneScreenPage() {
         <form action={setupPhoneScreen}>
           <input type="hidden" name="process_candidate_id" value={pcId} />
 
-          {/* Principios */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold text-gray-900">Selecciona 2 principios a evaluar</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Elige los más relevantes para este rol. Los seleccionados cargan abajo con sus notas.</p>
-            </div>
-
-            {/* Grid de los 8 principios */}
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              {TRUORA_PRINCIPLES.map(p => {
-                const isSelected = selectedPrinciples.includes(p.slug)
-                const isDisabled = !isSelected && selectedPrinciples.length >= 2
-                const dimColors = DIMENSION_COLORS[p.dimension]
-                return (
-                  <button
-                    key={p.slug}
-                    type="button"
-                    onClick={() => togglePrinciple(p.slug)}
-                    disabled={isDisabled}
-                    className={`text-left p-3 rounded-xl border-2 transition-all relative ${
-                      isSelected
-                        ? 'border-[#0800FF] bg-[#E8E7FF]'
-                        : isDisabled
-                        ? 'border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block mb-1.5 ${dimColors.bg} ${dimColors.text}`}>
-                      {p.id}
-                    </div>
-                    <p className={`text-xs font-semibold leading-tight ${isSelected ? 'text-[#0800FF]' : 'text-gray-800'}`}>
-                      {p.name}
-                    </p>
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-4 h-4 bg-[#0800FF] rounded-full flex items-center justify-center">
-                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Principios seleccionados con área de notas — solo en setup */}
-            {selectedPrinciples.map(slug => <input key={slug} type="hidden" name="principles" value={slug} />)}
-
-            {selectedPrincipleData.length > 0 && (
-              <div className="space-y-3 border-t border-gray-100 pt-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Principios seleccionados</p>
-                {selectedPrincipleData.map(p => (
-                  <div key={p.slug} className="bg-[#E8E7FF] rounded-xl p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <p className="text-sm font-semibold text-[#0800FF]">{p.name}</p>
-                        <p className="text-xs text-[#0800FF] opacity-75 mt-0.5 leading-relaxed">{p.definition}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-3 mb-3">
-                      <div className="bg-green-50 rounded-lg p-2">
-                        <p className="text-xs font-medium text-green-700 mb-1">Señales hire</p>
-                        {p.signals.slice(0, 2).map((s, i) => <p key={i} className="text-xs text-green-800 leading-snug mb-0.5">• {s}</p>)}
-                      </div>
-                      <div className="bg-red-50 rounded-lg p-2">
-                        <p className="text-xs font-medium text-red-700 mb-1">Anti-señales</p>
-                        {p.antiSignals.slice(0, 2).map((s, i) => <p key={i} className="text-xs text-red-800 leading-snug mb-0.5">• {s}</p>)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Competencias del rol */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
             <h2 className="text-sm font-semibold text-gray-900 mb-1">Competencias específicas del rol</h2>
@@ -337,7 +268,7 @@ export default function PhoneScreenPage() {
 
           <div className="flex gap-3">
             <button type="submit"
-              disabled={selectedPrinciples.length !== 2 || competencies.filter(c => c.trim()).length === 0 || !hmEmail}
+              disabled={competencies.filter(c => c.trim()).length === 0 || !hmEmail}
               className="btn-truora disabled:opacity-50 disabled:cursor-not-allowed">
               Guardar y {sendInvite && calendlyUrl ? 'enviar invitación al candidato' : 'continuar'}
             </button>
@@ -357,7 +288,7 @@ export default function PhoneScreenPage() {
             </span>
           </div>
 
-          {selectedPrincipleData.map(p => {
+          {TRUORA_PRINCIPLES.filter(p => phoneScreen?.principle_notes?.[p.slug]).map(p => {
             const noteData = phoneScreen?.principle_notes?.[p.slug]
             const rating = noteData?.rating ?? null
             const notes = noteData?.notes ?? null
@@ -434,49 +365,87 @@ export default function PhoneScreenPage() {
           {Object.entries(principleQuestions).map(([slug, q]) => q ? (
             <input key={slug} type="hidden" name={`question_${slug}`} value={q} />
           ) : null)}
-          {/* Hidden fields para principios extra y sus notas */}
-          {extraPrinciples.map(slug => (
-            <span key={slug}>
-              <input type="hidden" name="extra_principles" value={slug} />
-              <input type="hidden" name={`principle_note_${slug}`} value={extraPrincipleNotes[slug] ?? ''} />
-            </span>
-          ))}
-
-          {/* Principios asignados con señales y notas */}
-          {selectedPrincipleData.map(p => (
-            <div key={p.slug} className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">{p.name}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="bg-green-50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-green-700 mb-1.5">Señales hire</p>
-                  {p.signals.map((s, i) => <p key={i} className="text-xs text-green-800 leading-snug mb-1">• {s}</p>)}
-                </div>
-                <div className="bg-red-50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-red-700 mb-1.5">Anti-señales</p>
-                  {p.antiSignals.map((s, i) => <p key={i} className="text-xs text-red-800 leading-snug mb-1">• {s}</p>)}
-                </div>
-              </div>
-              <QuestionBankSelector
-                principle={p}
-                selectedQuestion={principleQuestions[p.slug] ?? null}
-                onSelect={q => setPrincipleQuestions(prev => ({ ...prev, [p.slug]: q }))}
-              />
-              <PrincipleRatingSelector
-                slug={p.slug}
-                value={principleRatings[p.slug] ?? null}
-                onChange={(slug, rating) => setPrincipleRatings(prev => ({ ...prev, [slug]: rating }))}
-              />
-              <textarea
-                name={`principle_note_${p.slug}`}
-                rows={3}
-                placeholder="Cita ejemplos específicos del candidato. Esto lo leerá el Bar Raiser."
-                defaultValue={phoneScreen?.principle_notes?.[p.slug]?.notes ?? phoneScreen?.principle_notes?.[p.slug] ?? ''}
-                className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
-              />
+          {/* Principios evaluados — selector libre */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold text-gray-900">Principios evaluados</h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Selecciona los principios que evaluaste durante la entrevista. Puedes evaluar desde 1 hasta los 8 principios.
+              </p>
             </div>
-          ))}
+
+            {/* Cards de principios ya seleccionados */}
+            <div className="space-y-4 mb-4">
+              {extraPrinciples.map(slug => {
+                const p = TRUORA_PRINCIPLES.find(pr => pr.slug === slug)
+                if (!p) return null
+                return (
+                  <div key={slug} className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">
+                          {p.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExtraPrinciples(prev => prev.filter(s => s !== slug))}
+                        className="text-xs text-gray-400 hover:text-red-500"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs font-medium text-green-700 mb-1.5">Señales hire</p>
+                        {p.signals.map((s, i) => <p key={i} className="text-xs text-green-800 leading-snug mb-1">• {s}</p>)}
+                      </div>
+                      <div className="bg-red-50 rounded-lg p-3">
+                        <p className="text-xs font-medium text-red-700 mb-1.5">Anti-señales</p>
+                        {p.antiSignals.map((s, i) => <p key={i} className="text-xs text-red-800 leading-snug mb-1">• {s}</p>)}
+                      </div>
+                    </div>
+                    <QuestionBankSelector
+                      principle={p}
+                      selectedQuestion={principleQuestions[slug] ?? null}
+                      onSelect={q => setPrincipleQuestions(prev => ({ ...prev, [slug]: q }))}
+                    />
+                    <PrincipleRatingSelector
+                      slug={slug}
+                      value={principleRatings[slug] ?? null}
+                      onChange={(s, rating) => setPrincipleRatings(prev => ({ ...prev, [s]: rating }))}
+                    />
+                    <textarea
+                      name={`principle_note_${slug}`}
+                      rows={3}
+                      placeholder="Cita ejemplos específicos del candidato. Esto lo leerá el Bar Raiser."
+                      defaultValue={phoneScreen?.principle_notes?.[slug]?.notes ?? phoneScreen?.principle_notes?.[slug] ?? extraPrincipleNotes[slug] ?? ''}
+                      className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+                    />
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Picker: principios disponibles para agregar */}
+            {extraPrinciples.length < 8 && (
+              <div className="flex flex-wrap gap-2">
+                {TRUORA_PRINCIPLES
+                  .filter(p => !extraPrinciples.includes(p.slug))
+                  .map(p => (
+                    <button
+                      key={p.slug}
+                      type="button"
+                      onClick={() => setExtraPrinciples(prev => [...prev, p.slug])}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-gray-300 text-gray-600 hover:border-[#0800FF] hover:text-[#0800FF] hover:bg-[#E8E7FF] transition-colors"
+                    >
+                      + {p.name}
+                    </button>
+                  ))
+                }
+              </div>
+            )}
+          </div>
 
           {/* Competencias: lista editable sin notas */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
@@ -520,58 +489,11 @@ export default function PhoneScreenPage() {
             </div>
           </div>
 
-          {/* Principios adicionales identificados */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-            <div className="mb-3">
-              <h2 className="text-sm font-semibold text-gray-900">¿Identificaste algún otro principio en la entrevista?</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Opcional — si el candidato mostró evidencia de otros principios no asignados, agrégalos aquí.</p>
-            </div>
-
-            {extraPrinciples.length > 0 && (
-              <div className="space-y-4 mb-4">
-                {extraPrinciples.map(slug => {
-                  const p = TRUORA_PRINCIPLES.find(pr => pr.slug === slug)
-                  if (!p) return null
-                  return (
-                    <div key={slug} className="border border-gray-200 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">{p.name}</span>
-                        <button type="button" onClick={() => setExtraPrinciples(prev => prev.filter(s => s !== slug))}
-                          className="text-xs text-red-400 hover:text-red-600">Quitar</button>
-                      </div>
-                      <textarea
-                        rows={2}
-                        value={extraPrincipleNotes[slug] ?? ''}
-                        onChange={e => setExtraPrincipleNotes(prev => ({ ...prev, [slug]: e.target.value }))}
-                        placeholder="¿Qué evidencia observaste para este principio?"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* Selector de principios restantes */}
-            <div className="flex flex-wrap gap-2">
-              {TRUORA_PRINCIPLES
-                .filter(p => !selectedPrinciples.includes(p.slug) && !extraPrinciples.includes(p.slug))
-                .map(p => (
-                  <button key={p.slug} type="button"
-                    onClick={() => setExtraPrinciples(prev => [...prev, p.slug])}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-gray-300 text-gray-600 hover:border-[#0800FF] hover:text-[#0800FF] hover:bg-[#E8E7FF] transition-colors">
-                    + {p.name}
-                  </button>
-                ))
-              }
-            </div>
-          </div>
-
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
             <h2 className="text-sm font-semibold text-gray-900 mb-1">Notas finales</h2>
             <p className="text-xs text-gray-500 mb-4">
               Sintetiza lo que encontraste en <strong>todos</strong> los principios evaluados
-              ({[...selectedPrinciples, ...extraPrinciples].length} en total) y explica con evidencia
+              ({extraPrinciples.length} en total) y explica con evidencia
               concreta por qué esta persona debe o no entrar a Truora.
             </p>
 
@@ -581,7 +503,7 @@ export default function PhoneScreenPage() {
             <textarea
               name="overall_summary"
               rows={5}
-              placeholder={`Basado en los ${[...selectedPrinciples, ...extraPrinciples].length} principios que evaluaste, ¿qué patrón ves en esta persona? ¿Qué evidencia concreta respalda tu decisión? Sé directo — este texto lo leerá el Bar Raiser.`}
+              placeholder={`Basado en los ${extraPrinciples.length} principios que evaluaste, ¿qué patrón ves en esta persona? ¿Qué evidencia concreta respalda tu decisión? Sé directo — este texto lo leerá el Bar Raiser.`}
               defaultValue={phoneScreen?.overall_summary ?? ''}
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none mb-3"
             />
