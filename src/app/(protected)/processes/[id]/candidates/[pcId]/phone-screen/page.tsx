@@ -142,19 +142,18 @@ export default function PhoneScreenPage() {
         </div>
       </div>
 
-      {/* Banner: grabar sesión */}
+      {/* Banner: notas con Gemini */}
       {!isCompleted && (
-        <div className="bg-[#0800FF] rounded-xl p-4 text-white">
-          <p className="text-sm font-semibold mb-1">📹 Recuerda grabar esta sesión en Google Meet</p>
-          <p className="text-xs opacity-80 leading-relaxed">
-            Después de la entrevista, el agente de AI analiza la grabación como un entrevistador independiente
-            y le da al Bar Raiser una perspectiva adicional. Para habilitarlo:
-          </p>
-          <ol className="text-xs opacity-80 mt-2 space-y-0.5 list-none">
-            <li>1. Inicia la grabación al comenzar Google Meet → <strong>Actividades → Grabar</strong></li>
-            <li>2. Al terminar, la grabación queda en tu Google Drive automáticamente</li>
-            <li>3. Vuelve aquí después de enviar tu evaluación — puedes pegar el link de Drive o subir el archivo directamente</li>
-          </ol>
+        <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: '#E8E7FF', border: '1px solid #C7C5FF' }}>
+          <span className="text-lg flex-shrink-0">✦</span>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: '#0800FF' }}>
+              Toma notas con Gemini durante la entrevista
+            </p>
+            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#3B36CC' }}>
+              Activa Gemini en Google Meet para que transcriba la sesión. Luego usa esas notas aquí para construir una evaluación más completa y sólida antes de enviarla al Bar Raiser.
+            </p>
+          </div>
         </div>
       )}
 
