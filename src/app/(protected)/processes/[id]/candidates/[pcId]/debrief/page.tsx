@@ -545,16 +545,19 @@ function DebriefForm({ pcId, capa }: { pcId: string; capa: string }) {
       </div>
 
       {/* Capa alternativa — solo si hire_other_capa */}
-      <div>
+      <div className="debrief-alternative-capa" style={{ display: 'none' }}>
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          Capa alternativa <span className="text-gray-400">(solo si decides "Otra capa")</span>
+          Capa alternativa
         </label>
         <select name="alternative_capa" className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]">
-          <option value="">No aplica</option>
+          <option value="">Selecciona una capa</option>
           <option value="liderazgo">Liderazgo</option>
           <option value="funcional">Funcional</option>
         </select>
       </div>
+      <style>{`
+        form:has(input[value="hire_other_capa"]:checked) .debrief-alternative-capa { display: block !important; }
+      `}</style>
 
       {/* Justificación */}
       <div>

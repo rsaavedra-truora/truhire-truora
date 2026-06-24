@@ -10,7 +10,6 @@ export type UserRole =
   | 'hiring_manager'
   | 'sponsor'
   | 'interviewer'
-  | 'bar_raiser'
   | 'head_of_people'
 
 export type EntryMode = 'role_first' | 'talent_first'

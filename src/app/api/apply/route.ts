@@ -47,11 +47,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El PDF no puede superar 5MB.' }, { status: 400 })
     }
 
-    // Debug: verificar que las env vars están cargadas
-    console.log('[Apply] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30))
-    console.log('[Apply] SERVICE_KEY loaded:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-    console.log('[Apply] processSlug:', processSlug)
-
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -66,9 +61,6 @@ export async function POST(request: NextRequest) {
       .eq('role_slug', processSlug)
       .in('status', ['open', 'screening', 'challenge', 'loop', 'decision'])
       .single()
-
-    console.log('[Apply] proc:', proc)
-    console.log('[Apply] processError:', processError)
 
     if (processError || !proc) {
       return NextResponse.json({ error: 'Proceso no encontrado o no está activo.' }, { status: 404 })
@@ -181,7 +173,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Tu aplicación fue recibida. Te contactaremos pronto.',
-      classification: screeningResult.classification,
     })
   } catch (error: any) {
     console.error('[Apply API] Error:', error)

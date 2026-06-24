@@ -192,16 +192,7 @@ export default function InterviewPage() {
       {/* Banner: grabar sesión */}
       {!isSigned && (
         <div className="bg-[#0800FF] rounded-xl p-4 text-white">
-          <p className="text-sm font-semibold mb-1">📹 Recuerda grabar esta sesión en Google Meet</p>
-          <p className="text-xs opacity-80 leading-relaxed">
-            Después de la entrevista, el agente de AI analiza la grabación de forma independiente
-            y su veredicto aparece junto al tuyo en el debrief del Bar Raiser.
-          </p>
-          <ol className="text-xs opacity-80 mt-2 space-y-0.5 list-none">
-            <li>1. Inicia la grabación al comenzar Google Meet → <strong>Actividades → Grabar</strong></li>
-            <li>2. Al terminar, la grabación queda en tu Google Drive automáticamente</li>
-            <li>3. Firma tu evaluación aquí y luego sube la grabación — vía link de Drive o archivo directo</li>
-          </ol>
+          <p className="text-sm font-semibold">📹 Recuerda grabar esta sesión en Google Meet · Activa la grabación en Actividades → Grabar</p>
         </div>
       )}
 
@@ -214,10 +205,7 @@ export default function InterviewPage() {
           <span className="text-xs text-gray-400">Ver / ocultar</span>
         </summary>
         <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
-          <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-            <p className="text-xs text-blue-700 font-medium">Evaluación ciega</p>
-            <p className="text-xs text-blue-600 mt-0.5">No ves el resultado del screening AI ni la evaluación del Hiring Manager. Esto es intencional — cada evaluador debe formar su opinión de forma independiente.</p>
-          </div>
+          <p className="text-xs text-gray-400">Solo ves el perfil del candidato — el screening y phone screen son visibles después de firmar.</p>
 
           {/* CV */}
           {(candidate as any)?.cv_text && (

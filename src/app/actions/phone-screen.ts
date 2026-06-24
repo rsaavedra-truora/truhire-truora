@@ -205,7 +205,14 @@ export async function submitPhoneScreenEvaluation(formData: FormData) {
     .eq('id', pcId)
     .single()
 
+  if (!pc) throw new Error('No se encontró el candidato del proceso.')
+
   const processId = (pc as any)?.process_id
+  if (!processId) {
+    // Fallback seguro: redirige a la lista general de procesos
+    redirect(`/processes`)
+  }
+
   revalidatePath(`/processes/${processId}`)
 
   if (decision === 'pass') {
