@@ -28,6 +28,26 @@ export async function submitDecision(formData: FormData) {
     throw new Error('Solo un Bar Raiser certificado puede tomar esta decisión.')
   }
 
+  // I3: Verificar que el BR es participante del proceso (mínima validación de scope)
+  const { data: pcForScope } = await supabase
+    .from('process_candidates')
+    .select('process_id')
+    .eq('id', pcId)
+    .single()
+
+  if (pcForScope) {
+    const { data: participation } = await supabase
+      .from('process_participants')
+      .select('id')
+      .eq('process_id', (pcForScope as any).process_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!participation) {
+      throw new Error('No tienes participación asignada en este proceso.')
+    }
+  }
+
   // Guardar la decisión
   const { error } = await supabase.from('decisions').upsert(
     {
@@ -55,8 +75,29 @@ export async function submitDecision(formData: FormData) {
   const processId = (pc as any)?.process_id
   const candidateName = (pc as any)?.candidate?.full_name ?? 'el candidato'
 
-  const newProcessStatus = outcome === 'hire' ? 'closed_hire' : 'closed_no_hire'
-  await supabase.from('processes').update({ status: newProcessStatus, closed_at: new Date().toISOString() }).eq('id', processId)
+  // C6: Solo cerrar el proceso si no quedan candidatos activos
+  // Un hire siempre cierra el proceso (encontramos a nuestra persona)
+  // Un no_hire solo cierra si ya no hay nadie más en evaluación
+  if (outcome === 'hire') {
+    await supabase.from('processes')
+      .update({ status: 'closed_hire', closed_at: new Date().toISOString() })
+      .eq('id', processId)
+  } else {
+    const { data: stillActive } = await supabase
+      .from('process_candidates')
+      .select('id')
+      .eq('process_id', processId)
+      .not('status', 'in', '("rejected","hired")')
+      .neq('id', pcId)  // excluir el candidato que acabamos de decidir
+
+    if (!stillActive?.length) {
+      // Nadie más activo — cerrar el proceso
+      await supabase.from('processes')
+        .update({ status: 'closed_no_hire', closed_at: new Date().toISOString() })
+        .eq('id', processId)
+    }
+    // Si hay otros activos, dejar el proceso en su estado actual
+  }
 
   // Obtener datos del proceso para el email
   const { data: proc } = await supabase
@@ -71,7 +112,7 @@ export async function submitDecision(formData: FormData) {
     .select('email, full_name')
     .eq('role', 'head_of_people')
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if ((headOfPeople as any)?.email) {
     const outcomeLabels = {

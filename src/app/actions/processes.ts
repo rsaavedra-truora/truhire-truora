@@ -82,10 +82,8 @@ export async function updateProcess(formData: FormData) {
   const updatePayload: Record<string, any> = {
     title, entry_mode, capa_intencional, role_slug, role_description,
   }
-  // Solo incluir si existe la columna (requiere SQL migration)
-  if (role_description_structured !== null) {
-    updatePayload.role_description_structured = role_description_structured
-  }
+  // I8: Siempre incluir — si el valor es null (JD removida), limpia el campo en la DB
+  updatePayload.role_description_structured = role_description_structured
 
   if (hiring_manager_email !== null) {
     // hiring_manager_email es null solo si el campo no vino en el form (nunca en este caso)

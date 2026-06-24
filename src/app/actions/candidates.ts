@@ -65,10 +65,24 @@ export async function updateCandidateStatus(formData: FormData) {
   const newStatus = formData.get('status') as string
   const processId = formData.get('process_id') as string
 
+  // C8: Si se avanza a phone_screen, verificar que existe un screening
+  if (newStatus === 'phone_screen') {
+    const { data: existingScreening } = await supabase
+      .from('screenings')
+      .select('id')
+      .eq('process_candidate_id', pcId)
+      .maybeSingle()
+    if (!existingScreening) {
+      throw new Error('No se puede avanzar a Manager Screening sin un screening AI previo.')
+    }
+  }
+
+  // I4: Validar que pcId pertenece realmente a processId
   const { error } = await supabase
     .from('process_candidates')
     .update({ status: newStatus })
     .eq('id', pcId)
+    .eq('process_id', processId)
 
   if (error) throw new Error(error.message)
 

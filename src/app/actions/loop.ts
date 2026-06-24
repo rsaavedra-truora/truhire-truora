@@ -32,6 +32,16 @@ export async function createLoop(formData: FormData) {
 
   if (!pc) throw new Error('Candidato no encontrado.')
 
+  // C3: No permitir crear loop en proceso cerrado
+  const { data: procStatus } = await supabase
+    .from('processes')
+    .select('status')
+    .eq('id', pc.process_id)
+    .single()
+  if (['closed_hire', 'closed_no_hire'].includes((procStatus as any)?.status)) {
+    throw new Error('No se puede crear un loop en un proceso cerrado.')
+  }
+
   // Resolver Bar Raiser: intentar una última vez si no tenemos ID
   let resolvedBrId = barRaiserId || null
   if (!resolvedBrId && barRaiserEmail) {
@@ -201,6 +211,13 @@ export async function initiateLoop(formData: FormData) {
     .single()
 
   if (!pc) throw new Error('Candidato no encontrado')
+
+  // C3: No permitir iniciar loop en proceso cerrado
+  const { data: procCheck } = await supabase
+    .from('processes').select('status').eq('id', pc.process_id).single()
+  if (['closed_hire', 'closed_no_hire'].includes((procCheck as any)?.status)) {
+    throw new Error('No se puede iniciar un loop en un proceso cerrado.')
+  }
 
   // Crear loop sin asignaciones
   const { error: loopError } = await supabase

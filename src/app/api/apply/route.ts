@@ -52,6 +52,24 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // I11: Rate limiting por email — máx 5 aplicaciones en 24h
+    const { data: existingCandidateForRateLimit } = await supabase
+      .from('candidates').select('id').eq('email', email).maybeSingle()
+    if (existingCandidateForRateLimit) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { count: recentApps } = await supabase
+        .from('process_candidates')
+        .select('id', { count: 'exact', head: true })
+        .eq('candidate_id', existingCandidateForRateLimit.id)
+        .gte('applied_at', oneDayAgo)
+      if ((recentApps ?? 0) >= 5) {
+        return NextResponse.json(
+          { error: 'Has enviado demasiadas aplicaciones. Intenta de nuevo más tarde.' },
+          { status: 429 }
+        )
+      }
+    }
+
     // Buscar el proceso por slug — sin filtro por entry_mode.
     // El modo de entrada es una clasificación interna; no condiciona
     // quién puede aplicar ni por qué canal llega el candidato.
@@ -163,6 +181,14 @@ export async function POST(request: NextRequest) {
       .from('process_candidates')
       .update({ status: 'screening' })
       .eq('id', pc.id)
+
+    // I7: Registrar fecha de entrada al pool para candidatos talent_pool
+    if (inTalentPool) {
+      await supabase
+        .from('process_candidates')
+        .update({ added_to_pool_at: new Date().toISOString() })
+        .eq('id', pc.id)
+    }
 
     await supabase
       .from('processes')
