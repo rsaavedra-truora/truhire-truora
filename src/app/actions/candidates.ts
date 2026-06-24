@@ -21,10 +21,19 @@ export async function removeCandidateFromProcess(formData: FormData) {
     .single()
 
   if (!pc) throw new Error('Candidato no encontrado en este proceso.')
-  if (!['applied', 'screening'].includes(pc.status)) {
-    throw new Error('Solo se pueden eliminar candidatos en etapa Applied o Screening.')
-  }
 
+  // Eliminar datos asociados en cascada manual (loop, evaluaciones, etc.)
+  if (pc.status === 'loop' || pc.status === 'decision') {
+    const { data: loop } = await supabase.from('loops').select('id').eq('process_candidate_id', pcId).maybeSingle()
+    if (loop) {
+      await supabase.from('evaluations').delete().eq('loop_id', loop.id)
+      await supabase.from('loop_assignments').delete().eq('loop_id', loop.id)
+      await supabase.from('loops').delete().eq('id', loop.id)
+    }
+    await supabase.from('decisions').delete().eq('process_candidate_id', pcId)
+  }
+  await supabase.from('screenings').delete().eq('process_candidate_id', pcId)
+  await supabase.from('phone_screens').delete().eq('process_candidate_id', pcId)
   await supabase.from('process_candidates').delete().eq('id', pcId).eq('process_id', processId)
 
   revalidatePath(`/processes/${processId}`)

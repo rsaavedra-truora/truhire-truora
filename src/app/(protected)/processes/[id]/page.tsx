@@ -290,7 +290,7 @@ export default async function ProcessDetailPage({
                       return null
                     })()
                     return (
-                      <tr key={pc.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={pc.id} className="group hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3.5">
                           <Link href={`/processes/${process.id}/candidates/${pc.id}`} className="font-medium text-gray-900 hover:text-[#0800FF]">
                             {(pc.candidate as any)?.full_name}
@@ -312,19 +312,22 @@ export default async function ProcessDetailPage({
                                 {actionLink.label}
                               </Link>
                             )}
-                            {['applied', 'screening'].includes(pc.status) && (
-                              <form action={removeCandidateFromProcess}>
-                                <input type="hidden" name="pc_id" value={pc.id} />
-                                <input type="hidden" name="process_id" value={process.id} />
-                                <button
-                                  type="submit"
-                                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-                                  title="Eliminar candidato del proceso"
-                                >
-                                  Eliminar
-                                </button>
-                              </form>
-                            )}
+                            <form action={removeCandidateFromProcess}>
+                              <input type="hidden" name="pc_id" value={pc.id} />
+                              <input type="hidden" name="process_id" value={process.id} />
+                              <button
+                                type="submit"
+                                title="Eliminar candidato del proceso"
+                                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all p-1 rounded"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                  <path d="M10 11v6M14 11v6"/>
+                                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                              </button>
+                            </form>
                           </div>
                         </td>
                       </tr>
