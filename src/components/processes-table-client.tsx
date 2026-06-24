@@ -40,7 +40,7 @@ function CandidateTracker({ candidates }: { candidates: { status: string }[] }) 
   if (!candidates.length) return <span className="text-xs text-gray-400">—</span>
   const stages = [
     { key: 'screening', label: 'Screening', bg: '#FFFBEB', color: '#92400E' },
-    { key: 'phone_screen', label: 'Phone screen', bg: '#EDE9FE', color: '#5B21B6' },
+    { key: 'phone_screen', label: 'Manager Screening', bg: '#EDE9FE', color: '#5B21B6' },
     { key: 'loop', label: 'Loop', bg: '#F5F3FF', color: '#4C1D95' },
     { key: 'hired', label: 'Hire', bg: '#ECFDF5', color: '#065F46' },
   ]

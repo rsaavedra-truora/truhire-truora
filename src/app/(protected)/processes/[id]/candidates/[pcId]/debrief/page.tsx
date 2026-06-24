@@ -147,7 +147,7 @@ export default async function DebriefPage({
         </div>
       )}
 
-      {/* Phone Screen — HM */}
+      {/* Manager Screening — HM */}
       {phoneScreen && (() => {
         const psNotes: Record<string, any> = phoneScreen.principle_notes ?? {}
         const assignedSlugs: string[] = phoneScreen.assigned_principles ?? []
@@ -158,7 +158,7 @@ export default async function DebriefPage({
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <p className="text-sm font-semibold text-gray-900">
-                Phone Screen — {(phoneScreen.hm as any)?.full_name ?? 'HM'}
+                Manager Screening — {(phoneScreen.hm as any)?.full_name ?? 'HM'}
               </p>
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${phoneScreen.decision === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                 {phoneScreen.decision === 'pass' ? '✓ Pasa' : '✗ No pasa'}
@@ -392,7 +392,7 @@ function PrincipleGrid({
       const aiSlugs = Object.keys(psAI.principle_notes)
       aiSlugs.forEach(s => slugSet.add(s))
       rows.push({
-        name: `AI — ${(phoneScreen.hm as any)?.full_name ?? 'Phone Screen'}`,
+        name: `AI — ${(phoneScreen.hm as any)?.full_name ?? 'Manager Screening'}`,
         type: 'hm_ai',
         assignedSlugs: aiSlugs,
         principleNotes: normalizePrincipleNotes(psAI.principle_notes),
@@ -470,8 +470,8 @@ function PrincipleGrid({
                   )}
                 </div>
                 <p className="text-xs text-gray-400">
-                  {row.type === 'hm' ? 'Phone screen'
-                    : row.type === 'hm_ai' ? 'Análisis AI — Phone screen'
+                  {row.type === 'hm' ? 'Manager Screening'
+                    : row.type === 'hm_ai' ? 'Análisis AI — Manager Screening'
                     : row.type === 'interviewer_ai'
                     ? (loopId
                         ? <Link href={`/interview/${loopId}/ai-analysis`} className="text-violet-600 hover:underline">Ver análisis →</Link>

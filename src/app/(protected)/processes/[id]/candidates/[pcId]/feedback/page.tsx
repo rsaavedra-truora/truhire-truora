@@ -114,7 +114,7 @@ export default function FeedbackPage() {
 
   const levelLabels = {
     1: 'Filtro inicial',
-    2: 'Phone screen',
+    2: 'Manager Screening',
     3: 'Loop completo',
   }
 

@@ -186,3 +186,58 @@ export async function createLoop(formData: FormData) {
   revalidatePath(`/processes/${pc.process_id}`)
   redirect(`/processes/${pc.process_id}/candidates/${pcId}`)
 }
+
+export async function initiateLoop(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const pcId = formData.get('process_candidate_id') as string
+
+  const { data: pc } = await supabase
+    .from('process_candidates')
+    .select('id, process_id')
+    .eq('id', pcId)
+    .single()
+
+  if (!pc) throw new Error('Candidato no encontrado')
+
+  // Crear loop sin asignaciones
+  const { error: loopError } = await supabase
+    .from('loops')
+    .upsert(
+      { process_candidate_id: pcId, status: 'open' },
+      { onConflict: 'process_candidate_id' }
+    )
+
+  if (loopError) throw new Error(loopError.message)
+
+  // Avanzar status
+  await supabase.from('process_candidates').update({ status: 'loop' }).eq('id', pcId)
+  await supabase.from('processes').update({ status: 'loop' }).eq('id', pc.process_id)
+
+  revalidatePath(`/processes/${pc.process_id}/candidates/${pcId}`)
+  redirect(`/processes/${pc.process_id}/candidates/${pcId}`)
+}
+
+export async function sendToBarRaiser(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const pcId = formData.get('process_candidate_id') as string
+
+  const { data: pc } = await supabase
+    .from('process_candidates')
+    .select('id, process_id')
+    .eq('id', pcId)
+    .single()
+
+  if (!pc) throw new Error('Candidato no encontrado')
+
+  await supabase.from('process_candidates').update({ status: 'decision' }).eq('id', pcId)
+  await supabase.from('processes').update({ status: 'decision' }).eq('id', pc.process_id)
+
+  revalidatePath(`/processes/${pc.process_id}/candidates/${pcId}`)
+  redirect(`/processes/${pc.process_id}/candidates/${pcId}`)
+}

@@ -77,11 +77,11 @@ export default async function InterviewsPage() {
         </p>
       </div>
 
-      {/* Phone screens pendientes */}
+      {/* Manager Screenings pendientes */}
       {pendingPhoneScreens.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 bg-amber-50">
-            <h2 className="text-sm font-semibold text-amber-800">Phone screens pendientes ({pendingPhoneScreens.length})</h2>
+            <h2 className="text-sm font-semibold text-amber-800">Manager Screenings pendientes ({pendingPhoneScreens.length})</h2>
           </div>
           <div className="divide-y divide-gray-100">
             {pendingPhoneScreens.map((ps: any) => {

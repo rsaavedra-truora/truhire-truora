@@ -215,7 +215,7 @@ export const PROCESS_STATUS_LABELS: Record<ProcessStatus, string> = {
   draft:         'Borrador',
   open:          'Abierto',
   screening:     'Screening AI',
-  phone_screen:  'Phone screen',
+  phone_screen:  'Manager Screening',
   challenge:     'Reto',
   loop:          'Interview Loop',
   decision:      'Decisión pendiente',

@@ -7,7 +7,7 @@ import { ChevronDown } from 'lucide-react'
 const STAGE_CONFIG: Record<string, { label: string; bg: string; color: string; dot: string }> = {
   applied:      { label: 'Recién aplicado',   bg: '#F3F4F6', color: '#374151', dot: '#9CA3AF' },
   screening:    { label: 'En screening AI',   bg: '#FFFBEB', color: '#92400E', dot: '#F59E0B' },
-  phone_screen: { label: 'Phone screen',      bg: '#EDE9FE', color: '#5B21B6', dot: '#8B5CF6' },
+  phone_screen: { label: 'Manager Screening', bg: '#EDE9FE', color: '#5B21B6', dot: '#8B5CF6' },
   loop:         { label: 'Interview loop',    bg: '#F5F3FF', color: '#4C1D95', dot: '#7C3AED' },
   decision:     { label: 'Decisión final',    bg: '#FAF5FF', color: '#6B21A8', dot: '#A855F7' },
   hired:        { label: 'Contratado',        bg: '#ECFDF5', color: '#065F46', dot: '#10B981' },
@@ -27,7 +27,7 @@ const NEXT_STAGE: Record<string, string | null> = {
 
 const NEXT_STAGE_LABEL: Record<string, string> = {
   screening:    'Mover a screening',
-  phone_screen: 'Mover a phone screen',
+  phone_screen: 'Mover a Manager Screening',
   loop:         'Mover a loop',
   decision:     'Marcar como decisión pendiente',
   hired:        'Marcar como contratado',

@@ -117,7 +117,7 @@ export default function PhoneScreenPage() {
           }
         </div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">
-          {phoneScreen.decision === 'pass' ? 'Phone screen completado — Pasa al loop' : 'Phone screen completado — No avanza'}
+          {phoneScreen.decision === 'pass' ? 'Manager Screening completado — Pasa al loop' : 'Manager Screening completado — No avanza'}
         </h1>
         <p className="text-sm text-gray-500">
           {phoneScreen.decision === 'pass'
@@ -132,7 +132,7 @@ export default function PhoneScreenPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-500 mb-1">Phone Screen</p>
+        <p className="text-sm text-gray-500 mb-1">Manager Screening</p>
         <h1 className="text-xl font-semibold text-gray-900">{(candidate as any)?.full_name}</h1>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-sm text-gray-500">{(candidate as any)?.email}</span>

@@ -72,7 +72,7 @@ export default async function MetricsPage() {
   const funnelSteps = [
     { label: 'Candidatos totales', value: totalApplied ?? 0, color: 'bg-gray-400' },
     { label: 'Screening AI corrido', value: totalScreened ?? 0, color: 'bg-blue-400' },
-    { label: 'Phone screens completados', value: totalPhoneScreen ?? 0, color: 'bg-violet-400' },
+    { label: 'Manager Screenings completados', value: totalPhoneScreen ?? 0, color: 'bg-violet-400' },
     { label: 'Loops ejecutados', value: totalLoop ?? 0, color: 'bg-[#0800FF]' },
     { label: 'Contratados', value: totalHired ?? 0, color: 'bg-green-500' },
   ]

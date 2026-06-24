@@ -5,6 +5,8 @@ import { CAPA_LABELS } from '@/lib/types'
 import { getPrincipleBySlug } from '@/lib/principles-data'
 import { CandidateStatusControl } from '@/components/candidate-status-control'
 import { ChallengeUploader } from '@/components/challenge-uploader'
+import { initiateLoop, sendToBarRaiser } from '@/app/actions/loop'
+import { CandidateReferences } from '@/components/candidate-references'
 
 export default async function CandidateProfilePage({
   params,
@@ -37,6 +39,7 @@ export default async function CandidateProfilePage({
     { data: challenge },
     { data: loop },
     { data: finalDecision },
+    { data: references },
   ] = await Promise.all([
     supabase.from('screenings').select('*').eq('process_candidate_id', params.pcId).maybeSingle(),
     supabase
@@ -59,13 +62,19 @@ export default async function CandidateProfilePage({
       .select('outcome, justification, alternative_capa, decided_at')
       .eq('process_candidate_id', params.pcId)
       .maybeSingle(),
+    supabase
+      .from('candidate_references')
+      .select('*, added_by_user:users!added_by(full_name)')
+      .eq('candidate_id', candidate.id)
+      .eq('process_id', params.id)
+      .order('created_at', { ascending: false }),
   ])
 
   let evaluations: any[] = []
   if (loop) {
     const { data: evals } = await supabase
       .from('evaluations')
-      .select('interviewer_id, principle_notes, conclusion, recommendation, signed_at')
+      .select('interviewer_id, conclusion, recommendation, signed_at, interviewer:users!interviewer_id(full_name)')
       .eq('loop_id', loop.id)
     evaluations = evals ?? []
   }
@@ -89,14 +98,14 @@ export default async function CandidateProfilePage({
       href: '#section-02',
     },
     {
-      label: 'Phone Screen',
+      label: 'Manager Screening',
       status: phoneScreen?.completed_at ? 'done' : phoneScreen ? 'active' : 'pending',
       href: `/processes/${params.id}/candidates/${params.pcId}/phone-screen`,
     },
     {
       label: 'Loop',
       status: loop?.status === 'completed' ? 'done' : loop ? 'active' : 'pending',
-      href: loop ? '#section-05' : `/processes/${params.id}/candidates/${params.pcId}/loop-setup`,
+      href: loop ? '#section-05' : '#section-05',
     },
     {
       label: 'Debrief',
@@ -367,11 +376,11 @@ export default async function CandidateProfilePage({
         )}
       </Section>
 
-      {/* 03 — Phone Screen */}
+      {/* 03 — Manager Screening */}
       <Section
         id="section-03"
         number="03"
-        title="Phone Screen — Hiring Manager"
+        title="Manager Screening"
         status={
           phoneScreen?.completed_at ? 'done' : phoneScreen ? 'in_progress' : 'pending'
         }
@@ -494,191 +503,95 @@ export default async function CandidateProfilePage({
         status={
           loop?.status === 'completed' ? 'done' : loop ? 'in_progress' : 'pending'
         }
-        action={
-          !loop
-            ? {
-                href: `/processes/${params.id}/candidates/${params.pcId}/loop-setup`,
-                label: 'Configurar loop →',
-              }
-            : undefined
-        }
       >
         {loop ? (
           <div className="space-y-4">
-            {/* Bar Raiser + fecha + edit */}
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p
-                  className="text-xs mb-0.5"
-                  style={{ color: 'var(--truora-ink-subtle)' }}
-                >
-                  Bar Raiser
-                </p>
-                <p className="text-sm font-medium" style={{ color: 'var(--truora-ink)' }}>
-                  {(loop.bar_raiser as any)?.full_name ?? (
-                    <span style={{ color: 'var(--truora-ink-subtle)' }} className="italic">
-                      Sin asignar
-                    </span>
-                  )}
-                </p>
-              </div>
-              <Link
-                href={`/processes/${params.id}/candidates/${params.pcId}/loop-setup`}
-                className="text-xs hover:underline flex-shrink-0"
-                style={{ color: 'var(--truora-ink-subtle)' }}
-              >
-                Editar configuración →
-              </Link>
-            </div>
-
-            {/* Progress indicator */}
-            {(() => {
-              const total = assignments.length
-              const completed = assignments.filter((a: any) => {
-                const iv = Array.isArray(a.interviewer) ? a.interviewer[0] : a.interviewer
-                return !!evaluations.find((e: any) => e.interviewer_id === iv?.id && e.signed_at)
-              }).length
-              const pct = total > 0 ? Math.round((completed / total) * 100) : 0
-              return (
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex-1 h-1.5 rounded-full overflow-hidden"
-                    style={{ background: 'var(--truora-bg-soft)' }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${pct}%`,
-                        background: completed === total && total > 0
-                          ? '#16a34a'
-                          : 'var(--truora-primary)',
-                      }}
-                    />
-                  </div>
-                  <p
-                    className="text-xs font-medium flex-shrink-0"
-                    style={{
-                      color: completed === total && total > 0
-                        ? '#16a34a'
-                        : 'var(--truora-ink-muted)',
-                    }}
-                  >
-                    {completed} de {total} evaluaciones completadas
-                  </p>
-                </div>
-              )
-            })()}
-
-            {/* Interviewers */}
+            {/* Evaluators list */}
             <div className="space-y-2">
-              {assignments.map((assignment: any) => {
-                const interviewer = Array.isArray(assignment.interviewer)
-                  ? assignment.interviewer[0]
-                  : assignment.interviewer
-                const evaluation = evaluations.find(
-                  e => e.interviewer_id === interviewer?.id
-                )
-                const isSigned = !!evaluation?.signed_at
-                const isMe = interviewer?.id === user.id
+              {evaluations.length === 0 && (
+                <p className="text-sm italic" style={{ color: 'var(--truora-ink-subtle)' }}>
+                  Aún no hay evaluaciones. Sé el primero en agregar tu evaluación.
+                </p>
+              )}
+              {evaluations.map((evaluation: any, idx: number) => {
+                const evalInterviewer = Array.isArray(evaluation.interviewer)
+                  ? evaluation.interviewer[0]
+                  : evaluation.interviewer
+                const isSigned = !!evaluation.signed_at
+                const isMe = evaluation.interviewer_id === user.id
 
                 return (
                   <div
-                    key={assignment.id}
+                    key={idx}
                     className={`rounded-xl border p-4 ${
-                      isSigned
-                        ? 'border-green-200 bg-green-50/40'
-                        : 'border-truora-line'
+                      isSigned ? 'border-green-200 bg-green-50/40' : ''
                     }`}
                     style={!isSigned ? { borderColor: 'var(--truora-line)' } : undefined}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                          <p
-                            className="text-sm font-medium"
-                            style={{ color: 'var(--truora-ink)' }}
-                          >
-                            {interviewer?.full_name ?? '—'}
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <p className="text-sm font-medium" style={{ color: 'var(--truora-ink)' }}>
+                            {evalInterviewer?.full_name ?? 'Entrevistador'}
                           </p>
                           {isMe && (
-                            <span
-                              className="text-xs px-2 py-0.5 rounded-full font-medium"
-                              style={{
-                                background: 'var(--truora-primary-soft)',
-                                color: 'var(--truora-primary)',
-                              }}
-                            >
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                              style={{ background: 'var(--truora-primary-soft)', color: 'var(--truora-primary)' }}>
                               Tú
                             </span>
                           )}
                           {isSigned ? (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                              ✓ Completada
+                              ✓ Firmada
                             </span>
                           ) : (
                             <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                              Pendiente
+                              Borrador
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(assignment.principles as string[])?.map((slug: string) => {
-                            const p = getPrincipleBySlug(slug)
-                            return p ? (
-                              <span
-                                key={slug}
-                                className="text-xs px-2 py-0.5 rounded-full"
-                                style={{
-                                  background: 'var(--truora-primary-soft)',
-                                  color: 'var(--truora-primary)',
-                                }}
-                              >
-                                {p.name}
-                              </span>
-                            ) : null
-                          })}
-                        </div>
-                        {/* Conclusión — blind eval */}
-                        {isSigned && evaluation?.conclusion && canSeeOthersEvals && (
-                          <p
-                            className="text-sm leading-relaxed mt-2 pt-2 border-t border-green-200"
-                            style={{ color: 'var(--truora-ink-muted)' }}
-                          >
+                        {isSigned && evaluation.conclusion && (
+                          <p className="text-sm leading-relaxed mt-1 pt-2 border-t border-green-200"
+                            style={{ color: 'var(--truora-ink-muted)' }}>
                             {evaluation.conclusion}
                           </p>
                         )}
-                        {isSigned && !canSeeOthersEvals && !isMe && (
-                          <p
-                            className="text-xs mt-2 italic"
-                            style={{ color: 'var(--truora-ink-subtle)' }}
-                          >
-                            Disponible después de completar tu evaluación.
-                          </p>
-                        )}
                       </div>
-                      <Link
-                        href={`/interview/${loop.id}`}
-                        className={`text-xs px-3 py-1.5 rounded-lg font-medium flex-shrink-0 transition-colors ${
-                          isMe && !isSigned
-                            ? 'text-white'
-                            : 'hover:underline'
-                        }`}
-                        style={
-                          isMe && !isSigned
-                            ? { background: 'var(--truora-primary)' }
-                            : { color: 'var(--truora-primary)' }
-                        }
-                      >
-                        {isMe && !isSigned ? 'Hacer evaluación →' : 'Ver →'}
-                      </Link>
                     </div>
                   </div>
                 )
               })}
             </div>
+
+            {/* Agregar mi evaluación */}
+            <Link
+              href={`/interview/${loop.id}`}
+              className="btn-truora inline-block text-sm"
+            >
+              Agregar mi evaluación →
+            </Link>
+
+            {/* Enviar al Bar Raiser */}
+            {pc.status === 'loop' && evaluations.length > 0 && (
+              <form action={sendToBarRaiser}>
+                <input type="hidden" name="process_candidate_id" value={params.pcId} />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg border border-[#0800FF] text-[#0800FF] text-sm font-medium hover:bg-[#E8E7FF]"
+                >
+                  Enviar al Bar Raiser →
+                </button>
+              </form>
+            )}
           </div>
         ) : (
-          <EmptyState text="El loop aún no ha sido configurado." />
+          <div className="space-y-3">
+            <EmptyState text="El loop aún no ha sido iniciado." />
+            <form action={initiateLoop}>
+              <input type="hidden" name="process_candidate_id" value={params.pcId} />
+              <button type="submit" className="btn-truora">Iniciar loop</button>
+            </form>
+          </div>
         )}
       </Section>
 
@@ -700,6 +613,16 @@ export default async function CandidateProfilePage({
           </Link>
         </div>
       )}
+
+      {/* Referencias */}
+      <div id="section-references" className="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Referencias</h2>
+        <CandidateReferences
+          candidateId={candidate.id}
+          processId={params.id}
+          initialRefs={references ?? []}
+        />
+      </div>
 
       {/* 06 — Debrief */}
       <Section

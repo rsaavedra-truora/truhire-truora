@@ -278,7 +278,7 @@ export default async function ProcessDetailPage({
                 <tbody className="divide-y divide-gray-100">
                   {processCandidates?.map((pc) => {
                     const statusLabel: Record<string, string> = {
-                      applied: 'Aplicó', screening: 'Screening', phone_screen: 'Phone screen',
+                      applied: 'Aplicó', screening: 'Screening', phone_screen: 'Manager Screening',
                       loop: 'Loop', decision: 'Decisión', hired: 'Contratado', rejected: 'Descartado',
                     }
                     const actionLink = (() => {

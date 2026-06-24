@@ -14,7 +14,7 @@ const CLASS_CONFIG: Record<string, { label: string; bg: string; color: string; d
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   applied:      { label: 'Aplicó',       bg: '#F3F4F6', color: '#4B5563' },
   screening:    { label: 'Screening',    bg: '#FFFBEB', color: '#92400E' },
-  phone_screen: { label: 'Phone screen', bg: '#EDE9FE', color: '#5B21B6' },
+  phone_screen: { label: 'Manager Screening', bg: '#EDE9FE', color: '#5B21B6' },
   loop:         { label: 'Loop',         bg: '#F5F3FF', color: '#4C1D95' },
   decision:     { label: 'Decisión',     bg: '#FAF5FF', color: '#6B21A8' },
   hired:        { label: 'Contratado',   bg: '#ECFDF5', color: '#065F46' },

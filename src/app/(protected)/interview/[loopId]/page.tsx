@@ -74,7 +74,7 @@ export default function InterviewPage() {
       setAssignment(myAssignment)
 
       // Cargar evaluación existente
-      if (user && myAssignment) {
+      if (user) {
         const { data: eval_ } = await supabase
           .from('evaluations')
           .select('*')
@@ -111,7 +111,7 @@ export default function InterviewPage() {
   }
 
   async function saveEvaluation(sign = false) {
-    if (!currentUser || !assignment) return
+    if (!currentUser) return
     // Evaluación firmada — inmutable. No se permiten modificaciones.
     if (isSigned) return
     setSaving(true)
@@ -150,14 +150,6 @@ export default function InterviewPage() {
   }
 
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Cargando...</div>
-
-  if (!assignment) {
-    return (
-      <div className="max-w-2xl mx-auto py-20 text-center">
-        <p className="text-gray-500">No tienes una entrevista asignada en este loop.</p>
-      </div>
-    )
-  }
 
   const myPrinciples: any[] = []
 

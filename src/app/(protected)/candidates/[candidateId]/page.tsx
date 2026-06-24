@@ -6,7 +6,7 @@ import { CandidateEditPanel } from '@/components/candidate-edit-panel'
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   applied:      { label: 'Aplicó',        color: 'bg-gray-100 text-gray-600' },
   screening:    { label: 'Screening',     color: 'bg-yellow-100 text-yellow-700' },
-  phone_screen: { label: 'Phone screen',  color: 'bg-sky-100 text-sky-700' },
+  phone_screen: { label: 'Manager Screening', color: 'bg-sky-100 text-sky-700' },
   loop:         { label: 'Loop',          color: 'bg-violet-100 text-violet-700' },
   decision:     { label: 'Decisión',      color: 'bg-purple-100 text-purple-700' },
   hired:        { label: 'Contratado ✓',  color: 'bg-green-100 text-green-700' },
