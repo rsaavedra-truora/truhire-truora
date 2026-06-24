@@ -181,10 +181,18 @@ export default function InterviewPage() {
         </div>
       </div>
 
-      {/* Banner: grabar sesión */}
+      {/* Banner: notas con Gemini */}
       {!isSigned && (
-        <div className="bg-[#0800FF] rounded-xl p-4 text-white">
-          <p className="text-sm font-semibold">📹 Recuerda grabar esta sesión en Google Meet · Activa la grabación en Actividades → Grabar</p>
+        <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: '#E8E7FF', border: '1px solid #C7C5FF' }}>
+          <span className="text-lg flex-shrink-0">✦</span>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: '#0800FF' }}>
+              Toma notas con Gemini durante la entrevista
+            </p>
+            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#3B36CC' }}>
+              Activa Gemini en Google Meet para que transcriba la sesión. Luego usa esas notas aquí para construir una evaluación más completa y sólida antes de enviarla al Bar Raiser.
+            </p>
+          </div>
         </div>
       )}
 

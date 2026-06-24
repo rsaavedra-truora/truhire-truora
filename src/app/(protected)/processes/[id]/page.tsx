@@ -284,7 +284,8 @@ export default async function ProcessDetailPage({
                     const actionLink = (() => {
                       if (pc.status === 'screening') return { href: `/processes/${process.id}/screening`, label: 'Ver screening →' }
                       if (pc.status === 'phone_screen') return { href: `/processes/${process.id}/candidates/${pc.id}/phone-screen`, label: 'Evaluar candidato →' }
-                      if (pc.status === 'loop') return { href: `/processes/${process.id}/candidates/${pc.id}/loop-setup`, label: 'Configurar loop →' }
+                      if (pc.status === 'loop') return { href: `/processes/${process.id}/candidates/${pc.id}`, label: 'Ver loop →' }
+                      if (pc.status === 'decision') return { href: `/processes/${process.id}/candidates/${pc.id}/debrief`, label: 'Ir al debrief →' }
                       return null
                     })()
                     return (
