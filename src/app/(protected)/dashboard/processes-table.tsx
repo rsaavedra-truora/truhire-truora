@@ -10,7 +10,7 @@ interface Process {
   entry_mode: string
   capa_intencional: string
   status: string
-  hiring_manager_or_sponsor: { full_name: string } | null
+  hiring_manager_or_sponsor: { full_name: string }[] | { full_name: string } | null
 }
 
 export function ProcessesTable({ processes }: { processes: Process[] }) {
@@ -67,7 +67,9 @@ function TableRow({ process: p, isLast }: { process: Process; isLast: boolean })
         <StatusBadge status={p.status as ProcessStatus} />
       </td>
       <td style={{ padding: '14px 16px', font: '0.875rem var(--font-sans)', color: 'var(--text-muted)' }}>
-        {p.hiring_manager_or_sponsor?.full_name ?? '—'}
+        {Array.isArray(p.hiring_manager_or_sponsor)
+          ? p.hiring_manager_or_sponsor[0]?.full_name ?? '—'
+          : p.hiring_manager_or_sponsor?.full_name ?? '—'}
       </td>
     </tr>
   )
