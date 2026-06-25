@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { deleteCandidate } from '@/app/actions/candidates'
 
 interface Props {
   candidate: {
@@ -86,13 +87,12 @@ export function CandidateEditPanel({ candidate }: Props) {
 
   async function handleDelete() {
     setDeleting(true)
-    const { error } = await supabase
-      .from('candidates')
-      .delete()
-      .eq('id', candidate.id)
+    setError(null)
 
-    if (error) {
-      setError(error.message)
+    const result = await deleteCandidate(candidate.id)
+
+    if (!result.success) {
+      setError(result.error ?? 'Error al eliminar candidato')
       setDeleting(false)
       return
     }

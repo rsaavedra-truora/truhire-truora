@@ -4,6 +4,60 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+/**
+ * Elimina un candidato completamente del sistema, incluyendo todos sus registros relacionados.
+ */
+export async function deleteCandidate(candidateId: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'No autenticado' }
+
+  // Verificar permisos
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
+    return { success: false, error: 'No tienes permisos para eliminar candidatos.' }
+  }
+
+  // Obtener todos los process_candidates de este candidato
+  const { data: pcs } = await supabase
+    .from('process_candidates')
+    .select('id, process_id')
+    .eq('candidate_id', candidateId)
+
+  // Eliminar datos relacionados de cada process_candidate
+  if (pcs && pcs.length > 0) {
+    for (const pc of pcs) {
+      // Eliminar loop y sus dependencias
+      const { data: loop } = await supabase.from('loops').select('id').eq('process_candidate_id', pc.id).maybeSingle()
+      if (loop) {
+        await supabase.from('evaluations').delete().eq('loop_id', loop.id)
+        await supabase.from('loop_assignments').delete().eq('loop_id', loop.id)
+        await supabase.from('loops').delete().eq('id', loop.id)
+      }
+      // Eliminar otras dependencias
+      await supabase.from('decisions').delete().eq('process_candidate_id', pc.id)
+      await supabase.from('screenings').delete().eq('process_candidate_id', pc.id)
+      await supabase.from('phone_screens').delete().eq('process_candidate_id', pc.id)
+    }
+    // Eliminar process_candidates
+    await supabase.from('process_candidates').delete().eq('candidate_id', candidateId)
+  }
+
+  // Eliminar de talent_pool si existe
+  await supabase.from('talent_pool_screenings').delete().eq('candidate_id', candidateId)
+  await supabase.from('talent_pool').delete().eq('candidate_id', candidateId)
+
+  // Finalmente eliminar el candidato
+  const { error } = await supabase.from('candidates').delete().eq('id', candidateId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/candidates')
+  return { success: true }
+}
+
 export async function removeCandidateFromProcess(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
