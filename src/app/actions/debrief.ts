@@ -105,16 +105,16 @@ export async function submitDecision(formData: FormData) {
       to: (headOfPeople as any).email,
       subject: `Decisión del Bar Raiser — ${(proc as any)?.title}: ${outcomeLabels[outcome]}`,
       html: `
-<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
+<div style="font-family: 'Host Grotesk', system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #01022E;">
   <div style="margin-bottom: 24px;">
-    <div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
+    <div style="width: 32px; height: 32px; background: #3C1AEA; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
       <span style="color: white; font-weight: 700; font-size: 14px;">T</span>
     </div>
   </div>
 
   <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 6px;">Decisión del Bar Raiser</h1>
   <p style="font-size: 15px; color: #4A5374; margin: 0 0 24px;">
-    Proceso: <strong style="color: #0B1020;">${(proc as any)?.title}</strong> · Candidato: <strong style="color: #0B1020;">${candidateName}</strong>
+    Proceso: <strong style="color: #01022E;">${(proc as any)?.title}</strong> · Candidato: <strong style="color: #01022E;">${candidateName}</strong>
   </p>
 
   <div style="background: ${outcome === 'hire' ? '#DCFCE7' : outcome === 'no_hire' ? '#FEE2E2' : '#DBEAFE'}; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
@@ -126,11 +126,11 @@ export async function submitDecision(formData: FormData) {
 
   <div style="background: #F7F8FB; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
     <p style="font-size: 12px; font-weight: 600; color: #8892A6; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px;">Justificación del Bar Raiser</p>
-    <p style="font-size: 14px; color: #0B1020; line-height: 1.7; margin: 0;">${justification}</p>
+    <p style="font-size: 14px; color: #01022E; line-height: 1.7; margin: 0;">${justification}</p>
   </div>
 
   <p style="font-size: 13px; color: #8892A6;">
-    Bar Raiser: <strong style="color: #0B1020;">${(barRaiser as any)?.full_name ?? 'Anónimo'}</strong> · ${new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
+    Bar Raiser: <strong style="color: #01022E;">${(barRaiser as any)?.full_name ?? 'Anónimo'}</strong> · ${new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}
   </p>
 
   <hr style="border: none; border-top: 1px solid #E1E5EE; margin: 24px 0;">

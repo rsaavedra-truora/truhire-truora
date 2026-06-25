@@ -9,11 +9,11 @@ import type { StructuredJD } from '@/app/api/parse-jd/route'
 
 function StructuredJDPreview({ jd, onClear }: { jd: StructuredJD; onClear: () => void }) {
   return (
-    <div className="rounded-xl border border-[#0800FF]/20 bg-[#F5F5FF] p-5 space-y-4">
+    <div className="rounded-xl border border-truora-primary/20 bg-truora-primary-soft p-5 space-y-4">
       {/* Header chips */}
       <div className="flex items-center gap-2 flex-wrap">
         {jd.area && (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#0800FF]/10 text-[#0800FF]">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-truora-primary/10 text-truora-primary">
             {jd.area}
           </span>
         )}
@@ -43,7 +43,7 @@ function StructuredJDPreview({ jd, onClear }: { jd: StructuredJD; onClear: () =>
           <ul className="space-y-1">
             {jd.responsibilities.map((r, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0800FF] flex-shrink-0" />
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-truora-primary flex-shrink-0" />
                 {r}
               </li>
             ))}
@@ -149,7 +149,7 @@ export default function NewProcessPage() {
               placeholder="Ej: Head of Sales LATAM"
               value={roleTitle}
               onChange={e => setRoleTitle(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
             />
           </div>
 
@@ -160,7 +160,7 @@ export default function NewProcessPage() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400 whitespace-nowrap">careers.truora.com/apply/</span>
               <input name="role_slug" type="text" placeholder="head-of-sales-latam"
-                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]" />
+                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary" />
             </div>
           </div>
 
@@ -186,7 +186,7 @@ export default function NewProcessPage() {
               { v: 'talent_first' as const, l: 'Talent-first', d: 'Persona identificada antes del rol.' },
             ].map(o => (
               <button key={o.v} type="button" onClick={() => setEntryMode(o.v)}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${entryMode === o.v ? 'border-[#0800FF] bg-[#E8E7FF]' : 'border-gray-200 hover:border-gray-300'}`}>
+                className={`text-left p-4 rounded-xl border-2 transition-all ${entryMode === o.v ? 'border-truora-primary bg-truora-primary-soft' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-medium text-gray-900">{o.l}</p>
                 <p className="text-xs text-gray-500 mt-1">{o.d}</p>
               </button>
@@ -203,7 +203,7 @@ export default function NewProcessPage() {
               { v: 'funcional' as const, l: 'Funcional', d: 'Roles funcionales · bench 80%' },
             ].map(o => (
               <button key={o.v} type="button" onClick={() => setCapa(o.v)}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${capa === o.v ? 'border-[#0800FF] bg-[#E8E7FF]' : 'border-gray-200 hover:border-gray-300'}`}>
+                className={`text-left p-4 rounded-xl border-2 transition-all ${capa === o.v ? 'border-truora-primary bg-truora-primary-soft' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-medium text-gray-900">{o.l}</p>
                 <p className="text-xs text-gray-500 mt-1">{o.d}</p>
               </button>

@@ -164,7 +164,7 @@ export default function InterviewPage() {
             <p className="text-sm text-gray-500 mt-0.5">{(candidate as any)?.email}</p>
             {(candidate as any)?.linkedin_url && (
               <a href={(candidate as any).linkedin_url} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-[#0800FF] hover:underline">LinkedIn →</a>
+                className="text-xs text-truora-primary hover:underline">LinkedIn →</a>
             )}
           </div>
           <div className="text-right">
@@ -183,13 +183,13 @@ export default function InterviewPage() {
 
       {/* Banner: notas con Gemini */}
       {!isSigned && (
-        <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: '#E8E7FF', border: '1px solid #C7C5FF' }}>
+        <div className="rounded-xl p-4 flex items-start gap-3 bg-truora-primary-soft border border-truora-primary/30">
           <span className="text-lg flex-shrink-0">✦</span>
           <div>
-            <p className="text-sm font-semibold" style={{ color: '#0800FF' }}>
+            <p className="text-sm font-semibold text-truora-primary">
               Toma notas con Gemini durante la entrevista
             </p>
-            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#3B36CC' }}>
+            <p className="text-xs mt-0.5 leading-relaxed text-truora-primary-hover">
               Activa Gemini en Google Meet para que transcriba la sesión. Luego usa esas notas aquí para construir una evaluación más completa y sólida antes de enviarla al Bar Raiser.
             </p>
           </div>
@@ -265,7 +265,7 @@ export default function InterviewPage() {
                     setExpandedPrinciple(p.slug)
                     setShowPrinciplePicker(false)
                   }}
-                  className="text-left p-3 rounded-lg border border-gray-200 bg-white hover:border-[#0800FF] hover:bg-[#E8E7FF] transition-all"
+                  className="text-left p-3 rounded-lg border border-gray-200 bg-white hover:border-truora-primary hover:bg-truora-primary-soft transition-all"
                 >
                   <span
                     className="text-xs font-mono font-semibold"
@@ -293,7 +293,7 @@ export default function InterviewPage() {
           return (
             <div
               key={slug}
-              className="bg-white rounded-xl border border-[#0800FF]/20 overflow-hidden"
+              className="bg-white rounded-xl border border-truora-primary/20 overflow-hidden"
             >
               <div
                 className="px-5 py-4 cursor-pointer flex items-start justify-between gap-3"
@@ -368,7 +368,7 @@ export default function InterviewPage() {
                       value={principleNotes[p.slug] ?? ''}
                       onChange={e => setPrincipleNotes(prev => ({ ...prev, [p.slug]: e.target.value }))}
                       placeholder="Qué evidencia observaste de este principio durante la entrevista."
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
                       disabled={isSigned}
                     />
                   </div>
@@ -391,7 +391,7 @@ export default function InterviewPage() {
             value={summary}
             onChange={e => setSummary(e.target.value)}
             placeholder="¿Cómo fue la entrevista en general? Tono, fluidez, nivel de profundidad de las respuestas..."
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
             disabled={isSigned}
           />
         </div>
@@ -403,7 +403,7 @@ export default function InterviewPage() {
             value={conclusion}
             onChange={e => setConclusion(e.target.value)}
             placeholder="Tu análisis final: ¿ves a esta persona en Truora? ¿En qué capa? ¿Qué te generó dudas?"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
             disabled={isSigned}
           />
         </div>

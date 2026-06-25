@@ -120,7 +120,7 @@ export default function ApplyPage() {
                   type="text"
                   required
                   placeholder="Ana García López"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary"
                 />
               </div>
               <div>
@@ -132,7 +132,7 @@ export default function ApplyPage() {
                   type="email"
                   required
                   placeholder="ana@ejemplo.com"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary"
                 />
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function ApplyPage() {
                 name="linkedin_url"
                 type="url"
                 placeholder="https://linkedin.com/in/tu-perfil"
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function ApplyPage() {
               className={`
                 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
                 ${isDragging
-                  ? 'border-[#0800FF] bg-[#E8E7FF]'
+                  ? 'border-truora-primary bg-truora-primary-soft'
                   : selectedFile
                   ? 'border-green-400 bg-green-50'
                   : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
@@ -182,7 +182,7 @@ export default function ApplyPage() {
                   <p className="text-xs text-gray-500 mt-1">
                     {(selectedFile.size / 1024 / 1024).toFixed(2)} MB ·{' '}
                     <span
-                      className="text-[#0800FF] hover:underline"
+                      className="text-truora-primary hover:underline"
                       onClick={(e) => { e.stopPropagation(); setSelectedFile(null) }}
                     >
                       Cambiar archivo
@@ -195,7 +195,7 @@ export default function ApplyPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-sm text-gray-600">
-                    <span className="text-[#0800FF] font-medium">Haz clic</span> o arrastra tu CV aquí
+                    <span className="text-truora-primary font-medium">Haz clic</span> o arrastra tu CV aquí
                   </p>
                   <p className="text-xs text-gray-400 mt-1">PDF únicamente</p>
                 </div>
@@ -217,7 +217,7 @@ export default function ApplyPage() {
                 type="checkbox"
                 checked={consentChecked}
                 onChange={e => setConsentChecked(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0800FF] focus:ring-[#0800FF] cursor-pointer flex-shrink-0"
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-truora-primary focus:ring-truora-primary cursor-pointer flex-shrink-0"
               />
               <span className="text-sm text-gray-600 leading-relaxed">
                 He leído y acepto el{' '}
@@ -225,7 +225,7 @@ export default function ApplyPage() {
                   href="https://www.truora.com/es/aviso-de-privacidad-integral"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#0800FF] hover:underline font-medium"
+                  className="text-truora-primary hover:underline font-medium"
                 >
                   Aviso de Privacidad
                 </a>{' '}
@@ -244,7 +244,7 @@ export default function ApplyPage() {
           <button
             type="submit"
             disabled={step === 'uploading' || !consentChecked}
-            className="w-full py-3 bg-[#0800FF] text-white font-medium rounded-xl hover:bg-[#0600CC] active:bg-[#050099] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-truora-primary text-white font-medium rounded-xl hover:bg-truora-primary-hover active:bg-truora-primary-active transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {step === 'uploading' ? (
               <>

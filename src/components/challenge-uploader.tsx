@@ -145,13 +145,13 @@ export function ChallengeUploader({ processCandidateId, existing }: Props) {
           }}
           className={`border-2 border-dashed rounded-xl p-5 text-center transition-colors ${
             uploading ? 'border-blue-300 bg-blue-50 cursor-wait'
-            : isDragging ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
-            : 'border-gray-200 hover:border-[#0800FF] hover:bg-gray-50 cursor-pointer'
+            : isDragging ? 'border-truora-primary bg-truora-primary-soft cursor-copy'
+            : 'border-gray-200 hover:border-truora-primary hover:bg-gray-50 cursor-pointer'
           }`}
         >
           {uploading ? (
             <div className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 text-truora-primary" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
@@ -163,7 +163,7 @@ export function ChallengeUploader({ processCandidateId, existing }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>
               <p className="text-sm text-gray-600">
-                <span className="text-[#0800FF] font-medium">Arrastra archivos</span> o haz clic
+                <span className="text-truora-primary font-medium">Arrastra archivos</span> o haz clic
               </p>
               <p className="text-xs text-gray-400">PDF, Word, Excel, JSON, imágenes · Máx. 20MB c/u</p>
             </div>
@@ -190,7 +190,7 @@ export function ChallengeUploader({ processCandidateId, existing }: Props) {
                   href={f.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-gray-800 hover:text-[#0800FF] truncate block"
+                  className="text-sm font-medium text-gray-800 hover:text-truora-primary truncate block"
                 >
                   {f.name}
                 </a>
@@ -228,7 +228,7 @@ export function ChallengeUploader({ processCandidateId, existing }: Props) {
               value={deliveryUrl}
               onChange={e => setDeliveryUrl(e.target.value)}
               placeholder="https://github.com/candidato/..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-truora-primary"
             />
           </div>
           <div>
@@ -238,7 +238,7 @@ export function ChallengeUploader({ processCandidateId, existing }: Props) {
               onChange={e => setSpecText(e.target.value)}
               rows={3}
               placeholder="Describe el reto que se le envió al candidato..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#0800FF] resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-truora-primary resize-none"
             />
           </div>
           {error && <p className="text-xs text-red-600">⚠ {error}</p>}

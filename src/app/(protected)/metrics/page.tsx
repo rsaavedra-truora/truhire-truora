@@ -77,7 +77,7 @@ export default async function MetricsPage() {
     { label: 'Candidatos totales', value: totalApplied ?? 0, color: 'bg-gray-400' },
     { label: 'Screening AI corrido', value: totalScreened ?? 0, color: 'bg-blue-400' },
     { label: 'Manager Screenings completados', value: totalPhoneScreen ?? 0, color: 'bg-violet-400' },
-    { label: 'Loops ejecutados', value: totalLoop ?? 0, color: 'bg-[#0800FF]' },
+    { label: 'Loops ejecutados', value: totalLoop ?? 0, color: 'bg-truora-primary' },
     { label: 'Contratados', value: totalHired ?? 0, color: 'bg-green-500' },
   ]
 
@@ -115,7 +115,7 @@ export default async function MetricsPage() {
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider">Tasa de contratación</p>
-          <p className="text-3xl font-bold text-[#0800FF] mt-1">
+          <p className="text-3xl font-bold text-truora-primary mt-1">
             {total > 0 ? `${Math.round(((totalHired ?? 0) / total) * 100)}%` : '—'}
           </p>
           <p className="text-xs text-gray-400 mt-1">{totalHired ?? 0} de {total} candidatos</p>

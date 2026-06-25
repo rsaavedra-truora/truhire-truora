@@ -143,20 +143,20 @@ export default function PhoneScreenPage() {
         <div className="flex items-center gap-2 mt-1">
           <span className="text-sm text-gray-500">{(candidate as any)?.email}</span>
           {(candidate as any)?.linkedin_url && (
-            <a href={(candidate as any).linkedin_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0800FF] hover:underline">LinkedIn →</a>
+            <a href={(candidate as any).linkedin_url} target="_blank" rel="noopener noreferrer" className="text-xs text-truora-primary hover:underline">LinkedIn →</a>
           )}
         </div>
       </div>
 
       {/* Banner: notas con Gemini */}
       {!isCompleted && (
-        <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: '#E8E7FF', border: '1px solid #C7C5FF' }}>
+        <div className="rounded-xl p-4 flex items-start gap-3 bg-truora-primary-soft border border-truora-primary/20">
           <span className="text-lg flex-shrink-0">✦</span>
           <div>
-            <p className="text-sm font-semibold" style={{ color: '#0800FF' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>
               Toma notas con Gemini durante la entrevista
             </p>
-            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#3B36CC' }}>
+            <p className="text-xs mt-0.5 leading-relaxed text-truora-primary/80">
               Activa Gemini en Google Meet para que transcriba la sesión. Luego usa esas notas aquí para construir una evaluación más completa y sólida antes de enviarla al Bar Raiser.
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function PhoneScreenPage() {
                       setCompetencies(next)
                     }}
                     placeholder={`Ej: Experiencia en ventas B2B enterprise, manejo de SQL, etc.`}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary"
                   />
                   {competencies.length > 1 && (
                     <button type="button" onClick={() => setCompetencies(prev => prev.filter((_, j) => j !== i))}
@@ -215,7 +215,7 @@ export default function PhoneScreenPage() {
                 </div>
               ))}
               <button type="button" onClick={() => setCompetencies(prev => [...prev, ''])}
-                className="text-xs text-[#0800FF] hover:underline font-medium">+ Agregar competencia</button>
+                className="text-xs text-truora-primary hover:underline font-medium">+ Agregar competencia</button>
             </div>
           </div>
 
@@ -232,13 +232,13 @@ export default function PhoneScreenPage() {
                   value={calendlyUrl}
                   onChange={e => setCalendlyUrl(e.target.value)}
                   placeholder="https://calendar.google.com/calendar/appointments/schedules/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary"
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" name="send_invite" value="true" checked={sendInvite}
                   onChange={e => setSendInvite(e.target.checked)}
-                  className="rounded border-gray-300 text-[#0800FF] focus:ring-[#0800FF]" />
+                  className="rounded border-gray-300 text-truora-primary focus:ring-truora-primary" />
                 <span className="text-sm text-gray-700">Enviar email de invitación al candidato con el link de agendamiento</span>
               </label>
               {!calendlyUrl && sendInvite && (
@@ -296,7 +296,7 @@ export default function PhoneScreenPage() {
             return (
               <div key={p.slug} className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">{p.name}</span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-truora-primary-soft text-truora-primary">{p.name}</span>
                   {rating && (
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                       rating === 'muy_fuerte' || rating === 'fuerte' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -306,8 +306,8 @@ export default function PhoneScreenPage() {
                   )}
                 </div>
                 {question && (
-                  <div className="bg-[#E8E7FF] rounded-lg px-3 py-2 mb-2">
-                    <p className="text-xs font-semibold text-[#0800FF] mb-0.5">Pregunta utilizada:</p>
+                  <div className="bg-truora-primary-soft rounded-lg px-3 py-2 mb-2">
+                    <p className="text-xs font-semibold text-truora-primary mb-0.5">Pregunta utilizada:</p>
                     <p className="text-xs text-gray-700">{question}</p>
                   </div>
                 )}
@@ -383,7 +383,7 @@ export default function PhoneScreenPage() {
                   <div key={slug} className="border border-gray-200 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-truora-primary-soft text-truora-primary">
                           {p.name}
                         </span>
                       </div>
@@ -420,7 +420,7 @@ export default function PhoneScreenPage() {
                       rows={3}
                       placeholder="Cita ejemplos específicos del candidato. Esto lo leerá el Bar Raiser."
                       defaultValue={phoneScreen?.principle_notes?.[slug]?.notes ?? phoneScreen?.principle_notes?.[slug] ?? extraPrincipleNotes[slug] ?? ''}
-                      className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+                      className="w-full px-3 py-2 mt-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary resize-none"
                     />
                   </div>
                 )
@@ -437,7 +437,7 @@ export default function PhoneScreenPage() {
                       key={p.slug}
                       type="button"
                       onClick={() => setExtraPrinciples(prev => [...prev, p.slug])}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-gray-300 text-gray-600 hover:border-[#0800FF] hover:text-[#0800FF] hover:bg-[#E8E7FF] transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border border-gray-300 text-gray-600 hover:border-truora-primary hover:text-truora-primary hover:bg-truora-primary-soft transition-colors"
                     >
                       + {p.name}
                     </button>
@@ -479,11 +479,11 @@ export default function PhoneScreenPage() {
                   }
                 }}
                 placeholder="Agregar competencia..."
-                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary"
               />
               <button type="button"
                 onClick={() => { if (newCompetency.trim()) { setActiveCompetencies(prev => [...prev, newCompetency.trim()]); setNewCompetency('') }}}
-                className="px-3 py-1.5 border border-[#0800FF] text-[#0800FF] rounded-lg text-sm hover:bg-[#E8E7FF]">
+                className="px-3 py-1.5 border border-truora-primary text-truora-primary rounded-lg text-sm hover:bg-truora-primary-soft">
                 + Agregar
               </button>
             </div>
@@ -505,7 +505,7 @@ export default function PhoneScreenPage() {
               rows={5}
               placeholder={`Basado en los ${extraPrinciples.length} principios que evaluaste, ¿qué patrón ves en esta persona? ¿Qué evidencia concreta respalda tu decisión? Sé directo — este texto lo leerá el Bar Raiser.`}
               defaultValue={phoneScreen?.overall_summary ?? ''}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none mb-3"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary resize-none mb-3"
             />
             <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
               <p className="text-xs text-amber-800 font-medium">Esta es la parte más importante de toda la entrevista.</p>

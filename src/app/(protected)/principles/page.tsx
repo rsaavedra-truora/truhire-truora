@@ -40,13 +40,13 @@ export default function PrinciplesPage() {
                 <Link
                   key={p.slug}
                   href={`/principles/${p.slug}`}
-                  className="bg-white rounded-xl border border-gray-200 p-5 hover:border-[#0800FF] hover:shadow-sm transition-all group"
+                  className="bg-white rounded-xl border border-gray-200 p-5 hover:border-truora-primary hover:shadow-sm transition-all group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-mono text-gray-400">{p.id}</span>
-                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#0800FF] transition-colors">
+                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-truora-primary transition-colors">
                           {p.name}
                         </h3>
                       </div>

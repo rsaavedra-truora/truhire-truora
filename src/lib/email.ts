@@ -55,20 +55,20 @@ export function phoneScreenInviteEmail({
     subject: `Siguiente paso en tu proceso — ${roleTitle} en ${companyName}`,
     html: `
 <!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="font-family:Inter,system-ui,sans-serif;max-width:580px;margin:0 auto;padding:40px 20px;color:#0B1020">
+<body style="font-family:'Host Grotesk',system-ui,sans-serif;max-width:580px;margin:0 auto;padding:40px 20px;color:#01022E">
   <div style="margin-bottom:32px">
-    <div style="width:36px;height:36px;background:#0800FF;border-radius:8px;display:inline-flex;align-items:center;justify-content:center">
+    <div style="width:36px;height:36px;background:#3C1AEA;border-radius:8px;display:inline-flex;align-items:center;justify-content:center">
       <span style="color:white;font-weight:700;font-size:16px">T</span>
     </div>
   </div>
-  <h1 style="font-size:22px;font-weight:600;margin:0 0 8px;color:#0B1020">Hola ${candidateName},</h1>
+  <h1 style="font-size:22px;font-weight:600;margin:0 0 8px;color:#01022E">Hola ${candidateName},</h1>
   <p style="font-size:15px;line-height:1.6;color:#4A5374;margin:0 0 24px">
     Revisamos tu perfil y nos gustaría avanzar al siguiente paso para el rol de
-    <strong style="color:#0B1020">${roleTitle}</strong>.
-    El siguiente paso es una primera conversación con <strong style="color:#0B1020">${hmName}</strong>.
+    <strong style="color:#01022E">${roleTitle}</strong>.
+    El siguiente paso es una primera conversación con <strong style="color:#01022E">${hmName}</strong>.
   </p>
   <div style="margin:32px 0">
-    <a href="${calendlyUrl}" style="display:inline-block;background:#0800FF;color:white;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:15px">
+    <a href="${calendlyUrl}" style="display:inline-block;background:#3C1AEA;color:white;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600;font-size:15px">
       Agendar entrevista →
     </a>
   </div>

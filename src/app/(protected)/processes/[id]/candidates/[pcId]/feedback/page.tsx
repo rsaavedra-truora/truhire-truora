@@ -155,7 +155,7 @@ export default function FeedbackPage() {
             <button
               onClick={generateDraft}
               disabled={generating}
-              className="text-xs px-3 py-1.5 border border-[#0800FF] text-[#0800FF] rounded-lg hover:bg-[#E8E7FF] disabled:opacity-50 flex items-center gap-1.5"
+              className="text-xs px-3 py-1.5 border border-truora-primary text-truora-primary rounded-lg hover:bg-truora-primary-soft disabled:opacity-50 flex items-center gap-1.5"
             >
               {generating ? (
                 <>
@@ -201,7 +201,7 @@ export default function FeedbackPage() {
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
                 disabled={sent}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none font-sans disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary resize-none font-sans disabled:bg-gray-50 disabled:text-gray-500"
               />
             </div>
 

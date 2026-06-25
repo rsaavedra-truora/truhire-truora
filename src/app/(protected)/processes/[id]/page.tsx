@@ -136,7 +136,7 @@ export default async function ProcessDetailPage({
                 <div>
                   <dt className="text-xs text-gray-500 mb-1">URL de aplicación</dt>
                   <dd className="flex items-start gap-2">
-                    <span className="text-xs text-[#0800FF] font-mono break-all leading-relaxed">
+                    <span className="text-xs text-truora-primary font-mono break-all leading-relaxed">
                       {`${appUrl}/apply/${process.role_slug}`}
                     </span>
                     <CopyUrlButton slug={process.role_slug} />
@@ -165,7 +165,7 @@ export default async function ProcessDetailPage({
                       {/* Area + seniority chips */}
                       <div className="flex items-center gap-2 flex-wrap">
                         {jd.area && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#0800FF]/10 text-[#0800FF]">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-truora-primary/10 text-truora-primary">
                             {jd.area}
                           </span>
                         )}
@@ -186,7 +186,7 @@ export default async function ProcessDetailPage({
                           <ul className="space-y-1.5">
                             {jd.responsibilities.map((r: string, i: number) => (
                               <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
-                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[#0800FF] flex-shrink-0" />
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-truora-primary flex-shrink-0" />
                                 {r}
                               </li>
                             ))}
@@ -249,7 +249,7 @@ export default async function ProcessDetailPage({
               {totalCandidates > 0 && (
                 <Link
                   href={`/processes/${process.id}/screening`}
-                  className="text-xs text-[#0800FF] hover:underline font-medium"
+                  className="text-xs text-truora-primary hover:underline font-medium"
                 >
                   Ver screening →
                 </Link>
@@ -261,7 +261,7 @@ export default async function ProcessDetailPage({
                 <p className="text-sm text-gray-500">No hay candidatos en este proceso todavía.</p>
                 <Link
                   href={`/processes/${process.id}/candidates/add`}
-                  className="mt-3 inline-block text-sm text-[#0800FF] hover:underline font-medium"
+                  className="mt-3 inline-block text-sm text-truora-primary hover:underline font-medium"
                 >
                   Agregar candidato →
                 </Link>
@@ -292,7 +292,7 @@ export default async function ProcessDetailPage({
                     return (
                       <tr key={pc.id} className="group hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3.5">
-                          <Link href={`/processes/${process.id}/candidates/${pc.id}`} className="font-medium text-gray-900 hover:text-[#0800FF]">
+                          <Link href={`/processes/${process.id}/candidates/${pc.id}`} className="font-medium text-gray-900 hover:text-truora-primary">
                             {(pc.candidate as any)?.full_name}
                           </Link>
                           <p className="text-xs text-gray-500">{(pc.candidate as any)?.email}</p>
@@ -308,7 +308,7 @@ export default async function ProcessDetailPage({
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
                             {actionLink && (
-                              <Link href={actionLink.href} className="text-xs text-[#0800FF] hover:underline font-medium">
+                              <Link href={actionLink.href} className="text-xs text-truora-primary hover:underline font-medium">
                                 {actionLink.label}
                               </Link>
                             )}

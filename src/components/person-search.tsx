@@ -111,7 +111,7 @@ export function PersonSearch({
           onChange={e => search(e.target.value)}
           onFocus={() => { if (!selected) setOpen(true); if (query.length > 0) search(query) }}
           placeholder={placeholder}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] pr-8"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary pr-8"
         />
         {selected && (
           <button

@@ -189,7 +189,7 @@ export default function DirectoryPage() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Buscar por nombre, email, área o posición..."
-          className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
         />
       </div>
 
@@ -234,7 +234,7 @@ export default function DirectoryPage() {
                         value={p.current_role ?? 'interviewer'}
                         onChange={e => updateUserRole(p.email, p.user_id!, e.target.value)}
                         disabled={saving === p.email}
-                        className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0800FF] ${ROLE_COLORS[p.current_role ?? 'interviewer']}`}
+                        className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-truora-primary ${ROLE_COLORS[p.current_role ?? 'interviewer']}`}
                       >
                         {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                       </select>
@@ -276,7 +276,7 @@ export default function DirectoryPage() {
                       onClick={() => updateDirectoryField(p.id, 'is_active', !p.is_active)}
                       disabled={saving === p.id}
                       className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                        p.is_active ? 'bg-[#0800FF]' : 'bg-gray-200'
+                        p.is_active ? 'bg-truora-primary' : 'bg-gray-200'
                       }`}
                     >
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${p.is_active ? 'translate-x-4' : 'translate-x-0'}`}/>
@@ -285,7 +285,7 @@ export default function DirectoryPage() {
 
                   {/* Editar */}
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => openEdit(p)} className="text-xs text-gray-400 hover:text-[#0800FF]">
+                    <button onClick={() => openEdit(p)} className="text-xs text-gray-400 hover:text-truora-primary">
                       Editar
                     </button>
                   </td>
@@ -328,7 +328,7 @@ export default function DirectoryPage() {
                     value={(form as any)[field]}
                     onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
                   />
                 </div>
               ))}
@@ -338,7 +338,7 @@ export default function DirectoryPage() {
                 <select
                   value={form.default_role}
                   onChange={e => setForm(f => ({ ...f, default_role: e.target.value }))}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
                 >
                   {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
@@ -349,7 +349,7 @@ export default function DirectoryPage() {
                   type="checkbox"
                   checked={form.is_bar_raiser_certified}
                   onChange={e => setForm(f => ({ ...f, is_bar_raiser_certified: e.target.checked }))}
-                  className="h-4 w-4 rounded border-gray-300 text-[#0800FF] focus:ring-[#0800FF]"
+                  className="h-4 w-4 rounded border-gray-300 text-truora-primary focus:ring-truora-primary"
                 />
                 <span className="text-sm text-gray-700">Bar Raiser certificado</span>
               </label>

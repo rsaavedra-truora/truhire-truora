@@ -97,7 +97,7 @@ export default async function InterviewsPage() {
                   </div>
                   <Link
                     href={`/processes/${proc?.id}/candidates/${pc?.id}/phone-screen`}
-                    className="text-xs px-3 py-1.5 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC]"
+                    className="text-xs px-3 py-1.5 bg-truora-primary text-white rounded-lg hover:bg-truora-primary-hover"
                   >
                     Evaluar →
                   </Link>
@@ -127,7 +127,7 @@ export default async function InterviewsPage() {
                     <p className="text-xs text-gray-500 mt-0.5">{proc?.title}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {(a.principles as string[]).map((p: string) => (
-                        <span key={p} className="text-xs bg-[#E8E7FF] text-[#0800FF] px-2 py-0.5 rounded-full">
+                        <span key={p} className="text-xs bg-truora-primary-soft text-truora-primary px-2 py-0.5 rounded-full">
                           {p.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').slice(0, 20)}
                         </span>
                       ))}
@@ -140,7 +140,7 @@ export default async function InterviewsPage() {
                   </div>
                   <Link
                     href={`/interview/${loop?.id}`}
-                    className="text-xs px-3 py-1.5 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC]"
+                    className="text-xs px-3 py-1.5 bg-truora-primary text-white rounded-lg hover:bg-truora-primary-hover"
                   >
                     Ir a entrevista →
                   </Link>

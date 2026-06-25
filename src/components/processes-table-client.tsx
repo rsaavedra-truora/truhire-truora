@@ -70,7 +70,7 @@ export function ProcessesTableClient({ processes }: { processes: ProcessRow[] })
       key: 'title', label: 'Proceso', sortable: true, searchable: true,
       getValue: (r: ProcessRow) => r.title,
       render: (r: ProcessRow) => (
-        <Link href={`/processes/${r.id}`} className="font-semibold text-gray-900 hover:text-[#0800FF] transition-colors text-sm">
+        <Link href={`/processes/${r.id}`} className="font-semibold text-gray-900 hover:text-truora-primary transition-colors text-sm">
           {r.title}
         </Link>
       ),
@@ -96,7 +96,12 @@ export function ProcessesTableClient({ processes }: { processes: ProcessRow[] })
     {
       key: 'candidates', label: 'Candidatos',
       getValue: (r: ProcessRow) => String(r.candidates?.length ?? 0),
-      render: (r: ProcessRow) => <CandidateTracker candidates={r.candidates ?? []} />,
+      render: (r: ProcessRow) => {
+        const active = (r.candidates ?? []).filter(c => !['hired', 'rejected'].includes(c.status)).length
+        const total = r.candidates?.length ?? 0
+        if (!total) return <span className="text-xs text-gray-400">—</span>
+        return <span className="text-sm text-gray-700">{active} en proceso</span>
+      },
     },
     {
       key: 'manager', label: 'Manager', sortable: true,

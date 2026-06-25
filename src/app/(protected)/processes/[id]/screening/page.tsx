@@ -247,7 +247,7 @@ export default function ScreeningPage() {
                 <button
                   onClick={() => runScreening(c.pcId)}
                   disabled={screeningInProgress.has(c.pcId)}
-                  className="text-xs px-3 py-1.5 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  className="text-xs px-3 py-1.5 bg-truora-primary text-white rounded-lg hover:bg-truora-primary-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
                   {screeningInProgress.has(c.pcId) ? (
                     <>
@@ -360,7 +360,7 @@ export default function ScreeningPage() {
                                       key={i}
                                       href={`/principles/${slug}`}
                                       target="_blank"
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#E8E7FF] text-[#0800FF] hover:bg-[#0800FF] hover:text-white transition-colors"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-truora-primary-soft text-truora-primary hover:bg-truora-primary hover:text-white transition-colors"
                                       title={evidence}
                                     >
                                       {label}
@@ -419,7 +419,7 @@ export default function ScreeningPage() {
                             {col === 'green' && (
                               <Link
                                 href={`/processes/${processId}/candidates/${c.pcId}/phone-screen`}
-                                className="text-xs px-2.5 py-1 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC] inline-block"
+                                className="text-xs px-2.5 py-1 bg-truora-primary text-white rounded-lg hover:bg-truora-primary-hover inline-block"
                               >
                                 Configurar phone screen →
                               </Link>
@@ -469,7 +469,7 @@ export default function ScreeningPage() {
                                   {(challengeHistory[c.pcId] ?? []).map((msg, i) => (
                                     <div key={i} className={`text-xs p-2 rounded-lg leading-relaxed ${
                                       msg.role === 'user'
-                                        ? 'bg-[#E8E7FF] text-[#0800FF] ml-4'
+                                        ? 'bg-truora-primary-soft text-truora-primary ml-4'
                                         : 'bg-gray-100 text-gray-700 mr-4'
                                     }`}>
                                       <span className="font-medium">{msg.role === 'user' ? 'Tú' : 'Agente'}:</span>{' '}
@@ -521,7 +521,7 @@ export default function ScreeningPage() {
           <p className="text-gray-500 text-sm">No hay candidatos en este proceso todavía.</p>
           <Link
             href={`/processes/${processId}/candidates/add`}
-            className="mt-3 inline-block text-sm text-[#0800FF] hover:underline font-medium"
+            className="mt-3 inline-block text-sm text-truora-primary hover:underline font-medium"
           >
             Agregar el primero →
           </Link>

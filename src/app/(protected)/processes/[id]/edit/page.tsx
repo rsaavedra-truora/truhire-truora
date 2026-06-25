@@ -96,7 +96,7 @@ export default function EditProcessPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre del proceso <span className="text-red-500">*</span></label>
             <input
               type="text" required value={title} onChange={e => setTitle(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function EditProcessPage() {
               <span className="text-sm text-gray-400 whitespace-nowrap">careers.truora.com/apply/</span>
               <input
                 type="text" value={roleSlug} onChange={e => setRoleSlug(e.target.value)}
-                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary"
               />
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function EditProcessPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Descripción del rol</label>
             {extracting ? (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50">
-                <svg className="animate-spin h-4 w-4 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-truora-primary" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
@@ -135,7 +135,7 @@ export default function EditProcessPage() {
             ) : (
               <div className="mb-2">
                 <input type="file" accept=".pdf,.docx,.doc,.md,.txt,.xlsx,.xls"
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#E8E7FF] file:text-[#0800FF] file:font-medium file:text-xs hover:file:bg-[#0800FF] hover:file:text-white file:cursor-pointer"
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-truora-primary-soft file:text-truora-primary file:font-medium file:text-xs hover:file:bg-truora-primary hover:file:text-white file:cursor-pointer"
                   onChange={e => { const f = e.target.files?.[0]; if (f) extractFromFile(f); e.target.value = '' }} />
               </div>
             )}
@@ -143,7 +143,7 @@ export default function EditProcessPage() {
             <textarea
               value={roleDescription} onChange={e => setRoleDescription(e.target.value)}
               name="role_description" rows={6}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-truora-primary focus:ring-truora-primary resize-none"
             />
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function EditProcessPage() {
               { v: 'talent_first' as const, l: 'Talent-first', d: 'Persona identificada' }
             ].map(o => (
               <button key={o.v} type="button" onClick={() => setEntryMode(o.v)}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${entryMode === o.v ? 'border-[#0800FF] bg-[#E8E7FF]' : 'border-gray-200 hover:border-gray-300'}`}>
+                className={`text-left p-4 rounded-xl border-2 transition-all ${entryMode === o.v ? 'border-truora-primary bg-truora-primary-soft' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-medium text-gray-900">{o.l}</p>
                 <p className="text-xs text-gray-500 mt-1">{o.d}</p>
               </button>
@@ -172,7 +172,7 @@ export default function EditProcessPage() {
               { v: 'funcional' as const, l: 'Funcional', d: 'Bench 80%' }
             ].map(o => (
               <button key={o.v} type="button" onClick={() => setCapa(o.v)}
-                className={`text-left p-4 rounded-xl border-2 transition-all ${capa === o.v ? 'border-[#0800FF] bg-[#E8E7FF]' : 'border-gray-200 hover:border-gray-300'}`}>
+                className={`text-left p-4 rounded-xl border-2 transition-all ${capa === o.v ? 'border-truora-primary bg-truora-primary-soft' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-medium text-gray-900">{o.l}</p>
                 <p className="text-xs text-gray-500 mt-1">{o.d}</p>
               </button>

@@ -85,14 +85,14 @@ export default function AddCandidatePage() {
                 Nombre completo <span className="text-red-500">*</span>
               </label>
               <input name="full_name" type="text" required placeholder="Ana García López"
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent" />
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary focus:border-transparent" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Email <span className="text-red-500">*</span>
               </label>
               <input name="email" type="email" required placeholder="ana@ejemplo.com"
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent" />
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary focus:border-transparent" />
             </div>
           </div>
           <div>
@@ -100,7 +100,7 @@ export default function AddCandidatePage() {
               LinkedIn <span className="text-gray-400 font-normal">(opcional)</span>
             </label>
             <input name="linkedin_url" type="url" placeholder="https://linkedin.com/in/..."
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] focus:border-transparent" />
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary focus:border-transparent" />
           </div>
         </div>
 
@@ -113,11 +113,11 @@ export default function AddCandidatePage() {
             </p>
             {/* Tip para cuando no hay CV */}
             <div className="mt-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5 flex items-start gap-2">
-              <svg className="w-3.5 h-3.5 text-[#0800FF] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3.5 h-3.5 text-truora-primary flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p className="text-xs text-[#0800FF] font-medium">¿Solo tienes el perfil de LinkedIn?</p>
+                <p className="text-xs text-truora-primary font-medium">¿Solo tienes el perfil de LinkedIn?</p>
                 <p className="text-xs text-blue-700 mt-0.5">
                   Ve al perfil → botón <strong>Más</strong> → <strong>Guardar como PDF</strong>. Sube ese PDF aquí y el sistema lo procesa igual.
                 </p>
@@ -125,7 +125,7 @@ export default function AddCandidatePage() {
                   href="https://www.linkedin.com/help/linkedin/answer/a541960"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#0800FF] hover:underline mt-1 inline-block font-medium"
+                  className="text-xs text-truora-primary hover:underline mt-1 inline-block font-medium"
                 >
                   Ver instrucciones de LinkedIn →
                 </a>
@@ -138,7 +138,7 @@ export default function AddCandidatePage() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleFileDrop}
             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-              isDragging ? 'border-[#0800FF] bg-[#E8E7FF]'
+              isDragging ? 'border-truora-primary bg-truora-primary-soft'
               : selectedFile ? 'border-green-400 bg-green-50'
               : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
             }`}
@@ -151,7 +151,7 @@ export default function AddCandidatePage() {
                 <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB ·{' '}
-                  <span className="text-[#0800FF]" onClick={(e) => { e.stopPropagation(); setSelectedFile(null) }}>
+                  <span className="text-truora-primary" onClick={(e) => { e.stopPropagation(); setSelectedFile(null) }}>
                     Cambiar
                   </span>
                 </p>
@@ -162,7 +162,7 @@ export default function AddCandidatePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <p className="text-sm text-gray-600">
-                  <span className="text-[#0800FF] font-medium">Arrastra el PDF</span> o haz clic para seleccionar
+                  <span className="text-truora-primary font-medium">Arrastra el PDF</span> o haz clic para seleccionar
                 </p>
               </div>
             )}

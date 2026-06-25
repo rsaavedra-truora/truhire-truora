@@ -85,7 +85,7 @@ export default async function CalibrationPage() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ejemplos en prompt activo</p>
-          <p className="text-3xl font-bold text-[#0800FF]">{Math.min(disagreements, 3)}</p>
+          <p className="text-3xl font-bold text-truora-primary">{Math.min(disagreements, 3)}</p>
           <p className="text-xs text-gray-400 mt-1">de {disagreements} disponibles (máx. 3)</p>
         </div>
       </div>

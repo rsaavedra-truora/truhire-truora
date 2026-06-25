@@ -84,7 +84,7 @@ export default async function AIAnalysisPage({ params }: { params: { loopId: str
           return (
             <div key={slug} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-truora-primary-soft text-truora-primary">
                   {p?.name ?? slug}
                 </span>
                 {data.rating && <RatingBadge rating={data.rating} />}
@@ -96,8 +96,8 @@ export default async function AIAnalysisPage({ params }: { params: { loopId: str
               </div>
 
               {data.question && (
-                <div className="bg-[#E8E7FF] rounded-lg px-3 py-2">
-                  <p className="text-xs font-semibold text-[#0800FF] mb-0.5">Pregunta evaluada:</p>
+                <div className="bg-truora-primary-soft rounded-lg px-3 py-2">
+                  <p className="text-xs font-semibold text-truora-primary mb-0.5">Pregunta evaluada:</p>
                   <p className="text-xs text-gray-700">{data.question}</p>
                 </div>
               )}
@@ -120,7 +120,7 @@ export default async function AIAnalysisPage({ params }: { params: { loopId: str
         {ae.summary && <p className="text-sm text-gray-600 leading-relaxed">{ae.summary}</p>}
 
         {ae.conclusion && (
-          <div className="bg-[#0B1020] rounded-xl p-4">
+          <div className="bg-truora-ink rounded-xl p-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Conclusión del AI</p>
             <p className="text-sm text-white leading-relaxed">{ae.conclusion}</p>
           </div>

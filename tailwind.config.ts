@@ -11,33 +11,50 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Host Grotesk', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['Host Grotesk', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
       },
       colors: {
-        // Truora Design System — tokens completos
+        // Truora Design System — Atelier tokens
         truora: {
-          // Primary
-          primary:        '#0800FF',
-          'primary-hover': '#0600CC',
-          'primary-active':'#050099',
-          'primary-soft': '#E5E4FF',
-          // Texto / ink
-          ink:            '#0B1020',
-          'ink-muted':    '#4A5374',
-          'ink-subtle':   '#8892A6',
-          // Superficies
-          line:           '#E1E5EE',
-          bg:             '#FFFFFF',
-          'bg-soft':      '#F7F8FB',
-          'bg-canvas':    '#F2F4F9',
-          // Semánticos
-          success:        '#10B981',
-          warning:        '#F59E0B',
-          danger:         '#EF4444',
-          // Legacy aliases (backward compat)
-          blue:           '#0800FF',
-          'blue-light':   '#E5E4FF',
+          // Azul violeta scale (brand primary)
+          primary:         '#3C1AEA',
+          'primary-hover': '#3415CC',
+          'primary-active':'#2B11A8',
+          'primary-soft':  '#ECE9FD',
+          'primary-100':   '#D8D1FB',
+          // Neutral / midnight scale
+          ink:             '#01022E',
+          'ink-muted':     '#6B6E8C',
+          'ink-subtle':    '#9598B3',
+          // Surfaces
+          line:            '#D8DAE9',
+          bg:              '#FFFFFF',
+          'bg-soft':       '#F4F5FB',
+          'bg-canvas':     '#FAFBFF',
+          // CTA (naranja — botones, llamadas a la acción)
+          cta:             '#EE792F',
+          'cta-hover':     '#D96518',
+          'cta-active':    '#B05011',
+          'cta-soft':      '#FDEFE4',
+          // Semantic
+          success:         '#15A66A',
+          'success-soft':  '#E6F8EF',
+          warning:         '#EE792F',
+          'warning-soft':  '#FDEFE4',
+          danger:          '#E5484D',
+          'danger-soft':   '#FDEAEA',
+          info:            '#2E84C0',
+          'info-soft':     '#EBF6FD',
+          // Azul claro (secondary accent)
+          lightblue:       '#9BD2F3',
+          'lightblue-soft':'#EBF6FD',
+          // WhatsApp
+          whatsapp:        '#25D366',
+          'whatsapp-soft': '#E7FBEF',
         },
+        // shadcn compat (uses CSS vars)
         border: 'hsl(var(--border))',
         input:  'hsl(var(--input))',
         ring:   'hsl(var(--ring))',
@@ -73,9 +90,18 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: 'var(--radius-lg)',
+        md: 'var(--radius-md)',
+        sm: 'var(--radius-sm)',
+        xl: 'var(--radius-xl)',
+        pill: 'var(--radius-pill)',
+      },
+      boxShadow: {
+        xs: '0 1px 2px rgba(1, 2, 46, 0.06)',
+        sm: '0 2px 6px rgba(1, 2, 46, 0.07)',
+        md: '0 6px 18px rgba(1, 2, 46, 0.08)',
+        lg: '0 16px 40px rgba(1, 2, 46, 0.10)',
+        xl: '0 28px 70px rgba(1, 2, 46, 0.14)',
       },
     },
   },

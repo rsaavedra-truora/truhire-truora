@@ -1,0 +1,78 @@
+/* ============================================================
+   Truora — base element defaults & helpers
+   Light-touch reset so specimen cards & kits inherit the brand.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: var(--body-font);
+  color: var(--text-body);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+p { margin: 0; text-wrap: pretty; }
+
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code, kbd, samp, pre { font-family: var(--font-mono); }
+
+::selection { background: var(--violet-100); color: var(--neutral-900); }
+
+/* Glass Effect — Truora's signature depth device.
+   Apply ONLY to rectangles/squares, never circles.
+   For the signature look, tuck a violet brand shape partly
+   BEHIND the pane so it blooms through the blur. */
+.tru-glass {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-highlight);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+/* Frosted variant — over photography (billboards, hero imagery).
+   White frosted pane, ink text, violet titles. */
+.tru-glass-frost {
+  background: var(--glass-fill-frost);
+  border: 1px solid var(--glass-border-frost);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-highlight);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  color: var(--text-strong);
+}
+.tru-glass-light {
+  background: var(--glass-fill-light);
+  border: 1px solid var(--glass-border-light);
+  border-radius: var(--glass-radius);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* Reusable overline / eyebrow */
+.tru-overline {
+  font: var(--overline-font);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+/* Focus visibility for keyboard users */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

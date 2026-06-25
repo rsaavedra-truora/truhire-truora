@@ -117,7 +117,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="text-xs font-medium text-[#0800FF] hover:underline"
+          className="text-xs font-medium text-truora-primary hover:underline"
         >
           + Agregar referencia
         </button>
@@ -137,7 +137,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
               name="reference_name"
               required
               placeholder="Nombre completo"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
               type="text"
               name="reference_relationship"
               placeholder="Ej: Ex manager, Colega, Cliente"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
             />
           </div>
 
@@ -163,7 +163,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
               min={1}
               max={10}
               placeholder="1-10"
-              className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+              className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
             />
           </div>
 
@@ -175,7 +175,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
               name="performance_90_days"
               rows={2}
               placeholder="Describe qué esperas que logre en los primeros 90 días..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
             />
           </div>
 
@@ -194,7 +194,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
                     type="radio"
                     name="would_vouch"
                     value={opt.value}
-                    className="text-[#0800FF] focus:ring-[#0800FF]"
+                    className="text-truora-primary focus:ring-truora-primary"
                   />
                   <span className="text-sm text-gray-700">{opt.label}</span>
                 </label>
@@ -210,7 +210,7 @@ export function CandidateReferences({ candidateId, processId, initialRefs }: Can
               name="achievement_12_months"
               rows={2}
               placeholder="Describe los logros esperados en 12 meses..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
             />
           </div>
 

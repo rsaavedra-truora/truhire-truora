@@ -1,0 +1,946 @@
+<!-- @dsCard group="Signature" viewport="1280x800" name="Signer flow" subtitle="Document viewer, thumbnails, glass zoom controls, doc-chat assistant" -->
+<!-- @startingPoint section="Signature" subtitle="E-signature signer flow + doc chat" viewport="1280x800" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firma electrónica — Truora</title>
+<link rel="stylesheet" href="../../styles.css">
+<link rel="icon" href="../../assets/svg/icono-full.svg" type="image/svg+xml">
+<style>
+  /* ============ Signer-flow layout (ZapSign structure, Truora skin) ============ */
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--surface-page);
+    color: var(--text-body);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- Header ---------- */
+  .signer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+    z-index: 20;
+  }
+  .signer-header .logo { height: 30px; display: block; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+
+  /* Pill buttons — flat, solid, fully rounded */
+  .btn {
+    font-family: var(--font-sans);
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+  }
+  .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .btn:active { transform: scale(.97); }
+
+  .btn-status {
+    background: var(--brand-subtle);
+    color: var(--brand);
+    padding: 9px 16px;
+  }
+  .btn-status:hover { background: var(--brand-subtle-2); }
+
+  .btn-icon {
+    background: transparent;
+    color: var(--text-strong);
+    width: 40px; height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+  .btn-icon:hover { background: var(--brand-subtle); color: var(--brand); }
+
+  .btn-primary {
+    background: var(--cta);
+    color: var(--text-on-brand);
+    padding: 13px 36px;
+    font-size: var(--text-base);
+  }
+  .btn-primary:hover { background: var(--cta-hover); }
+  .btn-primary:active { background: var(--cta-active); }
+
+  .btn-quaternary {
+    background: var(--surface-card);
+    color: var(--brand);
+    padding: 9px 18px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-quaternary:hover { background: var(--brand-subtle); }
+
+  .icon { width: 20px; height: 20px; stroke-width: 2; flex-shrink: 0; }
+
+  /* ---------- Main: sidebar + document viewport ---------- */
+  .signer-main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* Thumbnail sidebar */
+  .thumb-sidebar {
+    width: 148px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 20px 0;
+    background: var(--surface-card);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .thumb {
+    width: 88px;
+    aspect-ratio: 8.5 / 11;
+    background: var(--neutral-0);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    position: relative;
+    padding: 10px 8px;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .thumb:hover { border-color: var(--violet-300); }
+  .thumb.active { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+  .thumb .pageno {
+    position: absolute;
+    bottom: -18px; left: 50%; transform: translateX(-50%);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+  .thumb .tline { height: 3px; background: var(--neutral-100); border-radius: 2px; margin-bottom: 5px; }
+  .thumb .tline.short { width: 60%; }
+  .thumb .tline.title { background: var(--violet-100); height: 5px; width: 75%; margin-bottom: 8px; }
+
+  /* Document viewport */
+  .doc-viewport {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--surface-sunken);
+    padding: 36px 24px 120px;
+    scroll-behavior: smooth;
+  }
+  .doc-page {
+    width: min(760px, 100%);
+    aspect-ratio: 8.5 / 11;
+    margin: 0 auto 28px;
+    background: var(--neutral-0);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    padding: 64px 72px;
+    box-sizing: border-box;
+    position: relative;
+  }
+  .doc-page .line { height: 9px; background: var(--neutral-100); border-radius: 4px; margin-bottom: 14px; }
+  .doc-page .line.short { width: 55%; }
+  .doc-page .line.mid { width: 80%; }
+  .doc-page h4 {
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+    font-size: var(--text-md);
+    margin: 0 0 24px;
+  }
+  .doc-page .clause { margin-bottom: 36px; }
+  .page-label {
+    position: absolute;
+    bottom: 24px; right: 32px;
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+  }
+
+  /* Signature slot inside the doc */
+  .sig-slot {
+    margin-top: 48px;
+    border: 1.5px dashed var(--violet-300);
+    background: var(--brand-subtle);
+    border-radius: var(--radius-md);
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--brand);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .sig-slot:hover { background: var(--brand-subtle-2); }
+
+  /* ---------- Floating viewer controls (Glass Effect) ---------- */
+  .viewer-controls {
+    position: absolute;
+    top: 20px; right: 28px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: var(--glass-radius-sm);
+    background: var(--glass-fill-frost);
+    border: 1px solid var(--glass-border-frost);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-sm), var(--glass-highlight);
+    z-index: 10;
+  }
+  .viewer-controls .zoom-pct {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+    min-width: 42px;
+    text-align: center;
+  }
+  .viewer-controls .btn-icon { width: 34px; height: 34px; }
+
+  .btn-top {
+    position: absolute;
+    bottom: 110px; right: 28px;
+    z-index: 10;
+  }
+
+  /* ---------- Footer ---------- */
+  .signer-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--surface-card);
+    border-top: 1px solid var(--border-subtle);
+    z-index: 20;
+  }
+  .footer-meta { display: flex; align-items: center; gap: 18px; }
+  .trust-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--text-sm);
+    color: var(--success-600);
+  }
+  .trust-note .icon { width: 16px; height: 16px; }
+  .footer-divider { width: 1px; height: 22px; background: var(--border-subtle); }
+  .lang-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--text-sm);
+    color: var(--text-strong);
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .lang-select:hover { background: var(--brand-subtle); }
+  .lang-select .chev { width: 16px; height: 16px; color: var(--brand); }
+
+  /* ---------- Signers dropdown panel ---------- */
+  .signers-panel {
+    position: absolute;
+    top: 64px; right: 76px;
+    width: 320px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 20px;
+    z-index: 30;
+    display: none;
+  }
+  .signers-panel.open { display: block; }
+  .signers-panel h5 {
+    margin: 0 0 14px;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+  }
+  .signer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .signer-row + .signer-row { border-top: 1px solid var(--border-subtle); }
+  .signer-avatar {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-circle);
+    background: var(--brand-subtle);
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    flex-shrink: 0;
+  }
+  .signer-row .who { flex: 1; min-width: 0; }
+  .signer-row .who b {
+    display: block;
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+    font-size: var(--text-sm);
+  }
+  .signer-row .who span { font-size: var(--text-xs); color: var(--text-muted); }
+  .badge-pending {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--orange-700);
+    background: var(--cta-subtle);
+    border-radius: var(--radius-pill);
+    padding: 4px 10px;
+  }
+
+  /* ---------- Clause anchors (chat citations land here) ---------- */
+  .clause { border-radius: var(--radius-sm); transition: background .3s ease; }
+  .clause-tag {
+    display: inline-block;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .clause.flash {
+    background: var(--brand-subtle);
+    box-shadow: 0 0 0 8px var(--brand-subtle);
+  }
+
+  /* ---------- "Pregúntale a tu documento" FAB ---------- */
+  .doc-chat-fab {
+    position: absolute;
+    bottom: 24px; right: 28px;
+    z-index: 15;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 22px 10px 10px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--surface-inverse);
+    color: var(--text-on-brand);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: transform .15s var(--ease-out, ease-out), box-shadow .15s ease;
+  }
+  .doc-chat-fab:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+  .doc-chat-fab:active { transform: scale(.97); }
+  .doc-chat-fab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .firma-badge {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .firma-badge svg { width: 20px; height: 20px; color: #fff; }
+  .doc-chat-fab.hidden, .btn-top.chat-open { display: none; }
+
+  /* ---------- Chat drawer ---------- */
+  .doc-chat {
+    position: absolute;
+    right: 24px; bottom: 24px; top: 20px;
+    width: 396px;
+    max-width: calc(100vw - 48px);
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 25;
+  }
+  .doc-chat.open { display: flex; animation: chat-in .2s ease-out; }
+  @keyframes chat-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .doc-chat-header {
+    background: var(--surface-inverse);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .doc-chat-header .firma-badge { width: 42px; height: 42px; border-radius: 14px; }
+  .doc-chat-header .firma-badge svg { width: 24px; height: 24px; }
+  .doc-chat-header .titles { flex: 1; min-width: 0; }
+  .doc-chat-header h3 {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+    color: #fff;
+  }
+  .doc-chat-header p {
+    margin: 2px 0 0;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-light);
+    color: var(--neutral-300);
+  }
+  .doc-chat-close {
+    background: var(--glass-fill);
+    border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(var(--glass-blur));
+    border-radius: var(--radius-sm);
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .doc-chat-close:hover { background: var(--glass-fill-strong); }
+  .doc-chat-close svg { width: 16px; height: 16px; }
+
+  .doc-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+    background: var(--surface-page);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg { max-width: 88%; font-size: var(--text-sm); line-height: 1.45; }
+  .msg-user {
+    align-self: flex-end;
+    background: var(--brand);
+    color: var(--text-on-brand);
+    padding: 11px 16px;
+    border-radius: 18px 18px 4px 18px;
+  }
+  .msg-bot {
+    align-self: flex-start;
+    background: var(--surface-card);
+    color: var(--text-body);
+    border: 1px solid var(--border-subtle);
+    padding: 13px 16px;
+    border-radius: 4px 18px 18px 18px;
+    box-shadow: var(--shadow-xs);
+  }
+  .msg-bot b { font-weight: var(--weight-medium); color: var(--text-strong); }
+
+  .msg-sources {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .msg-sources .src-label {
+    display: block;
+    font-size: 10px;
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .src-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 6px 6px 0;
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--brand-subtle);
+    color: var(--brand);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .src-chip:hover { background: var(--brand-subtle-2); }
+  .src-chip svg { width: 12px; height: 12px; }
+
+  .typing { display: inline-flex; gap: 5px; padding: 4px 2px; }
+  .typing i {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--violet-300);
+    animation: tdots 1s infinite ease-in-out;
+  }
+  .typing i:nth-child(2) { animation-delay: .15s; }
+  .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes tdots { 0%, 60%, 100% { opacity: .35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
+
+  .doc-chat-suggest {
+    padding: 10px 18px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--surface-card);
+    border-top: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+  .suggest-chip {
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    color: var(--brand);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .suggest-chip:hover { background: var(--brand-subtle); border-color: var(--violet-200); }
+
+  .doc-chat-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 8px;
+    background: var(--surface-card);
+    flex-shrink: 0;
+  }
+  .doc-chat-input input {
+    flex: 1;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-strong);
+    background: var(--surface-card);
+    border: 1.5px solid var(--border-default);
+    border-radius: var(--radius-pill);
+    padding: 11px 18px;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  .doc-chat-input input:focus { border-color: var(--brand); }
+  .doc-chat-input input::placeholder { color: var(--text-subtle); font-weight: var(--weight-light); }
+  .chat-send {
+    width: 42px; height: 42px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--brand);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .chat-send:hover { background: var(--brand-hover); }
+  .chat-send:active { background: var(--brand-active); transform: scale(.95); }
+  .chat-send svg { width: 18px; height: 18px; }
+
+  .doc-chat-disclaimer {
+    text-align: center;
+    font-size: 10px;
+    font-weight: var(--weight-light);
+    color: var(--text-subtle);
+    padding: 0 16px 10px;
+    background: var(--surface-card);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 880px) {
+    .thumb-sidebar { display: none; }
+    .footer-meta { display: none; }
+    .btn-primary { width: 100%; justify-content: center; }
+    .signer-footer { padding: 12px 16px; }
+    .doc-chat { right: 12px; left: 12px; top: 12px; bottom: 12px; width: auto; max-width: none; }
+    .doc-chat-fab span.fab-label { display: none; }
+    .doc-chat-fab { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ Header ============ -->
+  <header class="signer-header">
+    <a href="https://www.truora.com" target="_blank" rel="noopener">
+      <img class="logo" src="../../assets/svg/logo-full.svg" alt="Logo Truora">
+    </a>
+    <div class="header-actions">
+      <button class="btn btn-status" id="signersToggle" aria-expanded="false" aria-controls="signersPanel">
+        Firmas 0/2
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <button class="btn btn-icon" title="Descargar documento" aria-label="Descargar documento">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21H3M18 11l-6 6m0 0-6-6m6 6V3"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Signers dropdown -->
+  <div class="signers-panel" id="signersPanel" role="dialog" aria-label="Estado de firmas">
+    <h5>Firmas del documento</h5>
+    <div class="signer-row">
+      <div class="signer-avatar">RA</div>
+      <div class="who"><b>Rodolfo Andino</b><span>rodolfo@empresa.com</span></div>
+      <span class="badge-pending">Pendiente</span>
+    </div>
+    <div class="signer-row">
+      <div class="signer-avatar">MG</div>
+      <div class="who"><b>María González</b><span>maria@empresa.com</span></div>
+      <span class="badge-pending">Pendiente</span>
+    </div>
+  </div>
+
+  <!-- ============ Main ============ -->
+  <main class="signer-main">
+
+    <!-- Thumbnails -->
+    <nav class="thumb-sidebar" aria-label="Miniaturas del documento">
+      <button class="thumb active" data-page="1" aria-label="Ir a la página 1">
+        <div class="tline title"></div>
+        <div class="tline"></div><div class="tline"></div><div class="tline short"></div>
+        <div class="tline"></div><div class="tline"></div><div class="tline short"></div>
+        <span class="pageno">1</span>
+      </button>
+      <button class="thumb" data-page="2" aria-label="Ir a la página 2">
+        <div class="tline"></div><div class="tline"></div><div class="tline short"></div>
+        <div class="tline"></div><div class="tline"></div><div class="tline"></div>
+        <span class="pageno">2</span>
+      </button>
+      <button class="thumb" data-page="3" aria-label="Ir a la página 3">
+        <div class="tline"></div><div class="tline short"></div><div class="tline"></div>
+        <div class="tline"></div><div class="tline short"></div>
+        <span class="pageno">3</span>
+      </button>
+      <button class="thumb" data-page="4" aria-label="Ir a la página 4">
+        <div class="tline"></div><div class="tline"></div><div class="tline"></div>
+        <div class="tline short"></div><div class="tline"></div>
+        <span class="pageno">4</span>
+      </button>
+      <button class="thumb" data-page="5" aria-label="Ir a la página 5">
+        <div class="tline"></div><div class="tline short"></div>
+        <span class="pageno">5</span>
+      </button>
+    </nav>
+
+    <!-- Document viewport -->
+    <div class="doc-viewport" id="viewport">
+
+      <article class="doc-page" id="page-1" aria-label="Página 1">
+        <h4>Contrato de prestación de servicios</h4>
+        <div class="clause">
+          <div class="line mid"></div><div class="line"></div><div class="line"></div>
+          <div class="line short"></div>
+        </div>
+        <div class="clause" id="c-2-1">
+          <span class="clause-tag">Cláusula 2.1 · Vigencia</span>
+          <div class="line"></div><div class="line"></div><div class="line mid"></div>
+          <div class="line"></div><div class="line short"></div>
+        </div>
+        <div class="clause">
+          <div class="line"></div><div class="line mid"></div><div class="line short"></div>
+        </div>
+        <span class="page-label">1 / 5</span>
+      </article>
+
+      <article class="doc-page" id="page-2" aria-label="Página 2">
+        <div class="clause" id="c-5-1">
+          <span class="clause-tag">Cláusula 5.1 · Confidencialidad</span>
+          <div class="line"></div><div class="line"></div><div class="line mid"></div>
+          <div class="line"></div><div class="line short"></div>
+        </div>
+        <div class="clause">
+          <div class="line mid"></div><div class="line"></div><div class="line"></div>
+          <div class="line short"></div>
+        </div>
+        <div class="clause">
+          <div class="line"></div><div class="line"></div><div class="line short"></div>
+        </div>
+        <span class="page-label">2 / 5</span>
+      </article>
+
+      <article class="doc-page" id="page-3" aria-label="Página 3">
+        <div class="clause">
+          <div class="line"></div><div class="line mid"></div><div class="line"></div>
+          <div class="line"></div><div class="line short"></div>
+        </div>
+        <div class="clause" id="c-5-3">
+          <span class="clause-tag">Cláusula 5.3 · Comunicaciones públicas</span>
+          <div class="line"></div><div class="line"></div><div class="line mid"></div>
+          <div class="line short"></div>
+        </div>
+        <span class="page-label">3 / 5</span>
+      </article>
+
+      <article class="doc-page" id="page-4" aria-label="Página 4">
+        <div class="clause" id="c-7-2">
+          <span class="clause-tag">Cláusula 7.2 · Aprobaciones</span>
+          <div class="line mid"></div><div class="line"></div><div class="line"></div>
+          <div class="line"></div><div class="line short"></div>
+        </div>
+        <div class="clause" id="c-9-1">
+          <span class="clause-tag">Cláusula 9.1 · Terminación anticipada</span>
+          <div class="line"></div><div class="line short"></div>
+        </div>
+        <span class="page-label">4 / 5</span>
+      </article>
+
+      <article class="doc-page" id="page-5" aria-label="Página 5">
+        <div class="clause">
+          <div class="line"></div><div class="line mid"></div><div class="line short"></div>
+        </div>
+        <button class="sig-slot">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          Haz clic aquí para firmar
+        </button>
+        <span class="page-label">5 / 5</span>
+      </article>
+
+    </div>
+
+    <!-- Floating glass controls -->
+    <div class="viewer-controls" role="toolbar" aria-label="Controles de zoom">
+      <button class="btn btn-icon" id="zoomOut" title="Alejar" aria-label="Alejar">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 12h14"/></svg>
+      </button>
+      <span class="zoom-pct" id="zoomPct">100%</span>
+      <button class="btn btn-icon" id="zoomIn" title="Acercar" aria-label="Acercar">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <button class="btn btn-quaternary btn-top" id="btnTop">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-7 7m7-7 7 7"/></svg>
+      Arriba
+    </button>
+
+    <!-- ===== Pregúntale a tu documento ===== -->
+    <button class="doc-chat-fab" id="chatFab" aria-haspopup="dialog" aria-controls="docChat">
+      <span class="firma-badge" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 97 67"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M27.0078 41.5781C27.0945 41.5792 27.1818 41.5809 27.2686 41.583C27.3411 41.5848 27.4137 41.5863 27.4863 41.5889C27.5825 41.5923 27.6792 41.5969 27.7754 41.6016C27.9157 41.6084 28.0559 41.6173 28.1963 41.627C28.2775 41.6326 28.3592 41.638 28.4404 41.6445L28.5488 41.6533C28.591 41.6569 28.6336 41.6612 28.6758 41.665C28.7743 41.6741 28.8732 41.6839 28.9717 41.6943C29.0762 41.7054 29.1807 41.7169 29.2852 41.7295C29.3211 41.7338 29.3576 41.7386 29.3936 41.7432C29.732 41.7857 30.0706 41.8367 30.4082 41.8955C30.5137 41.9139 30.6192 41.9322 30.7246 41.9522C30.7847 41.9635 30.8452 41.9754 30.9053 41.9873C31.0307 42.0121 31.157 42.0374 31.2822 42.0645C31.3301 42.0748 31.378 42.085 31.4258 42.0957C31.5522 42.1239 31.6785 42.1541 31.8047 42.1846C32.0571 42.2456 32.3094 42.3107 32.5605 42.3809C32.6245 42.3988 32.6881 42.419 32.752 42.4375C32.8515 42.4663 32.9515 42.4952 33.0508 42.5254C33.1 42.5405 33.1491 42.5559 33.1982 42.5713C33.2398 42.5843 33.2817 42.5971 33.3232 42.6104C33.5157 42.6718 33.7081 42.7351 33.8994 42.8018C33.9183 42.8083 33.9372 42.8157 33.9561 42.8223C34.1242 42.8813 34.2918 42.9428 34.459 43.0059C34.4922 43.0184 34.5264 43.0303 34.5596 43.043C34.597 43.0572 34.6345 43.0715 34.6719 43.0859C34.7071 43.0997 34.7421 43.114 34.7773 43.1279C34.8864 43.1707 34.996 43.2142 35.1045 43.2588C35.1212 43.2657 35.1376 43.2733 35.1543 43.2803C35.5526 43.4453 35.9479 43.6217 36.3398 43.8106C36.4058 43.8425 36.4713 43.8766 36.5371 43.9092C36.6693 43.9744 36.8013 44.0404 36.9326 44.1084C36.9901 44.1383 37.0482 44.1679 37.1055 44.1983C37.4645 44.3881 37.8194 44.5893 38.1709 44.7998C38.1886 44.8104 38.2069 44.8204 38.2246 44.8311C38.3353 44.8978 38.4457 44.9654 38.5557 45.0342C38.604 45.0644 38.652 45.0954 38.7002 45.126C38.7798 45.1766 38.8592 45.2286 38.9385 45.2803C39.0017 45.3215 39.065 45.3625 39.1279 45.4043C39.2198 45.4655 39.312 45.5272 39.4033 45.5899C39.4405 45.6154 39.4775 45.6412 39.5146 45.667C39.5427 45.6865 39.5716 45.7059 39.5996 45.7256C39.6311 45.7477 39.662 45.7707 39.6934 45.793C39.8625 45.9127 40.0305 46.0355 40.1973 46.1602C40.2071 46.1676 40.2177 46.1742 40.2275 46.1816C40.4267 46.331 40.6248 46.4842 40.8203 46.6406C40.8284 46.6471 40.8357 46.6547 40.8438 46.6611C41.2356 46.9755 41.62 47.3038 41.9961 47.6465C42.0099 47.6591 42.0243 47.672 42.0381 47.6846C42.2009 47.8336 42.3619 47.9854 42.5215 48.1397C42.5518 48.169 42.5821 48.199 42.6123 48.2285C42.7867 48.3989 42.9605 48.5714 43.1309 48.7481C43.1409 48.7585 43.1501 48.7698 43.1602 48.7803C43.3127 48.939 43.4631 49.1008 43.6123 49.2647C43.6489 49.3048 43.6872 49.3443 43.7236 49.3848C43.874 49.5521 44.0222 49.723 44.1689 49.8955L44.21 49.9434L28.5195 63.2207C26.6669 64.5202 24.6282 65.4461 22.5 66.0039C21.4453 66.2827 20.367 66.4667 19.2764 66.5645C18.8579 66.6016 18.4376 66.6254 18.0166 66.6367C17.9171 66.6395 17.8174 66.6403 17.7178 66.6416C17.632 66.6427 17.5458 66.6445 17.46 66.6445C17.3738 66.6446 17.2874 66.6436 17.2012 66.6426C17.1146 66.6415 17.028 66.6389 16.9414 66.6367C16.8686 66.6349 16.7955 66.6344 16.7227 66.6318C16.6266 66.6285 16.5306 66.6229 16.4346 66.6182C16.258 66.6096 16.081 66.599 15.9043 66.5859C15.8515 66.582 15.7979 66.5785 15.7451 66.5742C15.6618 66.5674 15.5784 66.5596 15.4951 66.5518C15.4095 66.5438 15.3239 66.5354 15.2383 66.5264C15.1335 66.5153 15.0286 66.5029 14.9238 66.4902C14.8877 66.4859 14.8515 66.4821 14.8154 66.4775C14.4582 66.4326 14.1014 66.3775 13.7451 66.3145C13.6618 66.2997 13.5784 66.2852 13.4951 66.2695C13.4161 66.2546 13.3367 66.2395 13.2578 66.2236C13.174 66.2069 13.0896 66.1897 13.0059 66.1719C12.9192 66.1535 12.8326 66.1347 12.7461 66.1152C12.5846 66.079 12.4228 66.0419 12.2617 66.002C12.2227 65.9922 12.1836 65.9797 12.1445 65.9697C11.9794 65.9277 11.814 65.8858 11.6494 65.8399C11.5854 65.8219 11.522 65.8007 11.458 65.7822C11.3587 65.7535 11.2583 65.7274 11.1592 65.6973C11.1097 65.6821 11.0602 65.6649 11.0107 65.6494C10.9692 65.6365 10.9273 65.6236 10.8857 65.6104C10.6934 65.5489 10.5018 65.4846 10.3105 65.418C10.2917 65.4114 10.2727 65.405 10.2539 65.3984C10.0855 65.3393 9.91748 65.2771 9.75 65.2139C9.71702 65.2014 9.68236 65.1913 9.64941 65.1787C9.61202 65.1645 9.57542 65.1482 9.53809 65.1338C9.50817 65.1222 9.47813 65.1104 9.44824 65.0986C8.91611 64.8903 8.38954 64.6619 7.86914 64.4111C7.80305 64.3792 7.73783 64.3442 7.67188 64.3115C7.53965 64.2463 7.40766 64.1793 7.27637 64.1113C7.21902 64.0815 7.16069 64.0528 7.10352 64.0225C6.90196 63.9159 6.70215 63.8045 6.50293 63.6914C6.48669 63.6822 6.46933 63.6743 6.45312 63.665C6.4212 63.6468 6.39026 63.6268 6.3584 63.6084C6.26709 63.5557 6.17576 63.5023 6.08496 63.4483C6.04163 63.4225 5.99828 63.3962 5.95508 63.3701C5.85463 63.3094 5.7541 63.248 5.6543 63.1856C5.60595 63.1554 5.55697 63.1253 5.50879 63.0947C5.42925 63.0442 5.3506 62.9921 5.27148 62.9404C5.20812 62.8991 5.14412 62.8584 5.08105 62.8164C5.00722 62.7672 4.93381 62.7171 4.86035 62.667C4.78936 62.6186 4.71806 62.5688 4.64746 62.5195C4.63543 62.5112 4.62235 62.5035 4.61035 62.4951C4.59707 62.4858 4.58457 62.4752 4.57129 62.4658C4.38266 62.3331 4.19542 62.1975 4.00977 62.0586C4.00092 62.052 3.99126 62.0457 3.98242 62.0391C3.37525 61.5835 2.78458 61.0952 2.21289 60.5742C2.20027 60.5627 2.18741 60.5506 2.1748 60.5391C1.80131 60.1973 1.43542 59.8422 1.0791 59.4727C1.07005 59.4633 1.0608 59.4537 1.05176 59.4443C0.890921 59.277 0.733264 59.1056 0.576172 58.9326C0.548852 58.9026 0.521344 58.872 0.494141 58.8418C0.341871 58.6724 0.189583 58.5018 0.0410156 58.3272L0 58.2783L15.6914 45C17.5437 43.7008 19.5812 42.7756 21.709 42.2178C22.7638 41.939 23.8429 41.7549 24.9336 41.6572C24.9992 41.6514 25.0651 41.6458 25.1309 41.6406C25.154 41.6388 25.1771 41.6375 25.2002 41.6358C25.5533 41.6091 25.9079 41.5894 26.2627 41.5811C26.3187 41.5797 26.3747 41.58 26.4307 41.5791C26.5367 41.5775 26.6429 41.5762 26.749 41.5762C26.8352 41.5761 26.9216 41.5771 27.0078 41.5781ZM80.0391 0.000984781C80.1411 0.00208663 80.2437 0.00426798 80.3457 0.00684416C80.6769 0.0151334 81.0077 0.0308622 81.3379 0.0546957C81.3762 0.0574675 81.4148 0.0605045 81.4531 0.0634848C81.5701 0.0725691 81.6869 0.0827292 81.8037 0.0937582C81.8576 0.0988452 81.912 0.104861 81.9658 0.11036C82.3292 0.14751 82.6917 0.194071 83.0527 0.250008C83.0976 0.256944 83.1427 0.26427 83.1875 0.271493C83.2725 0.285223 83.3575 0.298713 83.4424 0.313485C83.5551 0.333067 83.6679 0.352627 83.7803 0.374032C83.8255 0.382675 83.8708 0.392433 83.916 0.401375C84.0895 0.435594 84.2638 0.472188 84.4365 0.51075C84.4688 0.517998 84.501 0.525812 84.5332 0.533211C84.7036 0.572216 84.8745 0.613009 85.0439 0.656258C85.0942 0.669099 85.1442 0.683091 85.1943 0.696297C85.3015 0.7245 85.4088 0.752332 85.5156 0.782235C85.5644 0.795989 85.6134 0.811109 85.6621 0.825204C85.7042 0.837327 85.7461 0.849926 85.7881 0.862313C85.9686 0.915759 86.1489 0.971134 86.3281 1.02931C86.3716 1.04339 86.4156 1.0579 86.459 1.07227C86.6039 1.12033 86.7486 1.16952 86.8926 1.22071C86.9238 1.23181 86.9551 1.24267 86.9863 1.25391C87.0216 1.26654 87.0576 1.28015 87.0928 1.29298C87.126 1.30518 87.1592 1.31771 87.1924 1.33009C87.7064 1.52056 88.2132 1.732 88.7129 1.96388C88.7655 1.98842 88.8176 2.01504 88.8701 2.04005C89.0169 2.10958 89.1633 2.18075 89.3086 2.25391C89.3544 2.27707 89.4006 2.29973 89.4463 2.32325C89.6486 2.42703 89.8486 2.53568 90.0479 2.64649C90.0568 2.65147 90.0663 2.65615 90.0752 2.66114C90.0953 2.67237 90.1157 2.68403 90.1357 2.69532C90.2291 2.74782 90.3224 2.80046 90.415 2.8545C90.4678 2.88526 90.5207 2.91602 90.5732 2.94727C90.6703 3.00505 90.767 3.06456 90.8633 3.12403C90.8925 3.14205 90.922 3.15957 90.9512 3.17774C91.044 3.23571 91.1365 3.29496 91.2285 3.3545C91.2773 3.38601 91.3264 3.41728 91.375 3.44923C91.4688 3.51099 91.5623 3.5743 91.6553 3.6377C91.6916 3.66247 91.7284 3.68691 91.7646 3.71192C91.7885 3.7284 91.8122 3.74514 91.8359 3.76173C91.8598 3.77836 91.8835 3.79577 91.9072 3.81251C92.2758 4.07164 92.6373 4.34397 92.9912 4.62891C93.0004 4.63632 93.0094 4.64395 93.0186 4.65138C93.188 4.78827 93.3557 4.92849 93.5215 5.0713C93.5418 5.08876 93.5628 5.10551 93.583 5.12306C93.9413 5.43402 94.2907 5.7591 94.6309 6.09766C94.6388 6.10552 94.6474 6.11323 94.6553 6.1211C94.827 6.29256 94.9963 6.46801 95.1631 6.64649C95.1645 6.64797 95.1665 6.64892 95.168 6.6504C95.3178 6.81087 95.4646 6.97548 95.6104 7.14161C95.6425 7.17825 95.6751 7.21505 95.707 7.25196C95.8451 7.41161 95.982 7.57351 96.1162 7.73829L96.1543 7.78516L63.2812 34.4033L48.499 46.001C46.1654 42.2722 38.3985 35.4339 25.999 37.9082L35.1504 30.2529L68.0244 3.63477C69.9607 2.31536 72.0564 1.35774 74.2178 0.758797C75.2891 0.459708 76.3777 0.25232 77.4727 0.129891C77.5305 0.12347 77.5887 0.117278 77.6465 0.111336C77.68 0.107865 77.7136 0.10488 77.7471 0.101571C77.8888 0.0876982 78.0311 0.0754623 78.1729 0.0644613C78.2292 0.0600542 78.2855 0.0557194 78.3418 0.051766C78.4962 0.0410299 78.6512 0.0307859 78.8057 0.0234457C78.8421 0.0216971 78.8786 0.0211 78.915 0.0195395C79.0562 0.013563 79.1977 0.00803784 79.3389 0.00489103C79.3854 0.00383551 79.432 0.00368555 79.4785 0.00293791C79.5964 0.00109019 79.7142 -0.000111656 79.832 8.21816e-06C79.901 5.60912e-05 79.9701 0.000261432 80.0391 0.000984781Z"/></svg>
+      </span>
+      <span class="fab-label">Pregúntale a tu documento</span>
+    </button>
+
+    <section class="doc-chat" id="docChat" role="dialog" aria-label="Habla con tu documento">
+      <header class="doc-chat-header">
+        <span class="firma-badge" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 97 67"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M27.0078 41.5781C27.0945 41.5792 27.1818 41.5809 27.2686 41.583C27.3411 41.5848 27.4137 41.5863 27.4863 41.5889C27.5825 41.5923 27.6792 41.5969 27.7754 41.6016C27.9157 41.6084 28.0559 41.6173 28.1963 41.627C28.2775 41.6326 28.3592 41.638 28.4404 41.6445L28.5488 41.6533C28.591 41.6569 28.6336 41.6612 28.6758 41.665C28.7743 41.6741 28.8732 41.6839 28.9717 41.6943C29.0762 41.7054 29.1807 41.7169 29.2852 41.7295C29.3211 41.7338 29.3576 41.7386 29.3936 41.7432C29.732 41.7857 30.0706 41.8367 30.4082 41.8955C30.5137 41.9139 30.6192 41.9322 30.7246 41.9522C30.7847 41.9635 30.8452 41.9754 30.9053 41.9873C31.0307 42.0121 31.157 42.0374 31.2822 42.0645C31.3301 42.0748 31.378 42.085 31.4258 42.0957C31.5522 42.1239 31.6785 42.1541 31.8047 42.1846C32.0571 42.2456 32.3094 42.3107 32.5605 42.3809C32.6245 42.3988 32.6881 42.419 32.752 42.4375C32.8515 42.4663 32.9515 42.4952 33.0508 42.5254C33.1 42.5405 33.1491 42.5559 33.1982 42.5713C33.2398 42.5843 33.2817 42.5971 33.3232 42.6104C33.5157 42.6718 33.7081 42.7351 33.8994 42.8018C33.9183 42.8083 33.9372 42.8157 33.9561 42.8223C34.1242 42.8813 34.2918 42.9428 34.459 43.0059C34.4922 43.0184 34.5264 43.0303 34.5596 43.043C34.597 43.0572 34.6345 43.0715 34.6719 43.0859C34.7071 43.0997 34.7421 43.114 34.7773 43.1279C34.8864 43.1707 34.996 43.2142 35.1045 43.2588C35.1212 43.2657 35.1376 43.2733 35.1543 43.2803C35.5526 43.4453 35.9479 43.6217 36.3398 43.8106C36.4058 43.8425 36.4713 43.8766 36.5371 43.9092C36.6693 43.9744 36.8013 44.0404 36.9326 44.1084C36.9901 44.1383 37.0482 44.1679 37.1055 44.1983C37.4645 44.3881 37.8194 44.5893 38.1709 44.7998C38.1886 44.8104 38.2069 44.8204 38.2246 44.8311C38.3353 44.8978 38.4457 44.9654 38.5557 45.0342C38.604 45.0644 38.652 45.0954 38.7002 45.126C38.7798 45.1766 38.8592 45.2286 38.9385 45.2803C39.0017 45.3215 39.065 45.3625 39.1279 45.4043C39.2198 45.4655 39.312 45.5272 39.4033 45.5899C39.4405 45.6154 39.4775 45.6412 39.5146 45.667C39.5427 45.6865 39.5716 45.7059 39.5996 45.7256C39.6311 45.7477 39.662 45.7707 39.6934 45.793C39.8625 45.9127 40.0305 46.0355 40.1973 46.1602C40.2071 46.1676 40.2177 46.1742 40.2275 46.1816C40.4267 46.331 40.6248 46.4842 40.8203 46.6406C40.8284 46.6471 40.8357 46.6547 40.8438 46.6611C41.2356 46.9755 41.62 47.3038 41.9961 47.6465C42.0099 47.6591 42.0243 47.672 42.0381 47.6846C42.2009 47.8336 42.3619 47.9854 42.5215 48.1397C42.5518 48.169 42.5821 48.199 42.6123 48.2285C42.7867 48.3989 42.9605 48.5714 43.1309 48.7481C43.1409 48.7585 43.1501 48.7698 43.1602 48.7803C43.3127 48.939 43.4631 49.1008 43.6123 49.2647C43.6489 49.3048 43.6872 49.3443 43.7236 49.3848C43.874 49.5521 44.0222 49.723 44.1689 49.8955L44.21 49.9434L28.5195 63.2207C26.6669 64.5202 24.6282 65.4461 22.5 66.0039C21.4453 66.2827 20.367 66.4667 19.2764 66.5645C18.8579 66.6016 18.4376 66.6254 18.0166 66.6367C17.9171 66.6395 17.8174 66.6403 17.7178 66.6416C17.632 66.6427 17.5458 66.6445 17.46 66.6445C17.3738 66.6446 17.2874 66.6436 17.2012 66.6426C17.1146 66.6415 17.028 66.6389 16.9414 66.6367C16.8686 66.6349 16.7955 66.6344 16.7227 66.6318C16.6266 66.6285 16.5306 66.6229 16.4346 66.6182C16.258 66.6096 16.081 66.599 15.9043 66.5859C15.8515 66.582 15.7979 66.5785 15.7451 66.5742C15.6618 66.5674 15.5784 66.5596 15.4951 66.5518C15.4095 66.5438 15.3239 66.5354 15.2383 66.5264C15.1335 66.5153 15.0286 66.5029 14.9238 66.4902C14.8877 66.4859 14.8515 66.4821 14.8154 66.4775C14.4582 66.4326 14.1014 66.3775 13.7451 66.3145C13.6618 66.2997 13.5784 66.2852 13.4951 66.2695C13.4161 66.2546 13.3367 66.2395 13.2578 66.2236C13.174 66.2069 13.0896 66.1897 13.0059 66.1719C12.9192 66.1535 12.8326 66.1347 12.7461 66.1152C12.5846 66.079 12.4228 66.0419 12.2617 66.002C12.2227 65.9922 12.1836 65.9797 12.1445 65.9697C11.9794 65.9277 11.814 65.8858 11.6494 65.8399C11.5854 65.8219 11.522 65.8007 11.458 65.7822C11.3587 65.7535 11.2583 65.7274 11.1592 65.6973C11.1097 65.6821 11.0602 65.6649 11.0107 65.6494C10.9692 65.6365 10.9273 65.6236 10.8857 65.6104C10.6934 65.5489 10.5018 65.4846 10.3105 65.418C10.2917 65.4114 10.2727 65.405 10.2539 65.3984C10.0855 65.3393 9.91748 65.2771 9.75 65.2139C9.71702 65.2014 9.68236 65.1913 9.64941 65.1787C9.61202 65.1645 9.57542 65.1482 9.53809 65.1338C9.50817 65.1222 9.47813 65.1104 9.44824 65.0986C8.91611 64.8903 8.38954 64.6619 7.86914 64.4111C7.80305 64.3792 7.73783 64.3442 7.67188 64.3115C7.53965 64.2463 7.40766 64.1793 7.27637 64.1113C7.21902 64.0815 7.16069 64.0528 7.10352 64.0225C6.90196 63.9159 6.70215 63.8045 6.50293 63.6914C6.48669 63.6822 6.46933 63.6743 6.45312 63.665C6.4212 63.6468 6.39026 63.6268 6.3584 63.6084C6.26709 63.5557 6.17576 63.5023 6.08496 63.4483C6.04163 63.4225 5.99828 63.3962 5.95508 63.3701C5.85463 63.3094 5.7541 63.248 5.6543 63.1856C5.60595 63.1554 5.55697 63.1253 5.50879 63.0947C5.42925 63.0442 5.3506 62.9921 5.27148 62.9404C5.20812 62.8991 5.14412 62.8584 5.08105 62.8164C5.00722 62.7672 4.93381 62.7171 4.86035 62.667C4.78936 62.6186 4.71806 62.5688 4.64746 62.5195C4.63543 62.5112 4.62235 62.5035 4.61035 62.4951C4.59707 62.4858 4.58457 62.4752 4.57129 62.4658C4.38266 62.3331 4.19542 62.1975 4.00977 62.0586C4.00092 62.052 3.99126 62.0457 3.98242 62.0391C3.37525 61.5835 2.78458 61.0952 2.21289 60.5742C2.20027 60.5627 2.18741 60.5506 2.1748 60.5391C1.80131 60.1973 1.43542 59.8422 1.0791 59.4727C1.07005 59.4633 1.0608 59.4537 1.05176 59.4443C0.890921 59.277 0.733264 59.1056 0.576172 58.9326C0.548852 58.9026 0.521344 58.872 0.494141 58.8418C0.341871 58.6724 0.189583 58.5018 0.0410156 58.3272L0 58.2783L15.6914 45C17.5437 43.7008 19.5812 42.7756 21.709 42.2178C22.7638 41.939 23.8429 41.7549 24.9336 41.6572C24.9992 41.6514 25.0651 41.6458 25.1309 41.6406C25.154 41.6388 25.1771 41.6375 25.2002 41.6358C25.5533 41.6091 25.9079 41.5894 26.2627 41.5811C26.3187 41.5797 26.3747 41.58 26.4307 41.5791C26.5367 41.5775 26.6429 41.5762 26.749 41.5762C26.8352 41.5761 26.9216 41.5771 27.0078 41.5781ZM80.0391 0.000984781C80.1411 0.00208663 80.2437 0.00426798 80.3457 0.00684416C80.6769 0.0151334 81.0077 0.0308622 81.3379 0.0546957C81.3762 0.0574675 81.4148 0.0605045 81.4531 0.0634848C81.5701 0.0725691 81.6869 0.0827292 81.8037 0.0937582C81.8576 0.0988452 81.912 0.104861 81.9658 0.11036C82.3292 0.14751 82.6917 0.194071 83.0527 0.250008C83.0976 0.256944 83.1427 0.26427 83.1875 0.271493C83.2725 0.285223 83.3575 0.298713 83.4424 0.313485C83.5551 0.333067 83.6679 0.352627 83.7803 0.374032C83.8255 0.382675 83.8708 0.392433 83.916 0.401375C84.0895 0.435594 84.2638 0.472188 84.4365 0.51075C84.4688 0.517998 84.501 0.525812 84.5332 0.533211C84.7036 0.572216 84.8745 0.613009 85.0439 0.656258C85.0942 0.669099 85.1442 0.683091 85.1943 0.696297C85.3015 0.7245 85.4088 0.752332 85.5156 0.782235C85.5644 0.795989 85.6134 0.811109 85.6621 0.825204C85.7042 0.837327 85.7461 0.849926 85.7881 0.862313C85.9686 0.915759 86.1489 0.971134 86.3281 1.02931C86.3716 1.04339 86.4156 1.0579 86.459 1.07227C86.6039 1.12033 86.7486 1.16952 86.8926 1.22071C86.9238 1.23181 86.9551 1.24267 86.9863 1.25391C87.0216 1.26654 87.0576 1.28015 87.0928 1.29298C87.126 1.30518 87.1592 1.31771 87.1924 1.33009C87.7064 1.52056 88.2132 1.732 88.7129 1.96388C88.7655 1.98842 88.8176 2.01504 88.8701 2.04005C89.0169 2.10958 89.1633 2.18075 89.3086 2.25391C89.3544 2.27707 89.4006 2.29973 89.4463 2.32325C89.6486 2.42703 89.8486 2.53568 90.0479 2.64649C90.0568 2.65147 90.0663 2.65615 90.0752 2.66114C90.0953 2.67237 90.1157 2.68403 90.1357 2.69532C90.2291 2.74782 90.3224 2.80046 90.415 2.8545C90.4678 2.88526 90.5207 2.91602 90.5732 2.94727C90.6703 3.00505 90.767 3.06456 90.8633 3.12403C90.8925 3.14205 90.922 3.15957 90.9512 3.17774C91.044 3.23571 91.1365 3.29496 91.2285 3.3545C91.2773 3.38601 91.3264 3.41728 91.375 3.44923C91.4688 3.51099 91.5623 3.5743 91.6553 3.6377C91.6916 3.66247 91.7284 3.68691 91.7646 3.71192C91.7885 3.7284 91.8122 3.74514 91.8359 3.76173C91.8598 3.77836 91.8835 3.79577 91.9072 3.81251C92.2758 4.07164 92.6373 4.34397 92.9912 4.62891C93.0004 4.63632 93.0094 4.64395 93.0186 4.65138C93.188 4.78827 93.3557 4.92849 93.5215 5.0713C93.5418 5.08876 93.5628 5.10551 93.583 5.12306C93.9413 5.43402 94.2907 5.7591 94.6309 6.09766C94.6388 6.10552 94.6474 6.11323 94.6553 6.1211C94.827 6.29256 94.9963 6.46801 95.1631 6.64649C95.1645 6.64797 95.1665 6.64892 95.168 6.6504C95.3178 6.81087 95.4646 6.97548 95.6104 7.14161C95.6425 7.17825 95.6751 7.21505 95.707 7.25196C95.8451 7.41161 95.982 7.57351 96.1162 7.73829L96.1543 7.78516L63.2812 34.4033L48.499 46.001C46.1654 42.2722 38.3985 35.4339 25.999 37.9082L35.1504 30.2529L68.0244 3.63477C69.9607 2.31536 72.0564 1.35774 74.2178 0.758797C75.2891 0.459708 76.3777 0.25232 77.4727 0.129891C77.5305 0.12347 77.5887 0.117278 77.6465 0.111336C77.68 0.107865 77.7136 0.10488 77.7471 0.101571C77.8888 0.0876982 78.0311 0.0754623 78.1729 0.0644613C78.2292 0.0600542 78.2855 0.0557194 78.3418 0.051766C78.4962 0.0410299 78.6512 0.0307859 78.8057 0.0234457C78.8421 0.0216971 78.8786 0.0211 78.915 0.0195395C79.0562 0.013563 79.1977 0.00803784 79.3389 0.00489103C79.3854 0.00383551 79.432 0.00368555 79.4785 0.00293791C79.5964 0.00109019 79.7142 -0.000111656 79.832 8.21816e-06C79.901 5.60912e-05 79.9701 0.000261432 80.0391 0.000984781Z"/></svg>
+        </span>
+        <div class="titles">
+          <h3>Habla con tu documento</h3>
+          <p>Respuestas con la cláusula exacta que las respalda</p>
+        </div>
+        <button class="doc-chat-close" id="chatClose" aria-label="Cerrar chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+
+      <div class="doc-chat-messages" id="chatMessages">
+        <div class="msg msg-bot">
+          Hola, Rodolfo. Leí el <b>Contrato de prestación de servicios</b> que vas a firmar. Pregúntame lo que quieras antes de continuar.
+        </div>
+      </div>
+
+      <div class="doc-chat-suggest" id="chatSuggest"></div>
+
+      <div class="doc-chat-input">
+        <input type="text" id="chatInput" placeholder="Escribe tu pregunta…" aria-label="Escribe tu pregunta">
+        <button class="chat-send" id="chatSend" aria-label="Enviar pregunta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-7 7m7-7 7 7"/></svg>
+        </button>
+      </div>
+      <p class="doc-chat-disclaimer">Demostración — respuestas simuladas con datos de ejemplo.</p>
+    </section>
+
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="signer-footer">
+    <div class="footer-meta">
+      <span class="trust-note">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5 11 13.5 15.5 9M20 12c0 4.9-5.35 8.48-7.3 9.62a1.4 1.4 0 0 1-1.4 0C9.35 20.48 4 16.9 4 12V7.2c0-.8 0-1.2.13-1.54a2 2 0 0 1 .55-.8c.27-.24.65-.38 1.4-.66L11.4 2.2a1.7 1.7 0 0 1 1.2 0l5.32 2c.75.28 1.13.42 1.4.66a2 2 0 0 1 .55.8c.13.34.13.74.13 1.54Z"/></svg>
+        Firma electrónica por Truora
+      </span>
+      <span class="footer-divider"></span>
+      <button class="lang-select">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>
+        Español
+        <svg class="icon chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+    <button class="btn btn-primary">Continuar</button>
+  </footer>
+
+<script>
+  // Signers dropdown
+  const toggle = document.getElementById('signersToggle');
+  const panel = document.getElementById('signersPanel');
+  toggle.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = panel.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', e => {
+    if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+      panel.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Zoom
+  let zoom = 100;
+  const pages = document.querySelectorAll('.doc-page');
+  const pct = document.getElementById('zoomPct');
+  function applyZoom() {
+    pct.textContent = zoom + '%';
+    pages.forEach(p => p.style.width = `min(${760 * zoom / 100}px, 100%)`);
+  }
+  document.getElementById('zoomIn').addEventListener('click', () => { zoom = Math.min(zoom + 25, 200); applyZoom(); });
+  document.getElementById('zoomOut').addEventListener('click', () => { zoom = Math.max(zoom - 25, 50); applyZoom(); });
+
+  // Scroll to top
+  const viewport = document.getElementById('viewport');
+  document.getElementById('btnTop').addEventListener('click', () => viewport.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Thumbnail navigation + active state on scroll
+  const thumbs = document.querySelectorAll('.thumb');
+  thumbs.forEach(t => t.addEventListener('click', () => {
+    document.getElementById('page-' + t.dataset.page).scrollIntoView({ behavior: 'smooth' });
+  }));
+  // ===== Pregúntale a tu documento (demo simulada) =====
+  const fab = document.getElementById('chatFab');
+  const chat = document.getElementById('docChat');
+  const chatClose = document.getElementById('chatClose');
+  const msgs = document.getElementById('chatMessages');
+  const input = document.getElementById('chatInput');
+  const send = document.getElementById('chatSend');
+  const suggestBox = document.getElementById('chatSuggest');
+  const btnTop = document.getElementById('btnTop');
+
+  const QA = [
+    {
+      q: '¿Puedo hablar de mi trabajo en redes sociales?',
+      match: /redes|social|publicar|linkedin|instagram/i,
+      a: '<b>No, sin aprobación previa.</b> Según la cláusula 5.1 (Confidencialidad) toda información del proyecto es reservada, y la cláusula 5.3 (Comunicaciones públicas) prohíbe mencionar el trabajo en redes sociales o medios. La cláusula 7.2 indica que necesitas <b>aprobación explícita de la Dirección de Comunicaciones</b> antes de cualquier publicación.',
+      sources: [
+        { label: 'Cláusula 5.1 · pág. 2', clause: 'c-5-1' },
+        { label: 'Cláusula 5.3 · pág. 3', clause: 'c-5-3' },
+        { label: 'Cláusula 7.2 · pág. 4', clause: 'c-7-2' }
+      ]
+    },
+    {
+      q: '¿Cuánto dura este contrato?',
+      match: /dura|duración|vigencia|plazo|tiempo/i,
+      a: 'El contrato tiene una vigencia de <b>12 meses</b> desde la fecha de firma, con renovación automática por períodos iguales salvo aviso en contrario. Así lo establece la cláusula 2.1 (Vigencia).',
+      sources: [ { label: 'Cláusula 2.1 · pág. 1', clause: 'c-2-1' } ]
+    },
+    {
+      q: '¿Puedo terminarlo antes de tiempo?',
+      match: /terminar|cancelar|renunciar|salir|rescindir|antes/i,
+      a: '<b>Sí, con condiciones.</b> La cláusula 9.1 (Terminación anticipada) permite terminar el contrato con un <b>preaviso escrito de 30 días</b>. Si terminas sin preaviso, aplica la penalidad descrita en esa misma cláusula.',
+      sources: [ { label: 'Cláusula 9.1 · pág. 4', clause: 'c-9-1' } ]
+    }
+  ];
+  const FALLBACK = 'Solo puedo responder con base en este documento y no encontré una cláusula relacionada con tu pregunta. Prueba una de las preguntas sugeridas o reformúlala.';
+
+  function openChat() {
+    chat.classList.add('open');
+    fab.classList.add('hidden');
+    btnTop.classList.add('chat-open');
+    renderSuggestions();
+    input.focus();
+  }
+  function closeChat() {
+    chat.classList.remove('open');
+    fab.classList.remove('hidden');
+    btnTop.classList.remove('chat-open');
+  }
+  fab.addEventListener('click', openChat);
+  chatClose.addEventListener('click', closeChat);
+
+  function renderSuggestions() {
+    suggestBox.innerHTML = '';
+    QA.filter(x => !x.asked).forEach(x => {
+      const b = document.createElement('button');
+      b.className = 'suggest-chip';
+      b.textContent = x.q;
+      b.addEventListener('click', () => ask(x.q));
+      suggestBox.appendChild(b);
+    });
+    suggestBox.style.display = suggestBox.children.length ? 'flex' : 'none';
+  }
+
+  function addMsg(html, who) {
+    const d = document.createElement('div');
+    d.className = 'msg msg-' + who;
+    d.innerHTML = html;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+    return d;
+  }
+
+  function goToClause(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 2200);
+  }
+
+  function ask(text) {
+    text = text.trim();
+    if (!text) return;
+    input.value = '';
+    addMsg(text.replace(/</g, '&lt;'), 'user');
+
+    const typing = addMsg('<span class="typing"><i></i><i></i><i></i></span>', 'bot');
+    const hit = QA.find(x => x.match.test(text));
+    if (hit) hit.asked = true;
+
+    setTimeout(() => {
+      typing.innerHTML = hit ? hit.a : FALLBACK;
+      if (hit && hit.sources.length) {
+        const src = document.createElement('div');
+        src.className = 'msg-sources';
+        src.innerHTML = '<span class="src-label">Fuentes en el documento</span>';
+        hit.sources.forEach(s => {
+          const c = document.createElement('button');
+          c.className = 'src-chip';
+          c.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' + s.label;
+          c.addEventListener('click', () => goToClause(s.clause));
+          src.appendChild(c);
+        });
+        typing.appendChild(src);
+      }
+      msgs.scrollTop = msgs.scrollHeight;
+      renderSuggestions();
+    }, 1100);
+  }
+
+  send.addEventListener('click', () => ask(input.value));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') ask(input.value); });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        const n = en.target.id.split('-')[1];
+        thumbs.forEach(t => t.classList.toggle('active', t.dataset.page === n));
+      }
+    });
+  }, { root: viewport, threshold: 0.5 });
+  pages.forEach(p => observer.observe(p));
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+/* ============================================================
+   Truora — Web fonts (self-hosted, latin subsets)
+   ------------------------------------------------------------
+   Brand typeface: HOST GROTESK (per the Truora brand manual —
+   "H1/H2: Host Grotesk Medium", "Cuerpo: Host Grotesk Light").
+   JetBrains Mono covers code / API surfaces.
+   ============================================================ */
+
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./fonts/HostGrotesk-300.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/HostGrotesk-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/HostGrotesk-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/JetBrainsMono-400.woff2') format('woff2');
+}

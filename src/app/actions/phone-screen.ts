@@ -104,13 +104,13 @@ export async function setupPhoneScreen(formData: FormData) {
         to: (hm as any).email,
         subject: `Tienes un phone screen asignado — ${proc?.title}`,
         html: `
-<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
-  <div style="margin-bottom: 24px;"><div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;"><span style="color: white; font-weight: 700; font-size: 14px;">T</span></div></div>
+<div style="font-family: 'Host Grotesk', system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #01022E;">
+  <div style="margin-bottom: 24px;"><div style="width: 32px; height: 32px; background: #3C1AEA; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;"><span style="color: white; font-weight: 700; font-size: 14px;">T</span></div></div>
   <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">Hola ${(hm as any).full_name?.split(' ')[0]},</h1>
   <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
-    Tienes un <strong style="color: #0B1020;">phone screen asignado</strong> para el proceso de <strong style="color: #0B1020;">${proc?.title}</strong>. Realiza la entrevista y completa tu evaluación en TruHire.
+    Tienes un <strong style="color: #01022E;">phone screen asignado</strong> para el proceso de <strong style="color: #01022E;">${proc?.title}</strong>. Realiza la entrevista y completa tu evaluación en TruHire.
   </p>
-  <a href="${psUrl}" style="display: inline-block; background: #0800FF; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">Ir a mi evaluación →</a>
+  <a href="${psUrl}" style="display: inline-block; background: #3C1AEA; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">Ir a mi evaluación →</a>
   <p style="font-size: 13px; color: #8892A6; margin-top: 32px;">— TruHire · Truora</p>
 </div>`,
       })

@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import type { User } from '@/lib/types'
-import { LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, Bell, Search } from 'lucide-react'
 import { useState } from 'react'
 
 interface HeaderProps {
@@ -31,63 +31,227 @@ export function Header({ user }: HeaderProps) {
     : '?'
 
   return (
-    <header className="h-14 bg-white flex items-center justify-between px-6 flex-shrink-0" style={{ borderBottom: '1px solid #E1E5EE' }}>
-      {/* Breadcrumb placeholder — se sobreescribe por página */}
-      <div id="page-title" />
+    <header
+      style={{
+        height: 68,
+        borderBottom: '1px solid var(--border-subtle)',
+        background: 'var(--surface-card)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '0 24px',
+        flexShrink: 0,
+      }}
+    >
+      {/* Page title placeholder */}
+      <div id="page-title" style={{ flex: 1 }} />
+
+      {/* Search */}
+      <div
+        style={{
+          position: 'relative',
+          width: 280,
+        }}
+      >
+        <Search
+          size={18}
+          style={{
+            position: 'absolute',
+            left: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--text-subtle)',
+            pointerEvents: 'none',
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Buscar procesos, candidatos…"
+          style={{
+            width: '100%',
+            height: 40,
+            paddingLeft: 40,
+            paddingRight: 14,
+            border: '1.5px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--surface-card)',
+            font: '0.875rem var(--font-sans)',
+            color: 'var(--text-body)',
+            outline: 'none',
+            transition: 'border-color 150ms ease',
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--brand)'}
+          onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+        />
+      </div>
+
+      {/* Notifications */}
+      <button
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 40,
+          height: 40,
+          borderRadius: 'var(--radius-sm)',
+          border: 'none',
+          background: 'transparent',
+          color: 'var(--text-muted)',
+          cursor: 'pointer',
+          transition: 'background 120ms ease',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-sunken)'}
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+      >
+        <Bell size={20} />
+      </button>
 
       {/* User menu */}
-      <div className="relative">
+      <div style={{ position: 'relative' }}>
         <button
           onClick={() => setMenuOpen((v) => !v)}
-          className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '6px 10px 6px 6px',
+            borderRadius: 'var(--radius-sm)',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'background 120ms ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-sunken)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
           {/* Avatar */}
-          {user?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.avatar_url}
-              alt={user.full_name ?? 'Avatar'}
-              className="w-8 h-8 rounded-full object-cover"
+          <div style={{ position: 'relative' }}>
+            {user?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatar_url}
+                alt={user.full_name ?? 'Avatar'}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'var(--brand)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span style={{ color: 'white', fontSize: '0.8125rem', fontWeight: 500 }}>{initials}</span>
+              </div>
+            )}
+            {/* Online indicator */}
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: 'var(--success-500)',
+                border: '2px solid var(--surface-card)',
+              }}
             />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-[#0800FF] flex items-center justify-center">
-              <span className="text-white text-xs font-semibold">{initials}</span>
-            </div>
-          )}
-          <div className="text-left hidden sm:block">
-            <p className="text-sm font-medium text-gray-900 leading-tight">
-              {user?.full_name ?? user?.email}
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <p
+              style={{
+                margin: 0,
+                font: 'var(--weight-medium) 0.875rem var(--font-sans)',
+                color: 'var(--text-strong)',
+                lineHeight: 1.3,
+              }}
+            >
+              {user?.full_name ?? user?.email?.split('@')[0]}
             </p>
-            <p className="text-xs text-gray-500 capitalize leading-tight">
+            <p
+              style={{
+                margin: 0,
+                font: '0.75rem var(--font-sans)',
+                color: 'var(--text-muted)',
+                textTransform: 'capitalize',
+                lineHeight: 1.3,
+              }}
+            >
               {user?.role?.replace('_', ' ')}
             </p>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-400" />
         </button>
 
         {/* Dropdown */}
         {menuOpen && (
           <>
-            {/* Overlay para cerrar */}
             <div
-              className="fixed inset-0 z-10"
+              style={{ position: 'fixed', inset: 0, zIndex: 10 }}
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
-              <div className="px-3 py-2 border-b border-gray-100">
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 'calc(100% + 6px)',
+                width: 220,
+                background: 'var(--surface-card)',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border-subtle)',
+                padding: '6px 0',
+                zIndex: 20,
+                animation: 'fadeIn 150ms ease',
+              }}
+            >
+              <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <p style={{ margin: 0, font: '0.8125rem var(--font-sans)', color: 'var(--text-muted)' }}>
+                  {user?.email}
+                </p>
               </div>
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 14px',
+                  border: 'none',
+                  background: 'transparent',
+                  font: '0.875rem var(--font-sans)',
+                  color: 'var(--danger-500)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 100ms ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--danger-50)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut size={16} />
                 Cerrar sesión
               </button>
             </div>
           </>
         )}
       </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </header>
   )
 }

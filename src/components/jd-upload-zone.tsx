@@ -74,17 +74,17 @@ export function JDUploadZone({ roleTitle, onExtracted }: JDUploadZoneProps) {
           busy
             ? 'border-blue-300 bg-blue-50 cursor-wait'
             : isDragging
-            ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
+            ? 'border-truora-primary bg-truora-primary-soft cursor-copy'
             : stage === 'done'
             ? 'border-green-400 bg-green-50 cursor-pointer'
             : stage === 'error'
             ? 'border-red-300 bg-red-50 cursor-pointer'
-            : 'border-gray-300 hover:border-[#0800FF] hover:bg-gray-50 cursor-pointer'
+            : 'border-gray-300 hover:border-truora-primary hover:bg-gray-50 cursor-pointer'
         }`}
       >
         {stageLabel ? (
           <div className="flex flex-col items-center gap-2">
-            <svg className="animate-spin h-8 w-8 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-truora-primary" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
@@ -101,7 +101,7 @@ export function JDUploadZone({ roleTitle, onExtracted }: JDUploadZoneProps) {
               </svg>
             </div>
             <p className="text-sm font-medium text-gray-900">{fileName}</p>
-            <p className="text-xs text-gray-500">JD procesado · <span className="text-[#0800FF]">Cambiar archivo</span></p>
+            <p className="text-xs text-gray-500">JD procesado · <span className="text-truora-primary">Cambiar archivo</span></p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
@@ -109,7 +109,7 @@ export function JDUploadZone({ roleTitle, onExtracted }: JDUploadZoneProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             <p className="text-sm text-gray-600">
-              <span className="text-[#0800FF] font-medium">Sube el Job Description</span> o arrastra aquí
+              <span className="text-truora-primary font-medium">Sube el Job Description</span> o arrastra aquí
             </p>
             <p className="text-xs text-gray-400">PDF o Word · El AI extrae solo la info de este cargo</p>
           </div>

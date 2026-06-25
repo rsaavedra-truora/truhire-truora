@@ -173,7 +173,7 @@ export default async function DebriefPage({
                   <div key={slug} className="px-5 py-4 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       {p && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExtra ? 'bg-violet-100 text-violet-700' : 'bg-[#E8E7FF] text-[#0800FF]'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExtra ? 'bg-violet-100 text-violet-700' : 'bg-truora-primary-soft text-truora-primary'}`}>
                           {isExtra ? '+ ' : ''}{p.name}
                         </span>
                       )}
@@ -249,7 +249,7 @@ export default async function DebriefPage({
                     <div key={slug} className="px-5 py-4 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         {p && (
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[#E8E7FF] text-[#0800FF]">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-truora-primary-soft text-truora-primary">
                             {p.name}
                           </span>
                         )}
@@ -283,8 +283,8 @@ export default async function DebriefPage({
 
 
       {/* Decisión del Bar Raiser */}
-      <div className="bg-white rounded-xl border-2 border-[#0800FF] p-6">
-        <p className="text-xs font-semibold text-[#0800FF] uppercase tracking-wider mb-1">Decisión del Bar Raiser</p>
+      <div className="bg-white rounded-xl border-2 border-truora-primary p-6">
+        <p className="text-xs font-semibold text-truora-primary uppercase tracking-wider mb-1">Decisión del Bar Raiser</p>
         <p className="text-xs text-gray-500 mb-5">
           Esta es la última palabra. La decisión y justificación se enviarán al head of people por email.
           La identidad del Bar Raiser es confidencial.
@@ -423,7 +423,7 @@ function PrincipleGrid({
               const p = getPrincipleBySlug(slug)
               return (
                 <th key={slug} className="text-left px-2 py-3 text-xs font-medium text-gray-500" style={{width:`${Math.floor(72/allSlugs.length)}%`}}>
-                  <p className="text-[#0800FF] font-semibold leading-tight text-xs">{p?.name ?? slug}</p>
+                  <p className="text-truora-primary font-semibold leading-tight text-xs">{p?.name ?? slug}</p>
                 </th>
               )
             })}
@@ -529,7 +529,7 @@ function DebriefForm({ pcId, capa }: { pcId: string; capa: string }) {
         <label className="block text-xs font-medium text-gray-700 mb-1">
           Capa alternativa
         </label>
-        <select name="alternative_capa" className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]">
+        <select name="alternative_capa" className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary">
           <option value="">Selecciona una capa</option>
           <option value="liderazgo">Liderazgo</option>
           <option value="funcional">Funcional</option>
@@ -549,7 +549,7 @@ function DebriefForm({ pcId, capa }: { pcId: string; capa: string }) {
           rows={5}
           required
           placeholder="Explica por qué tomaste esta decisión. Cita evidencia concreta de las evaluaciones. ¿Qué patrón viste en el candidato? ¿Qué te hizo decidir Hire o No Hire? Sé específico."
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF] resize-none"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary resize-none"
         />
       </div>
 

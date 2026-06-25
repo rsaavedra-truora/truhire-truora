@@ -23,12 +23,12 @@ export default async function ProtectedLayout({
     .single()
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#F2F4F9' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--surface-page)' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         <Header user={profile} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="px-8 py-7">{children}</div>
+        <main style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ padding: '28px 32px' }}>{children}</div>
         </main>
       </div>
     </div>

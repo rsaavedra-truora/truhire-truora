@@ -64,7 +64,7 @@ export function CandidateStatusControl({
         <button
           onClick={() => changeStatus(nextStage)}
           disabled={isPending}
-          className="text-xs px-2.5 py-1.5 bg-[#0800FF] text-white rounded-lg hover:bg-[#0600CC] font-medium disabled:opacity-50 whitespace-nowrap"
+          className="text-xs px-2.5 py-1.5 bg-truora-primary text-white rounded-lg hover:bg-truora-primary-hover font-medium disabled:opacity-50 whitespace-nowrap"
         >
           {isPending ? '...' : NEXT_STAGE_LABEL[nextStage] ?? `→ ${nextStage}`}
         </button>

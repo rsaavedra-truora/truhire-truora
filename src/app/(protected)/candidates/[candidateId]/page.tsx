@@ -101,7 +101,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             {/* Avatar + nombre */}
             <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#0800FF] flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-truora-primary flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-sm">{initials}</span>
               </div>
               <div className="min-w-0">
@@ -134,7 +134,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
             <div className="space-y-2">
               {candidate.cv_url && (
                 <a href={candidate.cv_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-[#0800FF] hover:underline">
+                  className="flex items-center gap-2 text-sm text-truora-primary hover:underline">
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                   </svg>
@@ -143,7 +143,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
               )}
               {candidate.linkedin_url && (
                 <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-[#0800FF] hover:underline">
+                  className="flex items-center gap-2 text-sm text-truora-primary hover:underline">
                   <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                   </svg>
@@ -272,7 +272,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <Link href={`/processes/${proc?.id}/candidates/${pc.id}`}
-                            className="text-sm font-medium text-gray-900 hover:text-[#0800FF]">
+                            className="text-sm font-medium text-gray-900 hover:text-truora-primary">
                             {proc?.title ?? 'Proceso'}
                           </Link>
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -293,7 +293,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
                         </div>
                       </div>
                       <Link href={`/processes/${proc?.id}/candidates/${pc.id}`}
-                        className="mt-2 inline-block text-xs text-[#0800FF] hover:underline">
+                        className="mt-2 inline-block text-xs text-truora-primary hover:underline">
                         Ver en el proceso →
                       </Link>
                     </div>
@@ -319,7 +319,7 @@ export default async function CandidateProfilePage({ params }: { params: { candi
                     <div key={pc.id} className="px-5 py-3 flex items-center justify-between gap-4">
                       <div>
                         <Link href={`/processes/${proc?.id}/candidates/${pc.id}`}
-                          className="text-sm text-gray-600 hover:text-[#0800FF]">
+                          className="text-sm text-gray-600 hover:text-truora-primary">
                           {proc?.title ?? 'Proceso'}
                         </Link>
                         <p className="text-xs text-gray-400">

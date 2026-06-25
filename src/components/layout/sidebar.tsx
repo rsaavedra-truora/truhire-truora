@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Briefcase, ClipboardList,
-  BarChart2, Star, BookOpen, UsersRound,
+  BarChart2, Star, BookOpen, UsersRound, Settings,
 } from 'lucide-react'
 
 interface NavGroup { label?: string; items: NavItem[] }
@@ -13,7 +13,7 @@ interface NavItem { label: string; href: string; icon: React.ElementType }
 const NAV_GROUPS: NavGroup[] = [
   {
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'Resumen', href: '/dashboard', icon: LayoutDashboard },
     ],
   },
   {
@@ -37,113 +37,124 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Métricas', href: '/metrics', icon: BarChart2 },
     ],
   },
-  {
-    label: 'Administración',
-    items: [
-      { label: 'Directorio',     href: '/settings/directory',   icon: UsersRound },
-      { label: 'Calibración AI', href: '/settings/calibration', icon: BarChart2  },
-    ],
-  },
+]
+
+const SETTINGS_ITEMS: NavItem[] = [
+  { label: 'Directorio',     href: '/settings/directory',   icon: UsersRound },
+  { label: 'Calibración AI', href: '/settings/calibration', icon: Settings  },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
 
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href !== '/dashboard' && !href.includes('/settings') && pathname.startsWith(href + '/'))
+
+  const NavLink = ({ item }: { item: NavItem }) => {
+    const Icon = item.icon
+    const active = isActive(item.href)
+
+    return (
+      <Link
+        href={item.href}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '10px 12px',
+          borderRadius: 'var(--radius-sm)',
+          background: active ? 'var(--brand-subtle)' : 'transparent',
+          color: active ? 'var(--brand-active)' : 'var(--text-body)',
+          font: `${active ? 'var(--weight-medium)' : 'var(--weight-regular)'} 0.9375rem var(--font-sans)`,
+          textDecoration: 'none',
+          transition: 'background 120ms ease-out',
+        }}
+        onMouseEnter={(e) => {
+          if (!active) e.currentTarget.style.background = 'var(--surface-sunken)'
+        }}
+        onMouseLeave={(e) => {
+          if (!active) e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        <Icon
+          size={20}
+          style={{ color: active ? 'var(--brand)' : 'var(--text-muted)', flexShrink: 0 }}
+          strokeWidth={active ? 2 : 1.75}
+        />
+        {item.label}
+      </Link>
+    )
+  }
+
   return (
     <aside
-      className="w-56 flex-shrink-0 flex flex-col"
       style={{
-        background: 'var(--truora-bg)',
-        borderRight: '1px solid var(--truora-line)',
+        width: 244,
+        background: 'var(--surface-card)',
+        borderRight: '1px solid var(--border-subtle)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        height: '100%',
       }}
     >
       {/* Logo */}
-      <Link
-        href="/dashboard"
-        className="h-14 flex items-center px-5 flex-shrink-0"
-        style={{ borderBottom: '1px solid var(--truora-line)' }}
-      >
-        <div className="flex items-center gap-2">
+      <div style={{ padding: '20px 18px 16px' }}>
+        <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <img
             src="/logo-truora.png"
             alt="Truora"
-            className="h-5 w-auto"
+            style={{ height: 26 }}
             onError={(e) => {
               const t = e.target as HTMLImageElement
               t.style.display = 'none'
-              const fb = t.nextElementSibling as HTMLElement
-              if (fb) fb.style.display = 'flex'
             }}
           />
-          <div
-            className="hidden w-6 h-6 rounded-md items-center justify-center flex-shrink-0"
-            style={{ background: 'var(--truora-primary)' }}
-          >
-            <span className="text-white font-bold text-xs">T</span>
-          </div>
           <span
-            className="text-xs font-bold tracking-widest"
-            style={{ color: 'var(--truora-primary)' }}
+            style={{
+              font: 'var(--weight-medium) 0.6875rem var(--font-sans)',
+              letterSpacing: '0.12em',
+              color: 'var(--brand)',
+            }}
           >
             HIRE
           </span>
-        </div>
-      </Link>
+        </Link>
+      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+      {/* Main Nav */}
+      <nav style={{ padding: '6px 12px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto' }}>
         {NAV_GROUPS.map((group, gi) => (
-          <div key={gi}>
+          <div key={gi} style={{ marginBottom: group.label ? 16 : 0 }}>
             {group.label && (
               <p
-                className="px-2.5 mb-1.5 text-[10px] font-semibold tracking-widest uppercase"
-                style={{ color: 'var(--truora-ink-subtle)' }}
+                style={{
+                  padding: '8px 12px 6px',
+                  margin: 0,
+                  font: 'var(--weight-medium) 0.6875rem var(--font-sans)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-subtle)',
+                }}
               >
                 {group.label}
               </p>
             )}
-            <div className="space-y-0.5">
-              {group.items.map(item => {
-                const Icon = item.icon
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== '/dashboard' &&
-                   !item.href.includes('/settings') &&
-                   pathname.startsWith(item.href + '/'))
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
-                      isActive
-                        ? 'bg-truora-primary-soft text-truora-primary font-semibold'
-                        : 'text-truora-ink-muted hover:bg-truora-bg-soft hover:text-truora-ink'
-                    }`}
-                  >
-                    <Icon
-                      size={15}
-                      className="flex-shrink-0"
-                      style={{ color: isActive ? 'var(--truora-primary)' : 'var(--truora-ink-subtle)' }}
-                      strokeWidth={isActive ? 2 : 1.75}
-                    />
-                    {item.label}
-                  </Link>
-                )
-              })}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {group.items.map(item => (
+                <NavLink key={item.href} item={item} />
+              ))}
             </div>
           </div>
         ))}
       </nav>
 
-      {/* Footer */}
-      <div
-        className="px-5 py-3"
-        style={{ borderTop: '1px solid var(--truora-line)' }}
-      >
-        <p className="text-xs" style={{ color: 'var(--truora-ink-subtle)' }}>
-          TruHire v1.0
-        </p>
+      {/* Settings */}
+      <div style={{ padding: 12, borderTop: '1px solid var(--border-subtle)' }}>
+        {SETTINGS_ITEMS.map(item => (
+          <NavLink key={item.href} item={item} />
+        ))}
       </div>
     </aside>
   )

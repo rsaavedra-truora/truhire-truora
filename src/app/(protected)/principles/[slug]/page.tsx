@@ -127,7 +127,7 @@ export default function PrincipleDetailPage({ params }: { params: { slug: string
                   <div className="mt-2 space-y-1">
                     {q.followups.map((f, j) => (
                       <p key={j} className="text-xs text-gray-500 flex gap-1.5">
-                        <span className="text-[#0800FF] flex-shrink-0">↳</span>
+                        <span className="text-truora-primary flex-shrink-0">↳</span>
                         {f}
                       </p>
                     ))}

@@ -107,7 +107,7 @@ export function CandidateEditPanel({ candidate }: Props) {
       <div className="flex gap-2 pt-2 border-t border-gray-100">
         <button
           onClick={() => { setShowEdit(true); setShowDelete(false) }}
-          className="flex-1 text-xs font-medium px-3 py-2 border border-gray-200 rounded-lg text-gray-600 hover:border-[#0800FF] hover:text-[#0800FF] transition-colors"
+          className="flex-1 text-xs font-medium px-3 py-2 border border-gray-200 rounded-lg text-gray-600 hover:border-truora-primary hover:text-truora-primary transition-colors"
         >
           Editar perfil
         </button>
@@ -136,7 +136,7 @@ export function CandidateEditPanel({ candidate }: Props) {
             <input
               value={form.full_name}
               onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-truora-primary"
             />
           </div>
 
@@ -146,7 +146,7 @@ export function CandidateEditPanel({ candidate }: Props) {
               type="email"
               value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-truora-primary"
             />
           </div>
 
@@ -156,7 +156,7 @@ export function CandidateEditPanel({ candidate }: Props) {
               value={form.linkedin_url}
               onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))}
               placeholder="https://linkedin.com/in/..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0800FF]"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-truora-primary"
             />
           </div>
 
@@ -175,7 +175,7 @@ export function CandidateEditPanel({ candidate }: Props) {
                 if (f?.type === 'application/pdf') setCvFile(f)
               }}
               className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-colors ${
-                isDragging ? 'border-[#0800FF] bg-[#E8E7FF]'
+                isDragging ? 'border-truora-primary bg-truora-primary-soft'
                 : cvFile ? 'border-green-400 bg-green-50'
                 : 'border-gray-200 hover:border-gray-300'
               }`}
@@ -188,7 +188,7 @@ export function CandidateEditPanel({ candidate }: Props) {
                 </div>
               ) : (
                 <p className="text-xs text-gray-500">
-                  <span className="text-[#0800FF] font-medium">Arrastra el PDF</span> o haz clic
+                  <span className="text-truora-primary font-medium">Arrastra el PDF</span> o haz clic
                 </p>
               )}
             </div>
@@ -196,7 +196,7 @@ export function CandidateEditPanel({ candidate }: Props) {
               onChange={e => { const f = e.target.files?.[0]; if (f) setCvFile(f); e.target.value = '' }} />
             {candidate.cv_url && !cvFile && (
               <a href={candidate.cv_url} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-[#0800FF] hover:underline mt-1 inline-block">
+                className="text-xs text-truora-primary hover:underline mt-1 inline-block">
                 Ver CV actual →
               </a>
             )}

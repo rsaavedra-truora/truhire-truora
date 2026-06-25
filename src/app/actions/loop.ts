@@ -117,23 +117,23 @@ export async function createLoop(formData: FormData) {
       to: email,
       subject: `Tienes una entrevista asignada — ${(pc.process as any)?.title}`,
       html: `
-<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
+<div style="font-family: 'Host Grotesk', system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #01022E;">
   <div style="margin-bottom: 24px;">
-    <div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
+    <div style="width: 32px; height: 32px; background: #3C1AEA; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
       <span style="color: white; font-weight: 700; font-size: 14px;">T</span>
     </div>
   </div>
   <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">Hola ${interviewerName.split(' ')[0]},</h1>
   <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 16px;">
     Quedaste asignado como entrevistador en el proceso de
-    <strong style="color: #0B1020;">${(pc.process as any)?.title}</strong>.
+    <strong style="color: #01022E;">${(pc.process as any)?.title}</strong>.
     Tu evaluación cubre los principios asignados específicamente para ti.
   </p>
   <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
     Ingresa a TruHire con tu cuenta corporativa (Google Workspace) para ver tu entrevista:
   </p>
   <a href="${interviewUrl}"
-     style="display: inline-block; background: #0800FF; color: white; text-decoration: none;
+     style="display: inline-block; background: #3C1AEA; color: white; text-decoration: none;
             padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">
     Ver mi entrevista →
   </a>
@@ -166,22 +166,22 @@ export async function createLoop(formData: FormData) {
       to: brContactEmail,
       subject: `Fuiste asignado como Bar Raiser — ${(pc.process as any)?.title}`,
       html: `
-<div style="font-family: Inter, system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #0B1020;">
+<div style="font-family: 'Host Grotesk', system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #01022E;">
   <div style="margin-bottom: 24px;">
-    <div style="width: 32px; height: 32px; background: #0800FF; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
+    <div style="width: 32px; height: 32px; background: #3C1AEA; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;">
       <span style="color: white; font-weight: 700; font-size: 14px;">T</span>
     </div>
   </div>
   <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">Hola ${brName.split(' ')[0]},</h1>
   <p style="font-size: 15px; color: #4A5374; line-height: 1.6; margin: 0 0 16px;">
-    Fuiste asignado como <strong style="color: #0B1020;">Bar Raiser</strong> en el proceso de
-    <strong style="color: #0B1020;">${(pc.process as any)?.title}</strong>.
+    Fuiste asignado como <strong style="color: #01022E;">Bar Raiser</strong> en el proceso de
+    <strong style="color: #01022E;">${(pc.process as any)?.title}</strong>.
   </p>
   <p style="font-size: 14px; color: #4A5374; line-height: 1.6; margin: 0 0 24px;">
     Una vez que los entrevistadores completen sus evaluaciones, podrás acceder al debrief y tomar la decisión final.
     Tu identidad como Bar Raiser es confidencial.
   </p>
-  <a href="${debriefUrl}" style="display: inline-block; background: #0800FF; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">
+  <a href="${debriefUrl}" style="display: inline-block; background: #3C1AEA; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 15px;">
     Ver debrief →
   </a>
   <p style="font-size: 13px; color: #8892A6; margin-top: 32px;">— TruHire · Truora</p>

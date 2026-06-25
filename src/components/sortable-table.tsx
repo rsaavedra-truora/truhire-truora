@@ -95,7 +95,7 @@ export function SortableTable<T>({ data, columns, emptyMessage = 'Sin datos.', r
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar..."
-                className="pl-7 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#0800FF] focus:border-[#0800FF] w-48"
+                className="pl-7 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-truora-primary focus:border-truora-primary w-48"
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -111,9 +111,9 @@ export function SortableTable<T>({ data, columns, emptyMessage = 'Sin datos.', r
               <select
                 value={filters[col.key] ?? ''}
                 onChange={e => setFilter(col.key, e.target.value)}
-                className={`text-xs border rounded-lg px-3 py-1.5 pr-7 focus:outline-none focus:ring-1 focus:ring-[#0800FF] appearance-none cursor-pointer ${
+                className={`text-xs border rounded-lg px-3 py-1.5 pr-7 focus:outline-none focus:ring-1 focus:ring-truora-primary appearance-none cursor-pointer ${
                   filters[col.key]
-                    ? 'border-[#0800FF] bg-[#E5E4FF] text-[#0800FF] font-medium'
+                    ? 'border-truora-primary bg-truora-primary-soft text-truora-primary font-medium'
                     : 'border-gray-200 bg-white text-gray-600'
                 }`}
               >
@@ -155,7 +155,7 @@ export function SortableTable<T>({ data, columns, emptyMessage = 'Sin datos.', r
                     style={{ letterSpacing: '0.06em' }}
                   >
                     {col.label}
-                    <span className={`transition-colors ${sortKey === col.key ? 'text-[#0800FF]' : 'text-gray-300 group-hover:text-gray-500'}`}>
+                    <span className={`transition-colors ${sortKey === col.key ? 'text-truora-primary' : 'text-gray-300 group-hover:text-gray-500'}`}>
                       {sortKey === col.key
                         ? sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
                         : <ChevronsUpDown size={12} />

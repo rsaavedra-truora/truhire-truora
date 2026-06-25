@@ -1,0 +1,60 @@
+/* ============================================================
+   Truora — Typography tokens
+   Brand typeface: HOST GROTESK (from the brand manual).
+   H1/H2 → Host Grotesk Medium · body → Host Grotesk Light.
+   Manual specs: H1 80/80 (100%) · H2 46/50 (109%) ·
+   Cita 27/30 (111%) · Cuerpo grande 24/29 (121%) · Cuerpo 18/22 (122%).
+   Code / API: JetBrains Mono.
+   ============================================================ */
+
+:root {
+  /* ---- Families ---- */
+  --font-sans: 'Host Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Host Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- Weights (headings = medium, body = light/regular) ---- */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---- Type scale ---- */
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.875rem;  /* 14px */
+  --text-base: 1rem;      /* 16px — product UI body */
+  --text-md:   1.125rem;  /* 18px — marketing body ("Cuerpo") */
+  --text-lg:   1.5rem;    /* 24px — "Cuerpo grande" */
+  --text-xl:   1.6875rem; /* 27px — "Cita destacada" */
+  --text-2xl:  2.25rem;   /* 36px */
+  --text-3xl:  2.875rem;  /* 46px — "H2" */
+  --text-4xl:  3.75rem;   /* 60px */
+  --text-5xl:  5rem;      /* 80px — "H1" */
+
+  /* ---- Line heights (per manual ratios) ---- */
+  --leading-tight: 1;       /* H1 80/80 */
+  --leading-snug: 1.09;     /* H2 46/50 */
+  --leading-quote: 1.11;    /* cita 27/30 */
+  --leading-normal: 1.22;   /* cuerpo 18/22 */
+  --leading-relaxed: 1.5;   /* long-form reading */
+
+  /* ---- Letter spacing (Host Grotesk sets naturally; keep near-zero) ---- */
+  --tracking-tight: -0.01em;
+  --tracking-snug: -0.005em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.08em;
+
+  /* ---- Composite roles ---- */
+  --display-font: var(--weight-medium) var(--text-5xl)/var(--leading-tight) var(--font-display);
+  --h1-font: var(--weight-medium) var(--text-3xl)/var(--leading-snug) var(--font-display);
+  --h2-font: var(--weight-medium) var(--text-2xl)/1.12 var(--font-display);
+  --h3-font: var(--weight-medium) var(--text-xl)/1.15 var(--font-display);
+  --quote-font: var(--weight-light) var(--text-xl)/var(--leading-quote) var(--font-sans);
+  --lead-font: var(--weight-light) var(--text-lg)/1.21 var(--font-sans);
+  --body-font: var(--weight-regular) var(--text-base)/var(--leading-relaxed) var(--font-sans);
+  --body-light-font: var(--weight-light) var(--text-md)/var(--leading-normal) var(--font-sans);
+  --small-font: var(--weight-regular) var(--text-sm)/1.45 var(--font-sans);
+  --overline-font: var(--weight-semibold) var(--text-xs)/1.5 var(--font-sans);
+}

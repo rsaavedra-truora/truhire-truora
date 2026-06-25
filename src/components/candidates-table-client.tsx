@@ -41,7 +41,7 @@ export function CandidatesTableClient({ candidates }: { candidates: CandidateRow
         const url = getProfileUrl(r)
         return (
           <div>
-            <Link href={url} className="font-semibold text-gray-900 hover:text-[#0800FF] transition-colors text-sm" onClick={e => e.stopPropagation()}>
+            <Link href={url} className="font-semibold text-gray-900 hover:text-truora-primary transition-colors text-sm" onClick={e => e.stopPropagation()}>
               {r.full_name}
             </Link>
             <div className="flex items-center gap-2 mt-0.5">
@@ -49,7 +49,7 @@ export function CandidatesTableClient({ candidates }: { candidates: CandidateRow
               {r.linkedin_url && (
                 <a href={r.linkedin_url} target="_blank" rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  className="text-xs text-[#0800FF] hover:underline font-medium">LinkedIn</a>
+                  className="text-xs text-truora-primary hover:underline font-medium">LinkedIn</a>
               )}
             </div>
           </div>
@@ -64,7 +64,7 @@ export function CandidatesTableClient({ candidates }: { candidates: CandidateRow
           {r.process_candidates.map(pc => pc.process ? (
             <Link key={pc.id} href={`/processes/${pc.process.id}/candidates/${pc.id}`}
               onClick={e => e.stopPropagation()}
-              className="text-xs px-2 py-0.5 rounded-full border border-gray-200 text-gray-600 hover:border-[#0800FF] hover:text-[#0800FF] transition-colors bg-white">
+              className="text-xs px-2 py-0.5 rounded-full border border-gray-200 text-gray-600 hover:border-truora-primary hover:text-truora-primary transition-colors bg-white">
               {pc.process.title}
             </Link>
           ) : null)}

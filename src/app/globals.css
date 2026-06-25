@@ -2,65 +2,209 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ============================================================
+   Truora Design System — Atelier
+   Source: brand manual + .claude/skills/atelier/
+   Font: Host Grotesk (self-hosted)
+   CTAs: Naranja #EE792F
+   Brand: Azul violeta #3C1AEA
+   ============================================================ */
 
-/* ─── Truora Design System — CSS Variables ─────────────────────────────── */
-:root {
-  /* Primary */
-  --truora-primary:        #0800FF;
-  --truora-primary-hover:  #0600CC;
-  --truora-primary-active: #050099;
-  --truora-primary-soft:   #E5E4FF;
-
-  /* Ink (texto) */
-  --truora-ink:        #0B1020;
-  --truora-ink-muted:  #4A5374;
-  --truora-ink-subtle: #8892A6;
-
-  /* Superficies */
-  --truora-line:       #E1E5EE;
-  --truora-bg:         #FFFFFF;
-  --truora-bg-soft:    #F7F8FB;
-  --truora-bg-canvas:  #F2F4F9;
-
-  /* Semánticos */
-  --truora-success: #10B981;
-  --truora-warning: #F59E0B;
-  --truora-danger:  #EF4444;
-
-  /* Radios */
-  --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-xl:   16px;
-  --radius-full: 9999px;
-
-  /* shadcn compat */
-  --background:           0 0% 100%;
-  --foreground:           228 47% 10%;
-  --card:                 0 0% 100%;
-  --card-foreground:      228 47% 10%;
-  --popover:              0 0% 100%;
-  --popover-foreground:   228 47% 10%;
-  --primary:              241 100% 50%;
-  --primary-foreground:   0 0% 100%;
-  --secondary:            220 14% 96%;
-  --secondary-foreground: 228 47% 10%;
-  --muted:                220 14% 96%;
-  --muted-foreground:     215 16% 47%;
-  --accent:               220 14% 96%;
-  --accent-foreground:    228 47% 10%;
-  --destructive:          0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border:               219 22% 90%;
-  --input:                219 22% 90%;
-  --ring:                 241 100% 50%;
-  --radius:               0.5rem;
+/* ─── Web Fonts (self-hosted) ───────────────────────────────── */
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/HostGrotesk-300.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/HostGrotesk-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Host Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/HostGrotesk-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-400.woff2') format('woff2');
 }
 
-/* ─── Base ──────────────────────────────────────────────────────────────── */
+/* ─── Atelier CSS Variables ─────────────────────────────────── */
+:root {
+  /* Azul violeta scale (primary) */
+  --violet-50:  #ECE9FD;
+  --violet-100: #D8D1FB;
+  --violet-200: #B1A4F7;
+  --violet-300: #8A76F2;
+  --violet-400: #6348EE;
+  --violet-500: #3C1AEA;
+  --violet-600: #3415CC;
+  --violet-700: #2B11A8;
+  --violet-800: #200C7E;
+  --violet-900: #150853;
+
+  /* Neutral / midnight scale */
+  --neutral-0:   #FFFFFF;
+  --neutral-25:  #FAFBFF;
+  --neutral-50:  #F4F5FB;
+  --neutral-100: #E9EAF4;
+  --neutral-200: #D8DAE9;
+  --neutral-300: #BEC1D6;
+  --neutral-400: #9598B3;
+  --neutral-500: #6B6E8C;
+  --neutral-600: #4B4D6B;
+  --neutral-700: #32334E;
+  --neutral-800: #15163B;
+  --neutral-900: #01022E;
+
+  /* Naranja (CTA / alert) */
+  --orange-50:  #FDEFE4;
+  --orange-100: #FBDFC9;
+  --orange-300: #F5AC75;
+  --orange-500: #EE792F;
+  --orange-600: #D96518;
+  --orange-700: #B05011;
+
+  /* Azul claro */
+  --lightblue-50:  #EBF6FD;
+  --lightblue-100: #D7EDFB;
+  --lightblue-300: #9BD2F3;
+  --lightblue-600: #2E84C0;
+  --lightblue-700: #20618F;
+
+  /* Semantic */
+  --success-50:  #E6F8EF;
+  --success-500: #15A66A;
+  --success-600: #0E8957;
+  --success-700: #0A6B45;
+
+  --danger-50:  #FDEAEA;
+  --danger-500: #E5484D;
+  --danger-600: #C8353B;
+  --danger-700: #9F262C;
+
+  /* WhatsApp */
+  --whatsapp-500: #25D366;
+  --whatsapp-050: #E7FBEF;
+
+  /* ── Semantic aliases ── */
+  --brand:          var(--violet-500);
+  --brand-hover:    var(--violet-600);
+  --brand-active:   var(--violet-700);
+  --brand-subtle:   var(--violet-50);
+  --on-brand:       #FFFFFF;
+
+  --cta:            var(--orange-500);
+  --cta-hover:      var(--orange-600);
+  --cta-active:     var(--orange-700);
+  --cta-subtle:     var(--orange-50);
+  --on-cta:         #FFFFFF;
+
+  --midnight:       var(--neutral-900);
+  --on-midnight:    var(--neutral-25);
+
+  --text-strong:    var(--neutral-900);
+  --text-body:      var(--neutral-700);
+  --text-muted:     var(--neutral-500);
+  --text-subtle:    var(--neutral-400);
+  --text-link:      var(--violet-500);
+
+  --surface-page:   var(--neutral-25);
+  --surface-card:   var(--neutral-0);
+  --surface-sunken: var(--neutral-50);
+
+  --border-subtle:  var(--neutral-200);
+  --border-default: var(--neutral-300);
+  --border-strong:  var(--neutral-400);
+  --border-brand:   var(--violet-500);
+  --focus-ring:     color-mix(in srgb, var(--violet-500) 45%, transparent);
+
+  /* ── Radii ── */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-pill: 999px;
+
+  /* ── Shadows (cool, midnight-tinted — no glows) ── */
+  --shadow-xs: 0 1px 2px rgba(1, 2, 46, 0.06);
+  --shadow-sm: 0 2px 6px rgba(1, 2, 46, 0.07);
+  --shadow-md: 0 6px 18px rgba(1, 2, 46, 0.08);
+  --shadow-lg: 0 16px 40px rgba(1, 2, 46, 0.10);
+
+  /* ── Glass Effect ── */
+  --glass-fill:        rgba(250, 251, 255, 0.08);
+  --glass-fill-frost:  rgba(250, 251, 255, 0.55);
+  --glass-fill-light:  rgba(60, 26, 234, 0.05);
+  --glass-border:      rgba(255, 255, 255, 0.45);
+  --glass-border-frost:rgba(255, 255, 255, 0.70);
+  --glass-border-light:rgba(1, 2, 46, 0.10);
+  --glass-blur:        5px;
+  --glass-radius:      20px;
+
+  /* ── Typography ── */
+  --font-sans:    'Host Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Host Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+
+  /* ── Legacy truora-* aliases (backward compat) ── */
+  --truora-primary:        var(--brand);
+  --truora-primary-hover:  var(--brand-hover);
+  --truora-primary-active: var(--brand-active);
+  --truora-primary-soft:   var(--brand-subtle);
+  --truora-ink:            var(--text-strong);
+  --truora-ink-muted:      var(--text-muted);
+  --truora-ink-subtle:     var(--text-subtle);
+  --truora-line:           var(--border-subtle);
+  --truora-bg:             var(--surface-card);
+  --truora-bg-soft:        var(--surface-sunken);
+  --truora-bg-canvas:      var(--surface-page);
+  --truora-success:        var(--success-500);
+  --truora-warning:        var(--orange-500);
+  --truora-danger:         var(--danger-500);
+
+  /* ── shadcn compat (HSL) ── */
+  --background:           250 100% 99%;
+  --foreground:           237 95% 9%;
+  --card:                 0 0% 100%;
+  --card-foreground:      237 95% 9%;
+  --popover:              0 0% 100%;
+  --popover-foreground:   237 95% 9%;
+  --primary:              250 87% 51%;
+  --primary-foreground:   0 0% 100%;
+  --secondary:            240 33% 97%;
+  --secondary-foreground: 237 95% 9%;
+  --muted:                240 33% 97%;
+  --muted-foreground:     235 12% 49%;
+  --accent:               240 33% 97%;
+  --accent-foreground:    237 95% 9%;
+  --destructive:          358 75% 59%;
+  --destructive-foreground: 0 0% 100%;
+  --border:               237 20% 88%;
+  --input:                237 20% 88%;
+  --ring:                 250 87% 51%;
+  --radius:               0.875rem;
+}
+
+/* ─── Base ──────────────────────────────────────────────────── */
 @layer base {
-  * {
+  *, *::before, *::after {
     @apply border-border;
     box-sizing: border-box;
   }
@@ -71,173 +215,231 @@
   }
 
   body {
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    color: var(--truora-ink);
-    background: var(--truora-bg-canvas);
+    font-family: var(--font-sans);
+    font-weight: var(--weight-regular);
+    color: var(--text-body);
+    background: var(--surface-page);
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    color: var(--truora-ink);
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
     line-height: 1.2;
   }
 
-  /* Scrollbar sutil */
+  a { color: var(--text-link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code, kbd, samp, pre { font-family: var(--font-mono); }
+
+  ::selection { background: var(--violet-100); color: var(--neutral-900); }
+
   ::-webkit-scrollbar        { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track  { background: transparent; }
-  ::-webkit-scrollbar-thumb  { background: var(--truora-line); border-radius: var(--radius-full); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--truora-ink-subtle); }
+  ::-webkit-scrollbar-thumb  { background: var(--border-subtle); border-radius: var(--radius-pill); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
 }
 
-/* ─── Components ─────────────────────────────────────────────────────────── */
+/* ─── Components ─────────────────────────────────────────────── */
 @layer components {
 
-  /* ── CTA primario ───────────────────────────────────────────────────── */
+  /* ── CTA primario (NARANJA) ───────────────────────────────── */
   .btn-truora {
     @apply inline-flex items-center justify-center gap-2
-           px-5 py-2.5 rounded-lg
-           text-white font-semibold text-sm
+           px-5 py-2.5
+           text-white font-medium text-sm
            transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           focus-visible:outline-none
            disabled:opacity-50 disabled:cursor-not-allowed;
-    background: var(--truora-primary);
-    box-shadow: 0 1px 2px rgba(8, 0, 255, 0.12);
-    --tw-ring-color: var(--truora-primary);
+    background: var(--cta);
+    border-radius: var(--radius-pill);
   }
-  .btn-truora:hover:not(:disabled)  { background: var(--truora-primary-hover); }
-  .btn-truora:active:not(:disabled) { background: var(--truora-primary-active); }
+  .btn-truora:hover:not(:disabled)  { background: var(--cta-hover); }
+  .btn-truora:active:not(:disabled) { background: var(--cta-active); }
+  .btn-truora:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
 
-  /* ── Botón secundario ──────────────────────────────────────────────── */
+  /* ── Botón secundario (violeta outline) ───────────────────── */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           px-5 py-2.5 rounded-lg
+           px-5 py-2.5
            font-medium text-sm
            transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           focus-visible:outline-none
            disabled:opacity-50 disabled:cursor-not-allowed;
-    color: var(--truora-primary);
-    border: 1.5px solid var(--truora-primary);
+    color: var(--brand);
+    border: 1.5px solid var(--brand);
+    border-radius: var(--radius-pill);
     background: transparent;
-    --tw-ring-color: var(--truora-primary);
   }
-  .btn-secondary:hover:not(:disabled) { background: var(--truora-primary-soft); }
+  .btn-secondary:hover:not(:disabled) { background: var(--brand-subtle); }
+  .btn-secondary:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
 
-  /* ── Botón ghost ───────────────────────────────────────────────────── */
+  /* ── Botón ghost ──────────────────────────────────────────── */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2
-           px-4 py-2 rounded-lg
+           px-4 py-2
            font-medium text-sm
            transition-colors duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
-    color: var(--truora-ink-muted);
+    color: var(--text-muted);
+    border-radius: var(--radius-pill);
     background: transparent;
   }
   .btn-ghost:hover:not(:disabled) {
-    background: var(--truora-bg-soft);
-    color: var(--truora-ink);
+    background: var(--surface-sunken);
+    color: var(--text-strong);
   }
 
-  /* ── Cards ──────────────────────────────────────────────────────────── */
+  /* ── Cards ────────────────────────────────────────────────── */
   .card {
-    background: var(--truora-bg);
-    border: 1px solid var(--truora-line);
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    box-shadow: 0 1px 2px rgba(11, 16, 32, 0.04);
+    box-shadow: var(--shadow-xs);
   }
   .card-hover {
     @apply transition-all duration-150;
   }
   .card-hover:hover {
-    border-color: var(--truora-primary);
-    box-shadow: 0 4px 16px rgba(11, 16, 32, 0.08);
+    border-color: var(--brand);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
-  /* ── Inputs ─────────────────────────────────────────────────────────── */
+  /* ── Glass Effect ─────────────────────────────────────────── */
+  .tru-glass {
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+  .tru-glass-frost {
+    background: var(--glass-fill-frost);
+    border: 1px solid var(--glass-border-frost);
+    border-radius: var(--glass-radius);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    color: var(--text-strong);
+  }
+  .tru-glass-light {
+    background: var(--glass-fill-light);
+    border: 1px solid var(--glass-border-light);
+    border-radius: var(--glass-radius);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  /* ── Inputs ───────────────────────────────────────────────── */
   .input-truora {
-    @apply w-full px-3.5 py-2.5 rounded-lg text-sm
+    @apply w-full px-3.5 py-2.5 text-sm
            transition-all duration-150
            focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
     height: 44px;
-    color: var(--truora-ink);
-    background: var(--truora-bg);
-    border: 1px solid var(--truora-line);
+    color: var(--text-strong);
+    background: var(--surface-card);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
   }
-  .input-truora::placeholder     { color: var(--truora-ink-subtle); }
-  .input-truora:hover             { border-color: var(--truora-ink-muted); }
-  .input-truora:focus-visible     {
-    border-color: var(--truora-primary);
-    box-shadow: 0 0 0 3px rgba(8, 0, 255, 0.12);
+  .input-truora::placeholder { color: var(--text-subtle); }
+  .input-truora:hover        { border-color: var(--border-default); }
+  .input-truora:focus-visible {
+    border-color: var(--brand);
   }
 
-  /* ── Tablas de datos ────────────────────────────────────────────────── */
+  /* ── Tablas de datos ──────────────────────────────────────── */
   .data-table {
     @apply w-full text-sm;
     border-collapse: collapse;
   }
   .data-table thead tr {
-    background: var(--truora-bg-soft);
-    border-bottom: 1px solid var(--truora-line);
+    background: var(--surface-sunken);
+    border-bottom: 1px solid var(--border-subtle);
   }
   .data-table thead th {
-    @apply text-left px-5 py-3 font-semibold;
-    font-size: 0.8125rem;     /* 13px */
-    color: var(--truora-ink-muted);
-    /* ❌ NO uppercase — design system says text-transform: none */
+    @apply text-left px-5 py-3 font-medium;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
   }
   .data-table tbody tr {
-    border-bottom: 1px solid var(--truora-bg-soft);
+    border-bottom: 1px solid var(--surface-sunken);
     transition: background 100ms;
   }
-  .data-table tbody tr:last-child  { border-bottom: 0; }
-  .data-table tbody tr:hover       { background: var(--truora-bg-soft); }
-  .data-table tbody td             { @apply px-5 py-3.5; color: var(--truora-ink); }
+  .data-table tbody tr:last-child { border-bottom: 0; }
+  .data-table tbody tr:hover      { background: var(--surface-sunken); }
+  .data-table tbody td            { @apply px-5 py-3.5; color: var(--text-strong); }
 
-  /* ── Badges / Pills ─────────────────────────────────────────────────── */
+  /* ── Badges / Pills ───────────────────────────────────────── */
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-medium;
+    border-radius: var(--radius-pill);
   }
-  .badge-primary  { background: var(--truora-primary-soft); color: var(--truora-primary); }
-  .badge-success  { background: #D1FAE5; color: #065F46; }
-  .badge-warning  { background: #FEF3C7; color: #92400E; }
-  .badge-danger   { background: #FEE2E2; color: #991B1B; }
-  .badge-neutral  { background: var(--truora-bg-canvas); color: var(--truora-ink-muted); }
+  .badge-primary { background: var(--brand-subtle); color: var(--brand); }
+  .badge-success { background: var(--success-50); color: var(--success-700); }
+  .badge-warning { background: var(--orange-50); color: var(--orange-700); }
+  .badge-danger  { background: var(--danger-50); color: var(--danger-700); }
+  .badge-neutral { background: var(--surface-sunken); color: var(--text-muted); }
+  .badge-info    { background: var(--lightblue-50); color: var(--lightblue-700); }
 
   /* Legacy screening badges */
   .badge-green  { @apply badge badge-success; }
   .badge-yellow { @apply badge badge-warning; }
   .badge-red    { @apply badge badge-danger; }
 
-  /* ── Page header ────────────────────────────────────────────────────── */
+  /* ── Page header ──────────────────────────────────────────── */
   .page-header h1 {
-    font-size: 1.375rem;   /* 22px */
-    font-weight: 700;
-    color: var(--truora-ink);
-    letter-spacing: -0.02em;
+    font-size: 1.375rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
   }
   .page-header p {
     font-size: 0.875rem;
-    color: var(--truora-ink-muted);
+    color: var(--text-muted);
     margin-top: 2px;
   }
 
-  /* ── Stat / metric card ─────────────────────────────────────────────── */
+  /* ── Stat / metric card ───────────────────────────────────── */
   .metric-card {
     @apply card p-5 flex flex-col gap-1;
   }
   .metric-card-label {
     font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--truora-ink-muted);
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
   .metric-card-value {
     font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--truora-ink);
+    font-weight: var(--weight-medium);
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
     line-height: 1;
+  }
+
+  /* ── Overline / eyebrow ───────────────────────────────────── */
+  .tru-overline {
+    font-size: 0.75rem;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  /* ── Focus visibility ─────────────────────────────────────── */
+  :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
   }
 }

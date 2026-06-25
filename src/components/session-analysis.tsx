@@ -131,7 +131,7 @@ export function SessionAnalysisUploader({ loopId, processCandidateId, type, exis
                     value={driveUrl}
                     onChange={e => setDriveUrl(e.target.value)}
                     placeholder="https://drive.google.com/file/d/..."
-                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0800FF]"
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-truora-primary"
                     onKeyDown={e => e.key === 'Enter' && handleLink()}
                   />
                 </div>
@@ -155,13 +155,13 @@ export function SessionAnalysisUploader({ loopId, processCandidateId, type, exis
                 onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false) }}
                 onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
                 className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  isDragging ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
-                  : 'border-gray-300 hover:border-[#0800FF] hover:bg-gray-50'
+                  isDragging ? 'border-truora-primary bg-truora-primary-soft cursor-copy'
+                  : 'border-gray-300 hover:border-truora-primary hover:bg-gray-50'
                 }`}
               >
                 <Upload size={24} className="mx-auto mb-2 text-gray-400" />
                 <p className="text-sm text-gray-600">
-                  <span className="text-[#0800FF] font-medium">Arrastra el video</span> o haz clic
+                  <span className="text-truora-primary font-medium">Arrastra el video</span> o haz clic
                 </p>
                 <p className="text-xs text-gray-400 mt-1">MP4, MOV, WebM · Máximo 500MB</p>
               </div>
@@ -182,7 +182,7 @@ export function SessionAnalysisUploader({ loopId, processCandidateId, type, exis
       {state === 'analyzing' && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
-            <Loader size={18} className="text-[#0800FF] animate-spin flex-shrink-0" />
+            <Loader size={18} className="text-truora-primary animate-spin flex-shrink-0" />
             <p className="text-sm font-medium text-blue-900">Gemini analizando la sesión</p>
           </div>
           <p className="text-xs text-blue-700 ml-7">
@@ -254,7 +254,7 @@ export function SessionAnalysisUploader({ loopId, processCandidateId, type, exis
 
           {/* Impresión general */}
           {analysis.overall_impression && (
-            <div className="bg-[#0B1020] rounded-xl p-4">
+            <div className="bg-truora-ink rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Impresión general</p>
               <p className="text-sm text-white leading-relaxed">{analysis.overall_impression}</p>
             </div>
@@ -270,7 +270,7 @@ export function SessionAnalysisUploader({ loopId, processCandidateId, type, exis
                 return (
                   <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E8E7FF] text-[#0800FF]">{po.principle_name}</span>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-truora-primary-soft text-truora-primary">{po.principle_name}</span>
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: conf.bg, color: conf.color }}>
                         {po.evidence_quality?.replace(/_/g, ' ')}
                       </span>

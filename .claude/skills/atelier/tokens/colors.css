@@ -1,0 +1,160 @@
+/* ============================================================
+   Truora — Color tokens
+   Source: brand manual "Una jerarquía visual perfecta" +
+   "Porcentaje y uso del color" (40/30/15/10/5).
+
+   Blanco          #FAFBFF  40%  base, backgrounds, negative space
+   Azul violeta    #3C1AEA  30%  the Truora color — titles, key elements
+   Azul medianoche #01022E  15%  contrast — dark backgrounds & text
+   Naranja         #EE792F  10%  CTAs, alerts, primary highlights
+   Azul claro      #9BD2F3   5%  secondary backgrounds, details, info
+
+   GOLDEN RULE: cero degradados — solid colors only. Depth comes
+   from the Glass Effect, never from gradients.
+   ============================================================ */
+
+:root {
+  /* ---- Azul violeta scale (primary) ---- */
+  --violet-50:  #ECE9FD;
+  --violet-100: #D8D1FB;
+  --violet-200: #B1A4F7;
+  --violet-300: #8A76F2;
+  --violet-400: #6348EE;
+  --violet-500: #3C1AEA;  /* ← Azul violeta (brand manual #3C1AEA) */
+  --violet-600: #3415CC;
+  --violet-700: #2B11A8;
+  --violet-800: #200C7E;
+  --violet-900: #150853;
+
+  /* ---- Neutral / midnight scale (cool blue-tinted) ---- */
+  --neutral-0:   #FFFFFF;
+  --neutral-25:  #FAFBFF;  /* ← Blanco (the brand white) */
+  --neutral-50:  #F4F5FB;
+  --neutral-100: #E9EAF4;
+  --neutral-200: #D8DAE9;
+  --neutral-300: #BEC1D6;
+  --neutral-400: #9598B3;
+  --neutral-500: #6B6E8C;
+  --neutral-600: #4B4D6B;
+  --neutral-700: #32334E;
+  --neutral-800: #15163B;
+  --neutral-900: #01022E;  /* ← Azul medianoche */
+
+  /* ---- Naranja (CTA / alert accent) ---- */
+  --orange-50:  #FDEFE4;
+  --orange-100: #FBDFC9;
+  --orange-300: #F5AC75;
+  --orange-500: #EE792F;  /* ← Naranja */
+  --orange-600: #D96518;
+  --orange-700: #B05011;
+
+  /* ---- Azul claro (info / secondary accent) ---- */
+  --lightblue-50:  #EBF6FD;
+  --lightblue-100: #D7EDFB;
+  --lightblue-300: #9BD2F3;  /* ← Azul claro */
+  --lightblue-600: #2E84C0;
+  --lightblue-700: #20618F;
+
+  /* ---- Channel accent: WhatsApp (Truora is WhatsApp-first) ---- */
+  --whatsapp-500: #25D366;
+  --whatsapp-600: #1EBE5A;
+  --whatsapp-700: #128C7E;
+  --whatsapp-050: #E7FBEF;
+
+  /* ---- Semantic palettes ---- */
+  --success-50:  #E6F8EF;
+  --success-500: #15A66A;
+  --success-600: #0E8957;
+  --success-700: #0A6B45;
+
+  --danger-50:   #FDEAEA;
+  --danger-500:  #E5484D;
+  --danger-600:  #C8353B;
+  --danger-700:  #9F262C;
+
+  /* ============================================================
+     Semantic aliases — reference these in product UI, not the
+     raw scale values above.
+     ============================================================ */
+
+  /* Brand */
+  --brand:            var(--violet-500);
+  --brand-hover:      var(--violet-600);
+  --brand-active:     var(--violet-700);
+  --brand-subtle:     var(--violet-50);
+  --brand-subtle-2:   var(--violet-100);
+  --on-brand:         #FFFFFF;
+
+  /* CTA (Naranja — "botones, llamadas a la acción") */
+  --cta:              var(--orange-500);
+  --cta-hover:        var(--orange-600);
+  --cta-active:       var(--orange-700);
+  --cta-subtle:       var(--orange-50);
+  --on-cta:           #FFFFFF;
+
+  /* Midnight */
+  --midnight:         var(--neutral-900);
+  --on-midnight:      var(--neutral-25);
+
+  /* Text */
+  --text-strong:      var(--neutral-900);
+  --text-body:        var(--neutral-700);
+  --text-muted:       var(--neutral-500);
+  --text-subtle:      var(--neutral-400);
+  --text-on-brand:    #FFFFFF;
+  --text-link:        var(--violet-500);
+
+  /* Surfaces */
+  --surface-page:     var(--neutral-25);
+  --surface-card:     var(--neutral-0);
+  --surface-sunken:   var(--neutral-50);
+  --surface-inverse:  var(--neutral-900);
+  --surface-brand:    var(--violet-500);
+  --surface-brand-soft: var(--violet-50);
+  --surface-info:     var(--lightblue-50);
+
+  /* Borders */
+  --border-subtle:    var(--neutral-200);
+  --border-default:   var(--neutral-300);
+  --border-strong:    var(--neutral-400);
+  --border-brand:     var(--violet-500);
+  --focus-ring:       color-mix(in srgb, var(--violet-500) 45%, transparent);
+
+  /* Semantic surfaces/text */
+  --success:          var(--success-500);
+  --success-soft:     var(--success-50);
+  --warning:          var(--orange-500);   /* naranja doubles as alert color */
+  --warning-soft:     var(--orange-50);
+  --warning-700:      var(--orange-700);
+  --danger:           var(--danger-500);
+  --danger-soft:      var(--danger-50);
+  --info:             var(--lightblue-600);
+  --info-soft:        var(--lightblue-50);
+  --info-700:         var(--lightblue-700);
+  --whatsapp:         var(--whatsapp-500);
+  --whatsapp-soft:    var(--whatsapp-050);
+
+  /* ============================================================
+     Glass Effect — Truora's signature depth device.
+     Rectangles/squares ONLY (never circles). 20px backdrop blur.
+     Anatomy (per manual): near-transparent pane + 1px luminous
+     border + top light-catch, with a vivid violet brand shape
+     tucked PARTLY BEHIND the pane so it blooms through the blur.
+     On photography use the FROST variant (white frosted pane,
+     ink text, violet titles). Radius is proportional to size:
+     sm = caption bubbles · md = cards · lg = logo/icon tiles
+     (≈16% of the tile side).
+     ============================================================ */
+  --glass-fill:         rgba(250, 251, 255, 0.08);  /* on midnight / dark panels */
+  --glass-fill-strong:  rgba(250, 251, 255, 0.16);
+  --glass-fill-frost:   rgba(250, 251, 255, 0.55);  /* over photos — dark text */
+  --glass-fill-light:   rgba(60, 26, 234, 0.05);    /* on light surfaces */
+  --glass-border:       rgba(255, 255, 255, 0.45);
+  --glass-border-frost: rgba(255, 255, 255, 0.70);
+  --glass-border-light: rgba(1, 2, 46, 0.10);
+  --glass-highlight:    inset 0 1px 0 rgba(255, 255, 255, 0.22); /* @kind shadow */ /* top light-catch */
+  --glass-blur:         5px;   /* softened from the manual's 20px — keeps the pane crisp */
+  --glass-radius-sm:    14px;  /* caption bubbles, chips */
+  --glass-radius:       20px;  /* cards & panes */
+  --glass-radius-lg:    28px;  /* logo / icon tiles (~16% of a 170px tile) */
+}

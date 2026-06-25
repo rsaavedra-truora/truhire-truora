@@ -71,7 +71,7 @@ export function BenchmarkUploader({ onSave }: Props) {
           <label className="block text-xs font-medium text-gray-600 mb-1">Nombre (para identificarlo en la lista)</label>
           <input value={name} onChange={e => setName(e.target.value)}
             placeholder="Nombre de la persona"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0800FF]" />
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-truora-primary" />
         </div>
         {error && <p className="text-xs text-red-600">⚠ {error}</p>}
         <div className="flex gap-2">
@@ -97,13 +97,13 @@ export function BenchmarkUploader({ onSave }: Props) {
         onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
         className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
           state === 'extracting' ? 'border-blue-300 bg-blue-50 cursor-wait'
-          : isDragging ? 'border-[#0800FF] bg-[#E8E7FF] cursor-copy'
-          : 'border-gray-300 hover:border-[#0800FF] hover:bg-gray-50 cursor-pointer'
+          : isDragging ? 'border-truora-primary bg-truora-primary-soft cursor-copy'
+          : 'border-gray-300 hover:border-truora-primary hover:bg-gray-50 cursor-pointer'
         }`}
       >
         {state === 'extracting' ? (
           <div className="flex flex-col items-center gap-2">
-            <svg className="animate-spin h-6 w-6 text-[#0800FF]" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-6 w-6 text-truora-primary" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
@@ -115,7 +115,7 @@ export function BenchmarkUploader({ onSave }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             <p className="text-sm text-gray-600">
-              <span className="text-[#0800FF] font-medium">Arrastra el CV</span> o haz clic
+              <span className="text-truora-primary font-medium">Arrastra el CV</span> o haz clic
             </p>
             <p className="text-xs text-gray-400">PDF, Word o texto plano</p>
           </div>

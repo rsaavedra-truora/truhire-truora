@@ -197,7 +197,7 @@ export default async function CandidateProfilePage({
                   stage.status === 'done'
                     ? 'bg-green-50'
                     : stage.status === 'active'
-                    ? 'bg-[#E8E7FF]'
+                    ? 'bg-truora-primary-soft'
                     : 'bg-gray-50'
                 }`}
               >
@@ -206,7 +206,7 @@ export default async function CandidateProfilePage({
                     stage.status === 'done'
                       ? 'bg-green-500'
                       : stage.status === 'active'
-                      ? 'bg-[#0800FF]'
+                      ? 'bg-truora-primary'
                       : 'bg-gray-200'
                   }`}
                 >
@@ -230,7 +230,7 @@ export default async function CandidateProfilePage({
                     stage.status === 'done'
                       ? 'text-green-700'
                       : stage.status === 'active'
-                      ? 'text-[#0800FF]'
+                      ? 'text-truora-primary'
                       : 'text-gray-400'
                   }`}
                 >
@@ -577,7 +577,7 @@ export default async function CandidateProfilePage({
                 <input type="hidden" name="process_candidate_id" value={params.pcId} />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg border border-[#0800FF] text-[#0800FF] text-sm font-medium hover:bg-[#E8E7FF]"
+                  className="px-4 py-2 rounded-lg border border-truora-primary text-truora-primary text-sm font-medium hover:bg-truora-primary-soft"
                 >
                   Enviar al Bar Raiser →
                 </button>
