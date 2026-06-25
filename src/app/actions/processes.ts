@@ -15,9 +15,11 @@ export async function createProcess(formData: FormData) {
   const role_slug = (formData.get('role_slug') as string)?.trim().toLowerCase().replace(/\s+/g, '-') || null
   const role_description = formData.get('role_description') as string || null
   const role_description_structured_raw = formData.get('role_description_structured') as string | null
-  const role_description_structured = role_description_structured_raw
-    ? JSON.parse(role_description_structured_raw)
-    : null
+  let role_description_structured = null
+  if (role_description_structured_raw) {
+    try { role_description_structured = JSON.parse(role_description_structured_raw) }
+    catch { role_description_structured = null }
+  }
   const hiring_manager_email = (formData.get('hiring_manager_email') as string)?.trim() || null
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
@@ -71,9 +73,11 @@ export async function updateProcess(formData: FormData) {
   const role_slug = (formData.get('role_slug') as string)?.trim().toLowerCase().replace(/\s+/g, '-') || null
   const role_description = formData.get('role_description') as string || null
   const role_description_structured_raw = formData.get('role_description_structured') as string | null
-  const role_description_structured = role_description_structured_raw
-    ? JSON.parse(role_description_structured_raw)
-    : null
+  let role_description_structured = null
+  if (role_description_structured_raw) {
+    try { role_description_structured = JSON.parse(role_description_structured_raw) }
+    catch { role_description_structured = null }
+  }
   const hiring_manager_email = (formData.get('hiring_manager_email') as string)?.trim() || null
 
   if (!title || !entry_mode || !capa_intencional) throw new Error('Faltan campos obligatorios')
@@ -120,6 +124,11 @@ export async function closeProcess(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
+    throw new Error('Solo recruiters pueden cerrar procesos.')
+  }
 
   const processId = formData.get('process_id') as string
   const reason = formData.get('reason') as 'closed_hire' | 'closed_no_hire' | null

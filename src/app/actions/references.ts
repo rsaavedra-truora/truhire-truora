@@ -19,6 +19,15 @@ export async function addReference(formData: FormData) {
 
   if (!referenceName) throw new Error('El nombre de la referencia es obligatorio')
 
+  // Verificar que el candidato pertenece al proceso
+  const { data: pcCheck } = await supabase
+    .from('process_candidates')
+    .select('id')
+    .eq('candidate_id', candidateId)
+    .eq('process_id', processId)
+    .maybeSingle()
+  if (!pcCheck) throw new Error('El candidato no está asociado a este proceso.')
+
   const { error } = await supabase.from('candidate_references').insert({
     candidate_id: candidateId,
     process_id: processId,

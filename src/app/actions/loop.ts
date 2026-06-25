@@ -202,6 +202,11 @@ export async function initiateLoop(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
+    throw new Error('Solo recruiters pueden realizar esta acción.')
+  }
+
   const pcId = formData.get('process_candidate_id') as string
 
   const { data: pc } = await supabase
@@ -241,6 +246,11 @@ export async function sendToBarRaiser(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
+    throw new Error('Solo recruiters pueden realizar esta acción.')
+  }
 
   const pcId = formData.get('process_candidate_id') as string
 

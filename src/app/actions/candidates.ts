@@ -9,6 +9,11 @@ export async function removeCandidateFromProcess(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
+    throw new Error('Solo recruiters pueden eliminar candidatos.')
+  }
+
   const pcId = formData.get('pc_id') as string
   const processId = formData.get('process_id') as string
 
@@ -100,6 +105,14 @@ export async function updateCandidateStatus(formData: FormData) {
   const pcId = formData.get('pc_id') as string
   const newStatus = formData.get('status') as string
   const processId = formData.get('process_id') as string
+
+  const VALID_STATUSES = ['applied', 'screening', 'phone_screen', 'loop', 'decision', 'hired', 'rejected']
+  if (!VALID_STATUSES.includes(newStatus)) throw new Error('Estado no válido.')
+
+  // No permitir cambiar estado de candidatos ya contratados
+  const { data: currentPc } = await supabase
+    .from('process_candidates').select('status').eq('id', pcId).eq('process_id', processId).single()
+  if ((currentPc as any)?.status === 'hired') throw new Error('No se puede cambiar el estado de un candidato ya contratado.')
 
   // C8: Si se avanza a phone_screen, verificar que existe un screening
   if (newStatus === 'phone_screen') {

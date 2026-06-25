@@ -49,8 +49,12 @@ export default async function MetricsPage() {
 
   // Agreement rate AI vs recruiter
   const totalFeedback = screeningOverrides?.length ?? 0
-  const agreedCount = 0 // ya filtrado por agreed=false
-  const agreementRate = totalFeedback === 0 ? null : Math.round((1 - totalFeedback / Math.max(totalScreened ?? 1, 1)) * 100)
+  // TODO: implementar cuando exista feedback_classification
+  // agreedCount = screenings donde la clasificación AI coincide con la clasificación final del recruiter
+  const agreedCount = 0
+  const agreementRate = (totalScreened ?? 0) === 0
+    ? null
+    : Math.round((1 - totalFeedback / Math.max(totalScreened ?? 1, 1)) * 100)
 
   // Distribución de clasificaciones
   const { data: classDistrib } = await supabase
