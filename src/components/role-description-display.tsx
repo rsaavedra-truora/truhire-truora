@@ -242,7 +242,7 @@ function parseTruoraJD(text: string): ParsedTruoraJD {
   }
 
   let currentSection = ''
-  let missionLines: string[] = []
+  const missionLines: string[] = []
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
