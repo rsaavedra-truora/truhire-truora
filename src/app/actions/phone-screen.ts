@@ -10,9 +10,6 @@ export async function setupPhoneScreen(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: callerProfile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  const isRecruiter = ['recruiter', 'head_of_people'].includes((callerProfile as any)?.role ?? '')
-
   const pcId = formData.get('process_candidate_id') as string
   const competencies = formData.getAll('competencies') as string[]
   const calendlyUrl = formData.get('calendly_url') as string || null
@@ -39,26 +36,17 @@ export async function setupPhoneScreen(formData: FormData) {
   const hmEmailOverride = (formData.get('hm_email_override') as string | null)?.trim() || null
   let hmId = proc?.hiring_manager_or_sponsor_id ?? null
 
-  if (hmEmailOverride && isRecruiter) {
+  if (hmEmailOverride) {
     // Intentar resolver el email a user_id
     const { data: hmUser } = await supabase
       .from('users').select('id').eq('email', hmEmailOverride).maybeSingle()
 
     if (hmUser?.id) {
       hmId = hmUser.id
-      // Actualizar el proceso con el HM resuelto (solo recruiters pueden cambiar el proceso permanentemente)
       await supabase.from('processes')
         .update({ hiring_manager_or_sponsor_id: hmId })
         .eq('id', pc.process_id)
     }
-    // Si no está en users todavía (aún no hizo login), usamos user.id como fallback
-    // para que el phone screen pueda crearse — el HM correcto se asignará cuando haga login
-    if (!hmId) hmId = user.id
-  } else if (hmEmailOverride && !isRecruiter) {
-    // No recruiter: usar hmEmailOverride solo para la notificación, sin actualizar el proceso
-    const { data: hmUser } = await supabase
-      .from('users').select('id').eq('email', hmEmailOverride).maybeSingle()
-    if (hmUser?.id) hmId = hmUser.id
     if (!hmId) hmId = user.id
   }
 

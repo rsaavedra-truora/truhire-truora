@@ -125,11 +125,6 @@ export async function closeProcess(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (!['recruiter', 'head_of_people'].includes((profile as any)?.role ?? '')) {
-    throw new Error('Solo recruiters pueden cerrar procesos.')
-  }
-
   const processId = formData.get('process_id') as string
   const reason = formData.get('reason') as 'closed_hire' | 'closed_no_hire' | null
 
