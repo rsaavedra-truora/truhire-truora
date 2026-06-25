@@ -7,6 +7,7 @@ import { PrincipleRatingSelector, type PrincipleRating } from '@/components/prin
 import { QuestionBankSelector } from '@/components/question-bank-selector'
 import { SessionAnalysisUploader } from '@/components/session-analysis'
 import { getPrincipleBySlug, TRUORA_PRINCIPLES } from '@/lib/principles-data'
+import { PersonSearch } from '@/components/person-search'
 
 export default function InterviewPage() {
   const params = useParams()
@@ -17,6 +18,7 @@ export default function InterviewPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [loop, setLoop] = useState<any>(null)
   const [assignment, setAssignment] = useState<any>(null)
   const [candidate, setCandidate] = useState<any>(null)
@@ -28,6 +30,10 @@ export default function InterviewPage() {
   const [extraPrinciples, setExtraPrinciples] = useState<string[]>([])
   const [showPrinciplePicker, setShowPrinciplePicker] = useState(false)
 
+  // Evaluación delegada: el recruiter puede llenar por otro
+  const [evaluatorEmail, setEvaluatorEmail] = useState('')
+  const [evaluatorUser, setEvaluatorUser] = useState<any>(null)
+
   // Form state
   const [principleNotes, setPrincipleNotes] = useState<Record<string, string>>({})
   const [principleRatings, setPrincipleRatings] = useState<Record<string, PrincipleRating>>({})
@@ -37,12 +43,24 @@ export default function InterviewPage() {
   const [recommendation, setRecommendation] = useState<boolean | null>(null)
   const [isSigned, setIsSigned] = useState(false)
 
+  const effectiveEvaluatorId = evaluatorUser?.id
+
   useEffect(() => { loadData() }, [loopId])
 
   async function loadData() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     setCurrentUser(user)
+
+    // Cargar perfil del usuario para verificar si es recruiter
+    if (user) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role, full_name, email')
+        .eq('id', user.id)
+        .single()
+      setUserProfile(profile)
+    }
 
     const { data: loopData } = await supabase
       .from('loops')
@@ -110,15 +128,68 @@ export default function InterviewPage() {
     setLoading(false)
   }
 
+  // Cargar evaluación para un evaluador específico
+  async function loadEvaluationFor(evaluatorId: string) {
+    const { data: eval_ } = await supabase
+      .from('evaluations')
+      .select('*')
+      .eq('loop_id', loopId)
+      .eq('interviewer_id', evaluatorId)
+      .single()
+
+    if (eval_) {
+      setEvaluation(eval_)
+      const notes = eval_.principle_notes ?? {}
+      setPrincipleNotes(
+        Object.fromEntries(Object.entries(notes).map(([k, v]: any) => [k, v?.notes ?? v ?? '']))
+      )
+      const ratings: Record<string, PrincipleRating> = {}
+      const questions: Record<string, string | null> = {}
+      Object.entries(notes).forEach(([k, v]: any) => {
+        if (v?.rating) ratings[k] = v.rating
+        if (v?.question) questions[k] = v.question
+      })
+      setPrincipleRatings(ratings)
+      setPrincipleQuestions(questions)
+      setSummary(eval_.summary ?? '')
+      setConclusion(eval_.conclusion ?? '')
+      setRecommendation(eval_.recommendation)
+      setIsSigned(!!eval_.signed_at)
+      const evaluatedSlugs = Object.keys(notes).filter(slug => notes[slug])
+      if (evaluatedSlugs.length) setExtraPrinciples(evaluatedSlugs)
+    } else {
+      // Limpiar formulario si no existe evaluación
+      setEvaluation(null)
+      setPrincipleNotes({})
+      setPrincipleRatings({})
+      setPrincipleQuestions({})
+      setSummary('')
+      setConclusion('')
+      setRecommendation(null)
+      setIsSigned(false)
+      setExtraPrinciples([])
+    }
+  }
+
+  // Cuando cambia el evaluador seleccionado, cargar su evaluación
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (evaluatorUser?.id && evaluatorUser.id !== currentUser?.id) {
+      loadEvaluationFor(evaluatorUser.id)
+    } else if (currentUser?.id && !evaluatorUser) {
+      loadEvaluationFor(currentUser.id)
+    }
+  }, [evaluatorUser?.id, currentUser?.id, loopId])
+
   async function saveEvaluation(sign = false) {
-    if (!currentUser) return
+    if (!effectiveEvaluatorId) return
     // Evaluación firmada — inmutable. No se permiten modificaciones.
     if (isSigned) return
     setSaving(true)
 
     // Combinar notas + rating + pregunta en el JSONB por principio
     const allSlugs = new Set([...Object.keys(principleNotes), ...Object.keys(principleRatings), ...Object.keys(principleQuestions)])
-    const combinedNotes: Record<string, { notes: string; rating: PrincipleRating | null; question: string | null }> = {}
+    const combinedNotes: Record<string, { notes: string; rating: PrincipleRating | null; question: string | null; proxy_filled_by?: string }> = {}
     allSlugs.forEach(slug => {
       combinedNotes[slug] = {
         notes: principleNotes[slug] ?? '',
@@ -127,10 +198,15 @@ export default function InterviewPage() {
       }
     })
 
+    // Si es evaluación delegada, registrar quién la llenó
+    const isDelegated = evaluatorUser && evaluatorUser.id !== currentUser?.id
+
     const payload = {
       loop_id: loopId,
-      interviewer_id: currentUser.id,
-      principle_notes: combinedNotes,
+      interviewer_id: effectiveEvaluatorId,
+      principle_notes: isDelegated
+        ? { ...combinedNotes, _proxy: { filled_by: currentUser?.id, filled_by_name: userProfile?.full_name, filled_at: new Date().toISOString() } }
+        : combinedNotes,
       summary,
       conclusion,
       recommendation,
@@ -153,13 +229,17 @@ export default function InterviewPage() {
 
   const myPrinciples: any[] = []
 
+  const isDelegated = evaluatorUser && evaluatorUser.id !== currentUser?.id
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Interview Loop — Tu evaluación</p>
+            <p className="text-xs text-gray-500 mb-1">
+              Interview Loop — {evaluatorUser ? `Evaluación de ${evaluatorUser.full_name}` : 'Selecciona evaluador'}
+            </p>
             <h1 className="text-xl font-semibold text-gray-900">{(candidate as any)?.full_name}</h1>
             <p className="text-sm text-gray-500 mt-0.5">{(candidate as any)?.email}</p>
             {(candidate as any)?.linkedin_url && (
@@ -180,6 +260,33 @@ export default function InterviewPage() {
           </div>
         </div>
       </div>
+
+      {/* Selector de evaluador — obligatorio para todos */}
+      {!isSigned && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-800 mb-2">¿Quién está evaluando?</p>
+              <div className="max-w-md">
+                <PersonSearch
+                  value={evaluatorEmail}
+                  onChange={(email, person) => {
+                    setEvaluatorEmail(email)
+                    setEvaluatorUser(person)
+                  }}
+                  placeholder="Selecciona al evaluador..."
+                  required
+                />
+              </div>
+              {evaluatorUser && (
+                <p className="text-xs text-green-600 mt-2">
+                  ✓ Evaluando como <strong>{evaluatorUser.full_name}</strong>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Banner: notas con Gemini */}
       {!isSigned && (
@@ -431,10 +538,13 @@ export default function InterviewPage() {
         {/* Acciones */}
         {!isSigned && (
           <div className="flex gap-3 pt-2">
+            {!evaluatorUser && (
+              <p className="text-xs text-amber-600 py-2">⚠ Selecciona quién está evaluando antes de guardar</p>
+            )}
             <button
               type="button"
               onClick={() => saveEvaluation(false)}
-              disabled={saving}
+              disabled={saving || !evaluatorUser}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar borrador'}
@@ -442,7 +552,7 @@ export default function InterviewPage() {
             <button
               type="button"
               onClick={() => saveEvaluation(true)}
-              disabled={saving || recommendation === null || !conclusion.trim()}
+              disabled={saving || recommendation === null || !conclusion.trim() || !evaluatorUser}
               className="btn-truora disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Firmar y enviar evaluación
